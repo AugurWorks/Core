@@ -6,11 +6,21 @@ public class Neuron implements Inp {
 	private double offset;
 	private double lastOutput;
 	private double lastCode;
+	private String name;
 
 	public Neuron() {
 		this.weights = new ArrayList<Double>();
 		this.inputs = new ArrayList<Inp>();
 		this.offset = 0;
+		this.name = "";
+	}
+	
+	public void setName(String n) {
+		this.name = n;
+	}
+	
+	public String getName() {
+		return this.name;
 	}
 
 	/**
