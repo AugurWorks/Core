@@ -333,13 +333,166 @@ public class CubeNet {
 	}
 
 	public static void main(String[] args) {
+		// OR test
+		CubeNet c = new CubeNet(2, 2, 3);
+
+		// set initial weights as nonzero for connections
+		c.setWeight(0, 0, 0, 0, 0, 1, 0.2);
+		c.setWeight(0, 0, 0, 1, 1, 1, 0.4);
+		c.setWeight(1, 1, 0, 0, 0, 1, -0.3);
+		c.setWeight(1, 1, 0, 1, 1, 1, 0.8);
+		c.setWeight(0, 0, 1, 0, 0, 2, -0.4);
+		c.setWeight(1, 1, 1, 0, 0, 2, 0.6);
+
+		// 00
+		double[][][] samples00 = new double[2][2][1];
+		samples00[0][0][0] = 0;
+		samples00[0][1][0] = 0;
+		samples00[1][0][0] = 0;
+		samples00[1][1][0] = 0;
+
+		double[][][] des00 = new double[2][2][1];
+		des00[0][0][0] = 0;
+		des00[0][1][0] = 0.5;
+		des00[1][0][0] = 0.5;
+		des00[1][1][0] = 0.5;
+
+		// 01
+		double[][][] samples01 = new double[2][2][1];
+		samples01[0][0][0] = 0;
+		samples01[0][1][0] = 0;
+		samples01[1][0][0] = 0;
+		samples01[1][1][0] = 1;
+
+		double[][][] des01 = new double[2][2][1];
+		des01[0][0][0] = 1;
+		des01[0][1][0] = 0.5;
+		des01[1][0][0] = 0.5;
+		des01[1][1][0] = 0.5;
+
+		// 10
+		double[][][] samples10 = new double[2][2][1];
+		samples10[0][0][0] = 1;
+		samples10[0][1][0] = 0;
+		samples10[1][0][0] = 0;
+		samples10[1][1][0] = 0;
+
+		double[][][] des10 = new double[2][2][1];
+		des10[0][0][0] = 1;
+		des10[0][1][0] = 0.5;
+		des10[1][0][0] = 0.5;
+		des10[1][1][0] = 0.5;
+
+		// 11
+		double[][][] samples11 = new double[2][2][1];
+		samples11[0][0][0] = 1;
+		samples11[0][1][0] = 0;
+		samples11[1][0][0] = 0;
+		samples11[1][1][0] = 1;
+
+		double[][][] des11 = new double[2][2][1];
+		des11[0][0][0] = 1;
+		des11[0][1][0] = 0.5;
+		des11[1][0][0] = 0.5;
+		des11[1][1][0] = 0.5;
+
+		// Before training
+		double[][] inp00 = new double[2][2];
+		inp00[0][0] = 0;
+		inp00[0][1] = 0;
+		inp00[1][0] = 0;
+		inp00[1][1] = 0;
+
+		double[][] inp01 = new double[2][2];
+		inp01[0][0] = 0;
+		inp01[0][1] = 0;
+		inp01[1][0] = 0;
+		inp01[1][1] = 1;
+
+		double[][] inp10 = new double[2][2];
+		inp10[0][0] = 1;
+		inp10[0][1] = 0;
+		inp10[1][0] = 0;
+		inp10[1][1] = 0;
+
+		double[][] inp11 = new double[2][2];
+		inp11[0][0] = 1;
+		inp11[0][1] = 0;
+		inp11[1][0] = 0;
+		inp11[1][1] = 1;
+
+		double output;
+		System.out.println("Before training\n");
+		
+		c.setInputs(inp00);
+		output = c.getOutput()[0][0];
+		System.out.println("00: " + output + ", diff: "
+				+ (output - des00[0][0][0]));
+
+		c.setInputs(inp01);
+		output = c.getOutput()[0][0];
+		System.out.println("01: " + output + ", diff: "
+				+ (output - des01[0][0][0]));
+
+		c.setInputs(inp10);
+		output = c.getOutput()[0][0];
+		System.out.println("10: " + output + ", diff: "
+				+ (output - des10[0][0][0]));
+
+		c.setInputs(inp11);
+		output = c.getOutput()[0][0];
+		System.out.println("11: " + output + ", diff: "
+				+ (output - des11[0][0][0]));
+
+		// Training
+		int trainingRounds = 500;
+		int intermediateRounds = 1000;
+		for (int i = 0; i < trainingRounds; i++) {
+			for (int j = 0; j < intermediateRounds; j++) {
+				c.train(0.1, samples00, des00, -1);
+			}
+			for (int j = 0; j < intermediateRounds; j++) {
+				c.train(0.1, samples01, des01, -1);
+			}
+			for (int j = 0; j < intermediateRounds; j++) {
+				c.train(0.1, samples10, des10, -1);
+			}
+			for (int j = 0; j < intermediateRounds; j++) {
+				c.train(0.1, samples11, des11, -1);
+			}	
+		}
+
+		System.out.println("\nAfter training\n");
+		
+		c.setInputs(inp00);
+		output = c.getOutput()[0][0];
+		System.out.println("00: " + output + ", diff: "
+				+ (output - des00[0][0][0]));
+
+		c.setInputs(inp01);
+		output = c.getOutput()[0][0];
+		System.out.println("01: " + output + ", diff: "
+				+ (output - des01[0][0][0]));
+
+		c.setInputs(inp10);
+		output = c.getOutput()[0][0];
+		System.out.println("10: " + output + ", diff: "
+				+ (output - des10[0][0][0]));
+
+		c.setInputs(inp11);
+		output = c.getOutput()[0][0];
+		System.out.println("11: " + output + ", diff: "
+				+ (output - des11[0][0][0]));
+	}
+
+	public static void main2(String[] args) {
 		CubeNet c = new CubeNet(2, 2, 3);
 		// since the cubenet is 2 x 2 x 3
 		// the network we are interested in is setup like this:
 		// INPUT A ----- A
-		// 		   \ / \
-		// 		   / \ C --- OUTPUT
-		// 		  / \ /
+		// \ / \
+		// / \ C --- OUTPUT
+		// / \ /
 		// INPUT B ----- B
 		// names go from left to right
 		//
@@ -414,7 +567,7 @@ public class CubeNet {
 				+ (output - desO[0][0][0]));
 
 		double mindiff = Double.MAX_VALUE;
-		
+
 		int trainingRounds = 1000;
 		for (int i = 0; i < trainingRounds; i++) {
 			c.train(0.1, samples, desO, -1);
