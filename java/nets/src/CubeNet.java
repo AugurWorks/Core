@@ -1,9 +1,18 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 public class CubeNet {
 	private Input[][] inputs;
 	private Neuron[][][] neurons;
 	private int x;
 	private int y;
 	private int z;
+	public static boolean verbose = true;
 
 	public CubeNet() {
 		this.x = 10;
@@ -113,7 +122,6 @@ public class CubeNet {
 
 	public void train(double r, double samples[][][],
 			double[][][] desiredOutput, double perfLimit) {
-		boolean verbose = false;
 		assert (samples.length == x);
 		assert (samples[0].length == y);
 		assert (samples[0][0].length == desiredOutput.length);
@@ -333,6 +341,91 @@ public class CubeNet {
 	}
 
 	public static void main(String[] args) {
+		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+		String text = "";
+		boolean looking = true;
+		try {
+			while (looking) {
+				System.out
+						.println("Please enter an absolute location for a training file:");
+				text = in.readLine();
+				if (!text.endsWith(".augtrain")) {
+					System.out.println("Please enter a valid training file...");
+				} else {
+					looking = false;
+					trainFile(text);
+				}
+			}
+		} catch (IOException e) {
+			System.err.println("File not found: " + text);
+		}
+	}
+
+	public static void trainFile(String fileName) {
+		boolean valid = validateAUGt(fileName);
+		if (verbose) {
+			System.out.println("Valid file? " + valid);
+		}
+	}
+
+	public static boolean validateAUGt(String fileName) {
+		Charset charset = Charset.forName("US-ASCII");
+		Path file = Paths.get(fileName);
+		try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
+			String line = null;
+			int lineNumber = 1;
+			String[] lineSplit;
+			int n = 0;
+			while ((line = reader.readLine()) != null) {
+				if (verbose) {
+					System.out.println(line);
+				}
+				try {
+					lineSplit = line.split(" ");
+					switch (lineNumber) {
+					case 1:
+						assert (lineSplit[0].equals("grid"));
+						String[] size = lineSplit[1].split(",");
+						assert (Integer.valueOf(size[0]) > 0);
+						assert (Integer.valueOf(size[1]) == Integer
+								.valueOf(size[0]));
+						n = Integer.valueOf(size[0]);
+						assert (Integer.valueOf(size[2]) > 0);
+						break;
+					case 2:
+						assert (lineSplit[0].equals("train"));
+						size = lineSplit[1].split(",");
+						assert (Integer.valueOf(size[0]) > 0);
+						assert (Integer.valueOf(size[1]) > 0);
+						break;
+					case 3:
+						assert (lineSplit[0].equals("TITLES"));
+						size = lineSplit[1].split(",");
+						assert (size.length == n * n);
+						break;
+					default:
+						assert (Double.valueOf(lineSplit[0]) != null);
+						size = lineSplit[1].split(",");
+						assert (size.length == n * n);
+						break;
+					}
+					lineNumber++;
+				} catch (Exception e) {
+					if (verbose)
+						System.err.println("Validation failed at line: "
+								+ lineNumber);
+					return false;
+				}
+			}
+		} catch (IOException x) {
+			if (verbose)
+				System.err.format("IOException: %s%n", x);
+			return false;
+		}
+		return true;
+	}
+
+	public static void mainOR(String[] args) {
 		// OR test
 		CubeNet c = new CubeNet(2, 2, 3);
 
@@ -423,7 +516,7 @@ public class CubeNet {
 
 		double output;
 		System.out.println("Before training\n");
-		
+
 		c.setInputs(inp00);
 		output = c.getOutput()[0][0];
 		System.out.println("00: " + output + ", diff: "
@@ -459,11 +552,11 @@ public class CubeNet {
 			}
 			for (int j = 0; j < intermediateRounds; j++) {
 				c.train(0.1, samples11, des11, -1);
-			}	
+			}
 		}
 
 		System.out.println("\nAfter training\n");
-		
+
 		c.setInputs(inp00);
 		output = c.getOutput()[0][0];
 		System.out.println("00: " + output + ", diff: "
