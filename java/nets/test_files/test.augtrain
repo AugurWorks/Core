@@ -1,5 +1,5 @@
 grid 2,2,3
-train 50,500
+train 5000,1000
 TITLES A,B,false,false
 0 0,0,0,0
 1 1,0,0,0

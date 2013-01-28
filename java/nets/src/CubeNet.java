@@ -36,12 +36,21 @@ public class CubeNet {
 			}
 		}
 	}
-	
+
 	public void setInputs(double[][][] nums, int depth) {
 		for (int i = 0; i < x; i++) {
 			for (int j = 0; j < y; j++) {
 				this.inputs[i][j].setValue(nums[i][j][depth]);
 			}
+		}
+	}
+
+	public static void printInputs(double[][][] nums, int depth) {
+		for (int i = 0; i < nums.length; i++) {
+			for (int j = 0; j < nums[0].length; j++) {
+				System.out.print(nums[i][j][depth] + " ");
+			}
+			System.out.print("\n");
 		}
 	}
 
@@ -73,7 +82,8 @@ public class CubeNet {
 						for (int ii = 0; ii < x; ii++) {
 							for (int jj = 0; jj < y; jj++) {
 								this.neurons[i][j][k].addInput(
-										this.neurons[ii][jj][k - 1], Math.random());
+										this.neurons[ii][jj][k - 1],
+										Math.random());
 							}
 						}
 					}
@@ -140,13 +150,13 @@ public class CubeNet {
 		// 2) until perf is satisfactory
 		double min = Double.NEGATIVE_INFINITY;
 		for (int outCount = 0; outCount < outerIter; outCount++) {
-			double[][] actual;
-			double[][] desired = new double[x][y];
-			double[][] differenceSquared = new double[x][y];
-			double[][][] weightDeltas = new double[x][y][z];
 			// for each sample input
 			for (int sampleNumber = 0; sampleNumber < numSamples; sampleNumber++) {
 				for (int count = 0; count < innerIter; count++) {
+					double[][] actual;
+					double[][] desired = new double[x][y];
+					double[][] differenceSquared = new double[x][y];
+					double[][][] weightDeltas = new double[x][y][z];
 					// System.out.println("Sample number: " + sampleNumber);
 					double[][] samp = new double[x][y];
 					/*
@@ -346,15 +356,20 @@ public class CubeNet {
 	}
 
 	public static void main(String[] args) {
+		//mainOR(null);
+		//System.exit(0);
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 		String text = "";
 		boolean looking = true;
+		String def = "C:\\Users\\Stephen\\workspace\\AugurWorks\\Core\\java\\nets\\test_files\\test.augtrain";
 		try {
 			while (looking) {
 				System.out
-						.println("Please enter an absolute location for a training file:");
+						.println("Please enter an absolute location for a training file, or press ENTER for default (" + def + "):");
 				text = in.readLine();
-				if (!text.endsWith(".augtrain")) {
+				if (text.equals("")) {
+					trainFile(def);
+				} else if (!text.endsWith(".augtrain")) {
 					System.out.println("Please enter a valid training file...");
 				} else {
 					looking = false;
@@ -457,13 +472,13 @@ public class CubeNet {
 		// run the training program
 		c.train(0.1, training, targ, -1, rowIter, fileIter);
 		// test her out
-		c.setInputs(training,0);
+		c.setInputs(training, 0);
 		System.out.println(c.getOutput()[0][0]);
-		c.setInputs(training,1);
+		c.setInputs(training, 1);
 		System.out.println(c.getOutput()[0][0]);
-		c.setInputs(training,2);
+		c.setInputs(training, 2);
 		System.out.println(c.getOutput()[0][0]);
-		c.setInputs(training,3);
+		c.setInputs(training, 3);
 		System.out.println(c.getOutput()[0][0]);
 		System.exit(0);
 	}
@@ -528,6 +543,27 @@ public class CubeNet {
 	public static void mainOR(String[] args) {
 		// OR test
 		CubeNet c = new CubeNet(2, 2, 3);
+
+		for (int k = 0; k < 3; k++) {
+			for (int i = 0; i < 2; i++) {
+				for (int j = 0; j < 2; j++) {
+					// if k == 0, connect to inputs
+					if (k == 0) {
+						c.neurons[i][j][k].addInput(c.inputs[i][j], 1);
+					} else {
+						// else, connect each neuron in
+						// a layer to each neuron in the
+						// previous layer.
+						for (int ii = 0; ii < 2; ii++) {
+							for (int jj = 0; jj < 2; jj++) {
+								c.neurons[i][j][k].addInput(
+										c.neurons[ii][jj][k - 1], 0);
+							}
+						}
+					}
+				}
+			}
+		}
 
 		// set initial weights as nonzero for connections
 		c.setWeight(0, 0, 0, 0, 0, 1, 0.2);
@@ -637,23 +673,37 @@ public class CubeNet {
 		System.out.println("11: " + output + ", diff: "
 				+ (output - des11[0][0][0]));
 
-		// Training
-		int trainingRounds = 500;
-		int intermediateRounds = 1000;
-		for (int i = 0; i < trainingRounds; i++) {
-			for (int j = 0; j < intermediateRounds; j++) {
-//				c.train(0.1, samples00, des00, -1);
-			}
-			for (int j = 0; j < intermediateRounds; j++) {
-//				c.train(0.1, samples01, des01, -1);
-			}
-			for (int j = 0; j < intermediateRounds; j++) {
-//				c.train(0.1, samples10, des10, -1);
-			}
-			for (int j = 0; j < intermediateRounds; j++) {
-//				c.train(0.1, samples11, des11, -1);
+		double[][][] inputs = new double[4][4][4];
+		double[][][] desireds = new double[4][4][4];
+		for (int k = 0; k < 4; k++) {
+			for (int i = 0; i < 2; i++) {
+				for (int j = 0; j < 2; j++) {
+					switch (k) {
+					case 0:
+						inputs[i][j][k] = samples00[i][j][0];
+						desireds[i][j][k] = des00[i][j][0];
+						break;
+					case 1:
+						inputs[i][j][k] = samples01[i][j][0];
+						desireds[i][j][k] = des01[i][j][0];
+						break;
+					case 2:
+						inputs[i][j][k] = samples10[i][j][0];
+						desireds[i][j][k] = des10[i][j][0];
+						break;
+					case 3:
+						inputs[i][j][k] = samples11[i][j][0];
+						desireds[i][j][k] = des11[i][j][0];
+						break;
+					}
+				}
 			}
 		}
+
+		// Training
+		int trainingRounds = 100;
+		int intermediateRounds = 100;
+		c.train(0.1, inputs, desireds, -1, intermediateRounds, trainingRounds);
 
 		System.out.println("\nAfter training\n");
 
@@ -763,7 +813,7 @@ public class CubeNet {
 
 		int trainingRounds = 1000;
 		for (int i = 0; i < trainingRounds; i++) {
-//			c.train(0.1, samples, desO, -1);
+			// c.train(0.1, samples, desO, -1);
 			output = c.getOutput()[0][0];
 			double diff = (output - desO[0][0][0]);
 			if (diff < mindiff) {
@@ -862,7 +912,7 @@ public class CubeNet {
 			}
 		}
 
-//		c.train(rate, trainingData, expected, perfLimit);
+		// c.train(rate, trainingData, expected, perfLimit);
 		System.out.println("Trained:");
 
 		// and some test data
