@@ -1,3 +1,8 @@
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import twitter4j.FilterQuery;
 import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
@@ -18,8 +23,9 @@ public class TwitterReader {
 	private static final String CONSUMER_KEY = "iLQm2VraHR2MLe2mwS2mvg";
 	private static final String CONSUMER_SECRET = "BNx6ij82BtzMVoEEvk6Y4xBDRjdAV8arWysSU7YmGA";
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		System.out.println("Starting connect...");
+		final PrintWriter out = new PrintWriter(new FileWriter("C:\\Users\\TheConnMan\\Downloads\\outputfile.txt"));
 
 		ConfigurationBuilder builder = new ConfigurationBuilder();
 		builder.setOAuthAccessToken(ACCESS_TOKEN);
@@ -30,7 +36,7 @@ public class TwitterReader {
 		StatusListener listener = new StatusListener() {
 			@Override
 			public void onStatus(Status status) {
-				System.out.println(status.getUser().getName() + " : "
+				out.println(status.getUser().getName() + " : "
 						+ status.getText());
 			}
 
@@ -62,6 +68,13 @@ public class TwitterReader {
 		TwitterStream twitterStream = new TwitterStreamFactory()
 				.getInstance(auth);
 		twitterStream.addListener(listener);
-		twitterStream.sample();
+		//twitterStream.sample();
+		FilterQuery query = new FilterQuery();
+		String track[] = {"nemo"};
+		//String track[] = {"opec", "big data"};
+		query.track(track);
+		double locations[][] = {{42.244531,-83.776245},{42.321747,-83.664322}};
+		//query.locations(locations);
+		twitterStream.filter(query);
 	}
 }
