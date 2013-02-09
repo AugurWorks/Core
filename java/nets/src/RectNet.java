@@ -39,6 +39,12 @@ public class RectNet implements Net {
 		this.y = numInputs;
 		init();
 	}
+	public RectNet(int depth, int numInputs, boolean verb) {
+		this.x = depth;
+		this.y = numInputs;
+		this.verbose = verb;
+		init();
+	}
 
 	/**
 	 * 
@@ -51,7 +57,7 @@ public class RectNet implements Net {
 	private double getWeight(int leftCol, int leftRow, int rightCol,
 			int rightRow) {
 		return this.neurons[rightCol][rightRow]
-				.getWeight(this.neurons[leftCol][leftCol]);
+				.getWeight(this.neurons[leftCol][leftRow]);
 	}
 
 	/**
@@ -93,7 +99,7 @@ public class RectNet implements Net {
 			this.neurons[0][j].addInput(this.inputs[j], initNum());
 		}
 		// Make connections between neurons and neurons.
-		for (int leftCol = 0; leftCol < this.x; leftCol++) {
+		for (int leftCol = 0; leftCol < this.x - 1; leftCol++) {
 			int rightCol = leftCol + 1;
 			for (int leftRow = 0; leftRow < this.y; leftRow++) {
 				for (int rightRow = 0; rightRow < this.y; rightRow++) {
@@ -115,7 +121,7 @@ public class RectNet implements Net {
 	 *         connections.
 	 */
 	private double initNum() {
-		return Math.random();
+		return Math.random() - 0.5;
 	}
 
 	/**
@@ -157,60 +163,90 @@ public class RectNet implements Net {
 	public void train(double[] inpts, double desired, int iterations,
 			double learningConstant) {
 		assert (iterations > 0);
-		// Set the inputs
-		this.setInputs(inpts);
-		// Compute the last node error
-		double deltaF = this.outputError(desired);
-		// For each interior node, compute the weighted error
-		// deltas are of the form
-		// delta[col][row]
-		double[][] deltas = new double[this.x + 1][this.y];
-		// spoof the rightmost deltas
-		for (int j = 0; j < y; j++) {
-			deltas[this.x + 1][j] = deltaF;
-		}
-		int leftCol = 0;
-		int leftRow = 0;
-		int rightCol = 0;
-		int rightRow = 0;
-		for (leftCol = this.x - 2; leftCol >= 0; leftCol--) {
-			rightCol = leftCol + 1;
-			for (leftRow = 0; leftRow < this.y; leftRow++) {
-				double lastOutput = this.neurons[leftCol][leftRow]
-						.getLastOutput();
-				double delta = lastOutput * (1 - lastOutput);
-				double summedRightWeightDelta = 0;
-				for (rightRow = 0; rightRow < this.y; rightRow++) {
-					// summing w * delta
-					summedRightWeightDelta += getWeight(leftCol, leftRow,
-							rightCol, rightRow) * deltas[rightCol][rightRow];
-				}
-				deltas[leftCol][leftRow] = delta * summedRightWeightDelta;
+		for (int lcv = 0; lcv < iterations; lcv++) {
+			// Set the inputs
+			this.setInputs(inpts);
+			// Compute the last node error
+			double deltaF = this.outputError(desired);
+			if (verbose) {
+				System.out.println("DeltaF: " + deltaF);
 			}
-		}
-		// now that we have the deltas, we can change the weights
-		// again, we special case the last neuron
-		for (int j = 0; j < this.y; j++) {
-			// w' = w + r*i*delta
-			// r is the learning constant
-			// i is the output from the leftward neuron
-			double dw = learningConstant
-					* this.neurons[this.x - 1][j].getLastOutput() * deltaF;
-			this.output.changeWeight(this.neurons[this.x - 1][j], dw);
-		}
-		// now we do the same for the internal nodes
-		for (leftCol = this.x - 2; leftCol >= 0; leftCol--) {
-			rightCol = leftCol + 1;
-			for (leftRow = 0; leftRow < this.y; leftRow++) {
-				for (rightRow = 0; rightRow < this.y; rightRow++) {
-					// w' = w + r*i*delta
-					// r is the learning constant
-					// i is the output from the leftward neuron
-					double dw = learningConstant
-							* this.neurons[leftCol][leftRow].getLastOutput()
-							* deltas[rightCol][rightRow];
-					this.neurons[rightCol][rightRow].changeWeight(
-							this.neurons[leftCol][leftRow], dw);
+			// For each interior node, compute the weighted error
+			// deltas are of the form
+			// delta[col][row]
+			double[][] deltas = new double[this.x + 1][this.y];
+			// spoof the rightmost deltas
+			for (int j = 0; j < y; j++) {
+				deltas[this.x][j] = deltaF;
+			}
+			int leftCol = 0;
+			int leftRow = 0;
+			int rightCol = 0;
+			int rightRow = 0;
+			for (leftCol = this.x - 1; leftCol >= 0; leftCol--) {
+				rightCol = leftCol + 1;
+				for (leftRow = 0; leftRow < this.y; leftRow++) {
+					double lastOutput = this.neurons[leftCol][leftRow]
+							.getLastOutput();
+					double delta = lastOutput * (1 - lastOutput);
+					double summedRightWeightDelta = 0;
+					for (rightRow = 0; rightRow < this.y; rightRow++) {
+						if (rightCol == this.x) {
+							summedRightWeightDelta += this.output
+									.getWeight(this.neurons[leftCol][leftRow])
+									* deltaF;
+						} else {
+							// summing w * delta
+							summedRightWeightDelta += getWeight(leftCol,
+									leftRow, rightCol, rightRow)
+									* deltas[rightCol][rightRow];
+						}
+					}
+					deltas[leftCol][leftRow] = delta * summedRightWeightDelta;
+					if (verbose) {
+						System.out.println("leftCol: " + leftCol
+								+ ", leftRow: " + leftRow + ", lo*(1-lo): "
+								+ delta);
+						System.out.println("leftCol: " + leftCol
+								+ ", leftRow: " + leftRow + ", srwd: "
+								+ summedRightWeightDelta);
+						System.out.println("leftCol: " + leftCol
+								+ ", leftRow: " + leftRow + ", delta: "
+								+ deltas[leftCol][leftRow]);
+					}
+				}
+			}
+			// now that we have the deltas, we can change the weights
+			// again, we special case the last neuron
+			for (int j = 0; j < this.y; j++) {
+				// w' = w + r*i*delta
+				// r is the learning constant
+				// i is the output from the leftward neuron
+				double dw = learningConstant
+						* this.neurons[this.x - 1][j].getLastOutput() * deltaF;
+				this.output.changeWeight(this.neurons[this.x - 1][j], dw);
+			}
+			// now we do the same for the internal nodes
+			for (leftCol = this.x - 2; leftCol >= 0; leftCol--) {
+				rightCol = leftCol + 1;
+				for (leftRow = 0; leftRow < this.y; leftRow++) {
+					for (rightRow = 0; rightRow < this.y; rightRow++) {
+						// w' = w + r*i*delta
+						// r is the learning constant
+						// i is the output from the leftward neuron
+						double dw = learningConstant
+								* this.neurons[leftCol][leftRow]
+										.getLastOutput()
+								* deltas[rightCol][rightRow];
+						this.neurons[rightCol][rightRow].changeWeight(
+								this.neurons[leftCol][leftRow], dw);
+						if (verbose) {
+							System.out.println(leftCol + "," + leftRow + "->"
+									+ rightCol + "," + rightRow);
+							System.out.println(this.neurons[rightCol][rightRow]
+									.getWeight(this.neurons[leftCol][leftRow]));
+						}
+					}
 				}
 			}
 		}
@@ -231,10 +267,30 @@ public class RectNet implements Net {
 	}
 
 	public static void main(String[] args) {
-		int[][] a = { { 1, 2 }, { 3, 4 } };
-		System.out.println(a[0][0]);
-		System.out.println(a[0][1]);
-		System.out.println(a[0][0]);
+		RectNet r = new RectNet(2, 2, false);
+		double[] or00 = { 0, 0 };
+		double[] or01 = { 0, 1 };
+		double[] or10 = { 1, 0 };
+		double[] or11 = { 1, 1 };
+		int outerRounds = 10;
+		int innerRounds = 10000;
+		double lc = 0.2;
+		for (int i = 0; i < outerRounds; i++) {
+			r.train(or00, 0.2, innerRounds, lc);
+			r.train(or01, 0.2, innerRounds, lc);
+			r.train(or10, 0.2, innerRounds, lc);
+			r.train(or11, 0.8, innerRounds, lc);
+		}
+		// test
+		System.out.println("-------------------------");
+		System.out.println("Test Results: ");
+		r.setInputs(or00);
+		System.out.println(r.getOutput());
+		r.setInputs(or01);
+		System.out.println(r.getOutput());
+		r.setInputs(or10);
+		System.out.println(r.getOutput());
+		r.setInputs(or11);
+		System.out.println(r.getOutput());
 	}
-
 }
