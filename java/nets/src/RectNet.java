@@ -39,6 +39,16 @@ public class RectNet implements Net {
 		this.y = numInputs;
 		init();
 	}
+
+	/**
+	 * Constructs a new RectNet with given depth and number of inputs. Sets the
+	 * verbose boolean as given.
+	 * 
+	 * @param depth
+	 * @param numInputs
+	 * @param verb
+	 *            true when RectNet displays debug output.
+	 */
 	public RectNet(int depth, int numInputs, boolean verb) {
 		this.x = depth;
 		this.y = numInputs;
@@ -58,20 +68,6 @@ public class RectNet implements Net {
 			int rightRow) {
 		return this.neurons[rightCol][rightRow]
 				.getWeight(this.neurons[leftCol][leftRow]);
-	}
-
-	/**
-	 * 
-	 * @param delta
-	 * @param leftCol
-	 * @param leftRow
-	 * @param rightCol
-	 * @param rightRow
-	 */
-	private void changeWeight(double delta, int leftCol, int leftRow,
-			int rightCol, int rightRow) {
-		this.neurons[rightCol][rightRow].changeWeight(
-				this.neurons[leftCol][leftRow], delta);
 	}
 
 	/**
@@ -272,14 +268,43 @@ public class RectNet implements Net {
 		double[] or01 = { 0, 1 };
 		double[] or10 = { 1, 0 };
 		double[] or11 = { 1, 1 };
-		int outerRounds = 10;
-		int innerRounds = 10000;
-		double lc = 0.2;
+		int outerRounds = 100000;
+		int innerRounds = 1;
+		double lc = 1;
+		double maxScore = Double.NEGATIVE_INFINITY;
 		for (int i = 0; i < outerRounds; i++) {
-			r.train(or00, 0.2, innerRounds, lc);
-			r.train(or01, 0.2, innerRounds, lc);
-			r.train(or10, 0.2, innerRounds, lc);
-			r.train(or11, 0.8, innerRounds, lc);
+			r.train(or00, 1, innerRounds, lc);
+			r.train(or01, 0, innerRounds, lc);
+			r.train(or10, 0, innerRounds, lc);
+			r.train(or11, 0, innerRounds, lc);
+
+			double score = 0;
+			r.setInputs(or00);
+			score += Math.pow((1 - r.getOutput()), 2);
+			r.setInputs(or01);
+			score += Math.pow((0 - r.getOutput()), 2);
+			r.setInputs(or10);
+			score += Math.pow((0 - r.getOutput()), 2);
+			r.setInputs(or11);
+			score += Math.pow((0 - r.getOutput()), 2);
+			score *= -1;
+
+			if (score > -0.1) {
+				System.out.println("Score of " + score + " achieved after " + i
+						+ " training rounds.");
+				break;
+			}
+
+			if (score > maxScore) {
+				maxScore = score;
+			} else if (i < 100) {
+				continue;
+			} else {
+				System.out.println("Local max hit.");
+				System.out.println("Rounds trained: " + i);
+				System.out.println("Final score: " + score);
+				break;
+			}
 		}
 		// test
 		System.out.println("-------------------------");

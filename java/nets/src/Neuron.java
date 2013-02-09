@@ -60,7 +60,7 @@ public class Neuron implements Inp {
 	 * @return sigmoid(x)
 	 */
 	private double sigmoid(double input) {
-		return 1.0 / (1.0 + Math.exp(-1.0*input));
+		return 1.0 / (1.0 + Math.exp(-3.0*input));
 	}
 	
 	/**
