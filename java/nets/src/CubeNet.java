@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
+@Deprecated
 public class CubeNet {
 	private Input[][] inputs;
 	private Neuron[][][] neurons;
@@ -54,6 +55,37 @@ public class CubeNet {
 		}
 	}
 
+	public void printWeights() {
+		for (int k = 1; k < z; k++) {
+			System.out.println("Level " + k + " to " + (k - 1) + ":");
+			for (int i = 0; i < x; i++) {
+				for (int j = 0; j < y; j++) {
+					for (int ii = 0; ii < x; ii++) {
+						for (int jj = 0; jj < x; jj++) {
+							System.out
+									.print("("
+											+ i
+											+ ","
+											+ j
+											+ ") to "
+											+ "("
+											+ ii
+											+ ","
+											+ jj
+											+ "):"
+											+ this.neurons[i][j][k]
+													.getWeight(this.neurons[ii][jj][k - 1])
+											+ "; ");
+						}
+						System.out.println();
+					}
+					System.out.println();
+				}
+				System.out.println();
+			}
+		}
+	}
+
 	public void init() {
 		this.inputs = new Input[x][y];
 		this.neurons = new Neuron[x][y][z];
@@ -83,7 +115,7 @@ public class CubeNet {
 							for (int jj = 0; jj < y; jj++) {
 								this.neurons[i][j][k].addInput(
 										this.neurons[ii][jj][k - 1],
-										Math.random());
+										Math.random() * 2 - 1);
 							}
 						}
 					}
@@ -314,14 +346,20 @@ public class CubeNet {
 							ds += differenceSquared[i][j];
 						}
 					}
+					ds = differenceSquared[0][0];
 					ds *= -1;
+					if (verbose) {
+						System.out.println("Performance: " + ds + "\n");
+					}
 					if (ds > min) {
 						min = ds;
-						// System.out.println(ds);
+						System.out.println(ds);
 					}
-					// if (ds > perfLimit) {
-					// break;
-					// }
+					if (ds > perfLimit) {
+						System.out.println("Broke at (outcount,incount): ("
+								+ outCount + "," + count + ")");
+						return;
+					}
 					// 7) add up the weight changes for all the sample inputs
 					// and change the weights
 					// new weight deltas are in weightDeltas
@@ -356,8 +394,6 @@ public class CubeNet {
 	}
 
 	public static void main(String[] args) {
-		//mainOR(null);
-		//System.exit(0);
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 		String text = "";
 		boolean looking = true;
@@ -365,7 +401,8 @@ public class CubeNet {
 		try {
 			while (looking) {
 				System.out
-						.println("Please enter an absolute location for a training file, or press ENTER for default (" + def + "):");
+						.println("Please enter an absolute location for a training file, or press ENTER for default ("
+								+ def + "):");
 				text = in.readLine();
 				if (text.equals("")) {
 					trainFile(def);
@@ -382,7 +419,7 @@ public class CubeNet {
 	}
 
 	public static void trainFile(String fileName) {
-		boolean valid = validateAUGt(fileName);
+		boolean valid = Net.validateAUGt(fileName);
 		if (verbose) {
 			System.out.println("Valid file? " + valid);
 		}
@@ -467,10 +504,8 @@ public class CubeNet {
 		}
 		// Create the net
 		CubeNet c = new CubeNet(side, side, depth);
-		// set weights as random nonzeros
-		// TODO
 		// run the training program
-		c.train(0.1, training, targ, -1, rowIter, fileIter);
+		c.train(0.1, training, targ, -0.01, rowIter, fileIter);
 		// test her out
 		c.setInputs(training, 0);
 		System.out.println(c.getOutput()[0][0]);
@@ -480,64 +515,9 @@ public class CubeNet {
 		System.out.println(c.getOutput()[0][0]);
 		c.setInputs(training, 3);
 		System.out.println(c.getOutput()[0][0]);
+		// view the weights
+		c.printWeights();
 		System.exit(0);
-	}
-
-	public static boolean validateAUGt(String fileName) {
-		Charset charset = Charset.forName("US-ASCII");
-		Path file = Paths.get(fileName);
-		try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
-			String line = null;
-			int lineNumber = 1;
-			String[] lineSplit;
-			int n = 0;
-			while ((line = reader.readLine()) != null) {
-				if (verbose) {
-					System.out.println(line);
-				}
-				try {
-					lineSplit = line.split(" ");
-					switch (lineNumber) {
-					case 1:
-						assert (lineSplit[0].equals("grid"));
-						String[] size = lineSplit[1].split(",");
-						assert (Integer.valueOf(size[0]) > 0);
-						assert (Integer.valueOf(size[1]) == Integer
-								.valueOf(size[0]));
-						n = Integer.valueOf(size[0]);
-						assert (Integer.valueOf(size[2]) > 0);
-						break;
-					case 2:
-						assert (lineSplit[0].equals("train"));
-						size = lineSplit[1].split(",");
-						assert (Integer.valueOf(size[0]) > 0);
-						assert (Integer.valueOf(size[1]) > 0);
-						break;
-					case 3:
-						assert (lineSplit[0].equals("TITLES"));
-						size = lineSplit[1].split(",");
-						assert (size.length == n * n);
-						break;
-					default:
-						assert (Double.valueOf(lineSplit[0]) != null);
-						size = lineSplit[1].split(",");
-						assert (size.length == n * n);
-						break;
-					}
-					lineNumber++;
-				} catch (Exception e) {
-					if (verbose)
-						System.err.println("Validation failed at line: "
-								+ lineNumber);
-					return false;
-				}
-			}
-		} catch (IOException x) {
-			if (verbose)
-				System.err.format("IOException: %s%n", x);
-			return false;
-		}
-		return true;
 	}
 
 	public static void mainOR(String[] args) {
