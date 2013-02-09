@@ -1,10 +1,18 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+
 /**
  * Simple rectangular neural network.
  * 
  * @author saf
  * 
  */
-public class RectNet implements Net {
+public class RectNet extends Net {
 
 	private Input[] inputs;
 	// Every neuron with the same i is in the
@@ -262,60 +270,129 @@ public class RectNet implements Net {
 				* (desired - this.output.getLastOutput());
 	}
 
-	public static void main(String[] args) {
-		RectNet r = new RectNet(2, 2, false);
-		double[] or00 = { 0, 0 };
-		double[] or01 = { 0, 1 };
-		double[] or10 = { 1, 0 };
-		double[] or11 = { 1, 1 };
-		int outerRounds = 100000;
-		int innerRounds = 1;
-		double lc = 1;
+	public static void trainFile(String fileName, boolean verbose) {
+		boolean valid = Net.validateAUGt(fileName);
+		if (!valid) {
+			System.err.println("File not valid format.");
+			System.exit(1);
+		}
+		// Now we need to pull information out of the augtrain file.
+		Charset charset = Charset.forName("US-ASCII");
+		Path file = Paths.get(fileName);
+		String line = null;
+		int lineNumber = 1;
+		String[] lineSplit;
+		int side = 0;
+		int depth = 0;
+		int rowIter = 0;
+		int fileIter = 0;
+		double learningConstant = 0;
+		int minTrainingRounds = 0;
+		double cutoff = 0;
+		ArrayList<double[]> inputSets = new ArrayList<double[]>();
+		ArrayList<Double> targets = new ArrayList<Double>();
+		try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
+			while ((line = reader.readLine()) != null) {
+				try {
+					lineSplit = line.split(" ");
+					switch (lineNumber) {
+					case 1:
+						String[] size = lineSplit[1].split(",");
+						side = Integer.valueOf(size[0]);
+						depth = Integer.valueOf(size[1]);
+						break;
+					case 2:
+						size = lineSplit[1].split(",");
+						rowIter = Integer.valueOf(size[0]);
+						fileIter = Integer.valueOf(size[1]);
+						learningConstant = Double.valueOf(size[2]);
+						minTrainingRounds = Integer.valueOf(size[3]);
+						cutoff = Double.valueOf(size[4]);
+						break;
+					case 3:
+						// Titles
+						break;
+					default:
+						// expected
+						double target = Double.valueOf(lineSplit[0]);
+						targets.add(target);
+						// inputs
+						double[] input = new double[side];
+						size = lineSplit[1].split(",");
+						for (int i = 0; i < side; i++) {
+							input[i] = Double.valueOf(size[i]);
+						}
+						inputSets.add(input);
+						break;
+					}
+					lineNumber++;
+				} catch (Exception e) {
+					System.err
+							.println("Training failed at line: " + lineNumber);
+				}
+			}
+		} catch (IOException x) {
+			System.err.format("IOException: %s%n", x);
+			System.exit(1);
+		}
+		if (verbose) {
+			System.out.println("-------------------------");
+			System.out.println("File path: " + fileName);
+			System.out.println("Number Inputs: " + side);
+			System.out.println("Net depth: " + depth);
+			System.out.println("Number training sets: " + targets.size());
+			System.out.println("Row iterations: " + rowIter);
+			System.out.println("File iterations: " + fileIter);
+			System.out.println("Learning constant: " + learningConstant);
+			System.out.println("Minimum training rounds: " + minTrainingRounds);
+			System.out.println("Performance cutoff: " + cutoff);
+			System.out.println("-------------------------");
+		}
+		// Actually do the training part
+		RectNet r = new RectNet(side, depth);
 		double maxScore = Double.NEGATIVE_INFINITY;
-		for (int i = 0; i < outerRounds; i++) {
-			r.train(or00, 1, innerRounds, lc);
-			r.train(or01, 0, innerRounds, lc);
-			r.train(or10, 0, innerRounds, lc);
-			r.train(or11, 0, innerRounds, lc);
-
+		for (int i = 0; i < fileIter; i++) {
+			for (int lcv = 0; lcv < inputSets.size(); lcv++) {
+				r.train(inputSets.get(lcv), targets.get(lcv), rowIter,
+						learningConstant);
+			}
 			double score = 0;
-			r.setInputs(or00);
-			score += Math.pow((1 - r.getOutput()), 2);
-			r.setInputs(or01);
-			score += Math.pow((0 - r.getOutput()), 2);
-			r.setInputs(or10);
-			score += Math.pow((0 - r.getOutput()), 2);
-			r.setInputs(or11);
-			score += Math.pow((0 - r.getOutput()), 2);
-			score *= -1;
-
-			if (score > -0.1) {
-				System.out.println("Score of " + score + " achieved after " + i
-						+ " training rounds.");
+			for (int lcv = 0; lcv < inputSets.size(); lcv++) {
+				r.setInputs(inputSets.get(lcv));
+				score += Math.pow((targets.get(lcv) - r.getOutput()), 2);
+			}
+			score *= -1.0;
+			if (score > -1.0*cutoff) {
+				System.out.println("Score of " + -1 * score
+						+ " achieved after " + i + " training rounds.");
 				break;
 			}
 
 			if (score > maxScore) {
 				maxScore = score;
-			} else if (i < 100) {
+			} else if (i < minTrainingRounds) {
 				continue;
 			} else {
 				System.out.println("Local max hit.");
 				System.out.println("Rounds trained: " + i);
-				System.out.println("Final score: " + score);
+				System.out.println("Final score: " + -1 * score);
 				break;
 			}
 		}
-		// test
+		// Results
 		System.out.println("-------------------------");
 		System.out.println("Test Results: ");
-		r.setInputs(or00);
-		System.out.println(r.getOutput());
-		r.setInputs(or01);
-		System.out.println(r.getOutput());
-		r.setInputs(or10);
-		System.out.println(r.getOutput());
-		r.setInputs(or11);
-		System.out.println(r.getOutput());
+		for (int lcv = 0; lcv < inputSets.size(); lcv++) {
+			r.setInputs(inputSets.get(lcv));
+			System.out.println("Input " + lcv);
+			System.out.println("\tTarget: " + targets.get(lcv));
+			System.out.println("\tActual: " + r.getOutput());
+		}
+	}
+
+	public static void main(String[] args) {
+		String defaultFile = "C:\\Users\\saf\\workspace\\AugurWorks\\Core\\java\\nets\\test_files\\OR_clean.augtrain";
+		RectNet.trainFile(defaultFile, true);
+		System.exit(0);
 	}
 }

@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
+@Deprecated
 public class CubeNet {
 	private Input[][] inputs;
 	private Neuron[][][] neurons;
@@ -418,7 +419,7 @@ public class CubeNet {
 	}
 
 	public static void trainFile(String fileName) {
-		boolean valid = validateAUGt(fileName);
+		boolean valid = Net.validateAUGt(fileName);
 		if (verbose) {
 			System.out.println("Valid file? " + valid);
 		}
@@ -517,63 +518,6 @@ public class CubeNet {
 		// view the weights
 		c.printWeights();
 		System.exit(0);
-	}
-
-	public static boolean validateAUGt(String fileName) {
-		Charset charset = Charset.forName("US-ASCII");
-		Path file = Paths.get(fileName);
-		try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
-			String line = null;
-			int lineNumber = 1;
-			String[] lineSplit;
-			int n = 0;
-			while ((line = reader.readLine()) != null) {
-				if (verbose) {
-					System.out.println(line);
-				}
-				try {
-					lineSplit = line.split(" ");
-					switch (lineNumber) {
-					case 1:
-						assert (lineSplit[0].equals("grid"));
-						String[] size = lineSplit[1].split(",");
-						assert (Integer.valueOf(size[0]) > 0);
-						assert (Integer.valueOf(size[1]) == Integer
-								.valueOf(size[0]));
-						n = Integer.valueOf(size[0]);
-						assert (Integer.valueOf(size[2]) > 0);
-						break;
-					case 2:
-						assert (lineSplit[0].equals("train"));
-						size = lineSplit[1].split(",");
-						assert (Integer.valueOf(size[0]) > 0);
-						assert (Integer.valueOf(size[1]) > 0);
-						break;
-					case 3:
-						assert (lineSplit[0].equals("TITLES"));
-						size = lineSplit[1].split(",");
-						assert (size.length == n * n);
-						break;
-					default:
-						assert (Double.valueOf(lineSplit[0]) != null);
-						size = lineSplit[1].split(",");
-						assert (size.length == n * n);
-						break;
-					}
-					lineNumber++;
-				} catch (Exception e) {
-					if (verbose)
-						System.err.println("Validation failed at line: "
-								+ lineNumber);
-					return false;
-				}
-			}
-		} catch (IOException x) {
-			if (verbose)
-				System.err.format("IOException: %s%n", x);
-			return false;
-		}
-		return true;
 	}
 
 	public static void mainOR(String[] args) {

@@ -1,20 +1,24 @@
 Format for .augtrain neural network training files.
 
 --------------------
-grid n,n,d
-train x,y
-TITLES name00,name01,name02,name03 ... name0n-2,name0n-1,name10,name11,name12 ... name1n-1 ...namein-1n-1
-e0 i00,i01,i02,i03 ... i0n-2,i0n-1,i10,i11,i12 ... i1n-1 ... in-1n-1
-e1 i00,i01,i02,i03 ... i0n-2,i0n-1,i10,i11,i12 ... i1n-1 ... in-1n-1
-e2 i00,i01,i02,i03 ... i0n-2,i0n-1,i10,i11,i12 ... i1n-1 ... in-1n-1
+net n,d
+train x,y,lc,mtr,cutoff
+TITLES name0,name1,name2,name3 ... namen-1
+e0 i0,i1,i2,i3 ... in-1
+e1 i0,i1,i2,i3 ... in-1
+e2 i0,i1,i2,i3 ... in-1
 .
 .
 .
-et-1 i00,i01,i02,i03 ... i0n-2,i0n-1,i10,i11,i12 ... i1n-1 ... in-1n-1
+et-1 i0,i1,i2,i3 ... in-1
 --------------------
 
-- n x n is the size of the grid
-- d is the depth of the grid
+- lc is the learning constant
+- mtr is minimum number of training rounds
+- cutoff is cutoff performance to stop training (0.1 is good, 0 is perfect)
+- n is the number of inputs
+- d is the depth of the network
 - x iterations per row
 - y iterations of file
+- i is a double input value
 - et is expected value of test number t
