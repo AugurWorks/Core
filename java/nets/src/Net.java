@@ -6,8 +6,20 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public abstract class Net {
+	/**
+	 * Returns the output of this Net.
+	 * 
+	 * @return output of this Net.
+	 */
 	public abstract double getOutput();
 
+	/**
+	 * Validates that an augtrain file is correctly structured.
+	 * 
+	 * @param fileName
+	 *            absolute location of file to validate.
+	 * @return true when file is valid, else false.
+	 */
 	public static boolean validateAUGt(String fileName) {
 		if (!(fileName.toLowerCase().endsWith(".augtrain"))) {
 			System.err.println("Training file should end in .augtrain");

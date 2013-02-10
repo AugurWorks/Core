@@ -563,11 +563,11 @@ public class RectNet extends Net {
 
 	public static void main(String[] args) {
 		String defaultFile = "C:\\Users\\saf\\workspace\\AugurWorks\\Core\\java\\nets\\test_files\\OR_clean.augtrain";
-		RectNet test = RectNet.trainFile(defaultFile, true);
+		// RectNet test = RectNet.trainFile(defaultFile, true);
 		// String testFile =
-		// "C:\\Users\\theconnman\\workspace\\Core\\java\\nets\\test_files\\test.augsave";
+		// "C:\\Users\\saf\\workspace\\AugurWorks\\Core\\java\\nets\\test_files\\test.augsave";
 		// String testFile2 =
-		// "C:\\Users\\theconnman\\workspace\\Core\\java\\nets\\test_files\\test2.augsave";
+		// "C:\\Users\\saf\\workspace\\AugurWorks\\Core\\java\\nets\\test_files\\test2.augsave";
 		// RectNet test = RectNet.loadNet(testFile);
 		// test.saveNet(testFile2, test);
 		System.exit(0);
