@@ -1,0 +1,23 @@
+net x,y
+O (O)(0),(O)(1),...(O)(y-1)
+x-1 (rr0)(lr0),(rr0)(lr1),...,(rr0)(lry-1)
+x-1 (rr1)(lr0),(rr1)(lr1),...,(rr1)(lry-1)
+.
+.
+.
+x-1 (rry-1)(lr0),(rry-1)(lr1),...,(rry-1)(lry-1)
+x-2 (rr0)(lr0),(rr0)(lr1),...,(rr0)(lry-1)
+x-2 (rr1)(lr0),(rr1)(lr1),...,(rr1)(lry-1)
+.
+.
+.
+x-2 (rry-1)(lr0),(rry-1)(lr1),...,(rry-1)(lry-1)
+.
+.
+.
+1 (rr0)(lr0),(rr0)(lr1),...,(rr0)(lry-1)
+1 (rr1)(lr0),(rr1)(lr1),...,(rr1)(lry-1)
+.
+.
+.
+1 (rry-1)(lr0),(rry-1)(lr1),...,(rry-1)(lry-1)

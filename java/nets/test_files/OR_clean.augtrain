@@ -1,4 +1,4 @@
-net 2,2
+net 2,3
 train 1,10000,1,100,0.1
 TITLES A,B
 0 0,0

@@ -40,7 +40,7 @@ public class Neuron implements Inp {
 			weights.set(loc, w);
 		}
 	}
-	
+
 	public void changeWeight(Inp n, double w) {
 		if (!inputs.contains(n)) {
 			inputs.add(n);
