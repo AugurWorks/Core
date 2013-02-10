@@ -5,7 +5,7 @@ public class Neuron implements Inp {
 	private ArrayList<Inp> inputs;
 	private double offset;
 	private double lastOutput;
-	private double lastCode;
+	private int lastCode;
 	private String name;
 
 	public Neuron() {
@@ -69,7 +69,7 @@ public class Neuron implements Inp {
 	 * 
 	 * @return the output from this neuron.
 	 */
-	public double getOutput(double code) {
+	public double getOutput(int code) {
 		if (code == lastCode) {
 			return lastOutput;
 		}

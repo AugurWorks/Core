@@ -9,6 +9,10 @@ public abstract class Net {
 	public abstract double getOutput();
 
 	public static boolean validateAUGt(String fileName) {
+		if (!(fileName.toLowerCase().endsWith(".augtrain"))) {
+			System.err.println("Training file should end in .augtrain");
+			return false;
+		}
 		Charset charset = Charset.forName("US-ASCII");
 		Path file = Paths.get(fileName);
 		try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
@@ -62,6 +66,11 @@ public abstract class Net {
 						if (!(Double.valueOf(lineSplit[0]) != null))
 							throw new RuntimeException();
 						size = lineSplit[1].split(",");
+						for (String s : size) {
+							if (Double.valueOf(s).equals(null)) {
+								throw new RuntimeException();
+							}
+						}
 						if (!(size.length == n))
 							throw new RuntimeException();
 						break;
@@ -79,14 +88,20 @@ public abstract class Net {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Validates an .augsave file format
+	 * 
 	 * @author TheConnMan
-	 * @param fileName - The filename of the .augsave file to be validated
-	 * @return - True if file is correctly formatted
+	 * @param fileName
+	 *            The filename of the .augsave file to be validated
+	 * @return True if file is correctly formatted, else false
 	 */
 	public static boolean validateAUGs(String fileName) {
+		if (!(fileName.toLowerCase().endsWith(".augsave"))) {
+			System.err.println("Training file should end in .augsave");
+			return false;
+		}
 		Charset charset = Charset.forName("US-ASCII");
 		Path file = Paths.get(fileName);
 		try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
@@ -103,7 +118,8 @@ public abstract class Net {
 						if (!lineSplit[0].equals("net"))
 							throw new RuntimeException();
 						String[] size = lineSplit[1].split(",");
-						if (!(Integer.valueOf(size[0]) > 0)||!(Integer.valueOf(size[1]) > 0))
+						if (!(Integer.valueOf(size[0]) > 0)
+								|| !(Integer.valueOf(size[1]) > 0))
 							throw new RuntimeException();
 						y = Integer.valueOf(size[0]);
 						x = Integer.valueOf(size[1]);
@@ -115,13 +131,24 @@ public abstract class Net {
 						if (!lineSplit[0].equals("O"))
 							throw new RuntimeException();
 						size = lineSplit[1].split(",");
+						for (String s : size) {
+							if (Double.valueOf(s).equals(null)) {
+								throw new RuntimeException();
+							}
+						}
 						if (!(size.length == x))
 							throw new RuntimeException();
 						break;
 					default:
-						if ((int)((lineNumber-2)/y)+1!=Integer.valueOf(lineSplit[0]))
+						if ((int) ((lineNumber - 2) / y) + 1 != Integer
+								.valueOf(lineSplit[0]))
 							throw new RuntimeException();
 						size = lineSplit[1].split(",");
+						for (String s : size) {
+							if (Double.valueOf(s).equals(null)) {
+								throw new RuntimeException();
+							}
+						}
 						if (!(size.length == x))
 							throw new RuntimeException();
 						break;
@@ -133,7 +160,7 @@ public abstract class Net {
 					return false;
 				}
 			}
-			if (lineNumber!=x*y+1)
+			if (lineNumber != x * y + 1)
 				throw new RuntimeException();
 		} catch (IOException x) {
 			System.err.format("IOException: %s%n", x);

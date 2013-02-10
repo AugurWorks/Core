@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Random;
 
 /**
  * Simple rectangular neural network.
@@ -16,19 +17,24 @@ import java.util.ArrayList;
  */
 public class RectNet extends Net {
 
+	// Inputs to network
 	private Input[] inputs;
 	// Every neuron with the same i is in the
-	// same "layer"
+	// same "layer". Indexed as [col][row].
 	private Neuron[][] neurons;
+	// X is depth of network
 	private int x;
+	// Y is height of network (number of inputs)
 	private int y;
 	// There's only one final output neuron
 	// since this is built to make booleans.
 	private Neuron output;
+	// Prints debug output when true.
 	private boolean verbose = false;
+	private Random random;
 
 	/**
-	 * Constructs a new rectnet with 10 inputs and 5 layers of network.
+	 * Constructs a new RectNet with 10 inputs and 5 layers of network.
 	 */
 	public RectNet() {
 		this.x = 5;
@@ -37,7 +43,7 @@ public class RectNet extends Net {
 	}
 
 	/**
-	 * Constructs a new rectnet with given depth and number of inputs.
+	 * Constructs a new RectNet with given depth and number of inputs.
 	 * 
 	 * @param depth
 	 *            number of layers in the network
@@ -55,7 +61,9 @@ public class RectNet extends Net {
 	 * verbose boolean as given.
 	 * 
 	 * @param depth
+	 *            number of layers in the network
 	 * @param numInputs
+	 *            number of inputs to the network
 	 * @param verb
 	 *            true when RectNet displays debug output.
 	 */
@@ -67,12 +75,17 @@ public class RectNet extends Net {
 	}
 
 	/**
+	 * Gets the weight between two neurons.
 	 * 
 	 * @param leftCol
+	 *            column number of neuron to left of connection
 	 * @param leftRow
+	 *            row number of neuron to left of connection
 	 * @param rightCol
+	 *            column number of neuron to right of connection
 	 * @param rightRow
-	 * @return
+	 *            row number of neuron to right of connection
+	 * @return weight from right neuron to left neuron.
 	 */
 	private double getWeight(int leftCol, int leftRow, int rightCol,
 			int rightRow) {
@@ -85,13 +98,18 @@ public class RectNet extends Net {
 	 * 2) connecting neurons to the inputs 3) connecting neurons to each other
 	 * 4) connecting neurons to the output
 	 * 
-	 * Initial weights are specified by initNum
+	 * Initial weights are specified by initNum(), allowing random initial
+	 * weights, or some other set.
 	 */
 	private void init() {
+		// Initialize random
+		this.random = new Random(System.nanoTime());
 		// Initialize arrays to blank neurons and inputs.
 		this.inputs = new Input[y];
 		this.neurons = new Neuron[x][y];
 		this.output = new Neuron();
+		// Name the neurons for possible debug. This is not a critical
+		// step.
 		output.setName("output");
 		for (int j = 0; j < this.y; j++) {
 			this.inputs[j] = new Input();
@@ -149,7 +167,7 @@ public class RectNet extends Net {
 	 */
 	@Override
 	public double getOutput() {
-		double code = Math.random();
+		int code = random.nextInt();
 		return this.output.getOutput(code);
 	}
 
@@ -264,7 +282,7 @@ public class RectNet extends Net {
 	 * 
 	 * @param desired
 	 *            the desired output.
-	 * @return error.
+	 * @return error using equation (output*(1-output)*(desired-output))
 	 */
 	private double outputError(double desired) {
 		this.getOutput();
@@ -274,9 +292,12 @@ public class RectNet extends Net {
 
 	/**
 	 * Train a neural network from a .augtrain training file
-	 * @param fileName - File path to .augtrain training file
-	 * @param verbose - Flag to display debugging text or not
-	 * @return - The trained neural network
+	 * 
+	 * @param fileName
+	 *            File path to .augtrain training file
+	 * @param verbose
+	 *            Flag to display debugging text or not
+	 * @return The trained neural network
 	 */
 	public static RectNet trainFile(String fileName, boolean verbose) {
 		boolean valid = Net.validateAUGt(fileName);
@@ -305,11 +326,13 @@ public class RectNet extends Net {
 					lineSplit = line.split(" ");
 					switch (lineNumber) {
 					case 1:
+						// Information about network
 						String[] size = lineSplit[1].split(",");
 						side = Integer.valueOf(size[0]);
 						depth = Integer.valueOf(size[1]);
 						break;
 					case 2:
+						// Information about training run
 						size = lineSplit[1].split(",");
 						rowIter = Integer.valueOf(size[0]);
 						fileIter = Integer.valueOf(size[1]);
@@ -343,6 +366,7 @@ public class RectNet extends Net {
 			System.err.format("IOException: %s%n", x);
 			System.exit(1);
 		}
+		// Information about the training file.
 		if (verbose) {
 			System.out.println("-------------------------");
 			System.out.println("File path: " + fileName);
@@ -357,71 +381,99 @@ public class RectNet extends Net {
 			System.out.println("-------------------------");
 		}
 		// Actually do the training part
+		long start = System.currentTimeMillis();
 		RectNet r = new RectNet(depth, side);
 		double maxScore = Double.NEGATIVE_INFINITY;
-		for (int i = 0; i < fileIter; i++) {
+		double score = 0;
+		int i = 0;
+		boolean brokeAtLocalMax = false;
+		boolean brokeAtPerfCutoff = false;
+		for (i = 0; i < fileIter; i++) {
 			for (int lcv = 0; lcv < inputSets.size(); lcv++) {
 				r.train(inputSets.get(lcv), targets.get(lcv), rowIter,
 						learningConstant);
 			}
-			double score = 0;
+			score = 0;
 			for (int lcv = 0; lcv < inputSets.size(); lcv++) {
 				r.setInputs(inputSets.get(lcv));
 				score += Math.pow((targets.get(lcv) - r.getOutput()), 2);
 			}
 			score *= -1.0;
-			if (score > -1.0*cutoff) {
-				System.out.println("Score of " + -1 * score
-						+ " achieved after " + i + " training rounds.");
+			if (score > -1.0 * cutoff) {
+				brokeAtPerfCutoff = true;
 				break;
 			}
-
 			if (score > maxScore) {
 				maxScore = score;
 			} else if (i < minTrainingRounds) {
 				continue;
 			} else {
-				System.out.println("Local max hit.");
-				System.out.println("Rounds trained: " + i);
-				System.out.println("Final score: " + -1 * score);
+				brokeAtLocalMax = true;
 				break;
 			}
 		}
-		// Results
-		System.out.println("-------------------------");
-		System.out.println("Test Results: ");
-		for (int lcv = 0; lcv < inputSets.size(); lcv++) {
-			r.setInputs(inputSets.get(lcv));
-			System.out.println("Input " + lcv);
-			System.out.println("\tTarget: " + targets.get(lcv));
-			System.out.println("\tActual: " + r.getOutput());
+		if (verbose) {
+			// Information about performance and training.
+			if (brokeAtLocalMax) {
+				System.out.println("Local max hit.");
+			} else if (brokeAtPerfCutoff) {
+				System.out.println("Performance cutoff hit.");
+			} else {
+				System.out.println("Training round limit reached.");
+			}
+			System.out.println("Rounds trained: " + i);
+			System.out.println("Final score of " + -1 * score);
+			System.out.println("Time elapsed (ms): "
+					+ ((System.currentTimeMillis() - start)));
+			// Results
+			System.out.println("-------------------------");
+			System.out.println("Test Results: ");
+			for (int lcv = 0; lcv < inputSets.size(); lcv++) {
+				r.setInputs(inputSets.get(lcv));
+				System.out.println("Input " + lcv);
+				System.out.println("\tTarget: " + targets.get(lcv));
+				System.out.println("\tActual: " + r.getOutput());
+			}
+			System.out.println("-------------------------");
 		}
 		return r;
 	}
-	
+
 	/**
-	 * Input a filename and a neural network to save the neural network as a .augsave file
+	 * Input a filename and a neural network to save the neural network as a
+	 * .augsave file
+	 * 
 	 * @author TheConnMan
-	 * @param fileName - Filepath ending in .augsave where the network will be saved
-	 * @param net - Neural net to be saved
+	 * @param fileName
+	 *            Filepath ending in .augsave where the network will be saved
+	 * @param net
+	 *            Neural net to be saved
 	 */
 	public void saveNet(String fileName, RectNet net) {
 		try {
+			if (!(fileName.toLowerCase().endsWith(".augsave"))) {
+				System.err
+						.println("Output file name to save to should end in .augsave");
+				return;
+			}
 			PrintWriter out = new PrintWriter(new FileWriter(fileName));
-			out.println("net " + Integer.toString(this.x) + "," + Integer.toString(this.y));
+			out.println("net " + Integer.toString(this.x) + ","
+					+ Integer.toString(this.y));
 			String line = "O ";
 			for (int j = 0; j < this.y; j++) {
-				line += this.output.getWeight(this.neurons[this.x - 1][j]) + ",";
+				line += this.output.getWeight(this.neurons[this.x - 1][j])
+						+ ",";
 			}
-			out.println(line.substring(0, line.length()-1));
+			out.println(line.substring(0, line.length() - 1));
 			for (int leftCol = 0; leftCol < this.x - 1; leftCol++) {
 				int rightCol = leftCol + 1;
 				for (int rightRow = 0; rightRow < this.y; rightRow++) {
 					line = rightCol + " ";
 					for (int leftRow = 0; leftRow < this.y; leftRow++) {
-						line += net.neurons[rightCol][rightRow].getWeight(net.neurons[leftCol][leftRow]) + ",";
+						line += net.neurons[rightCol][rightRow]
+								.getWeight(net.neurons[leftCol][leftRow]) + ",";
 					}
-					out.println(line.substring(0, line.length()-1));
+					out.println(line.substring(0, line.length() - 1));
 				}
 			}
 			out.close();
@@ -430,12 +482,14 @@ public class RectNet extends Net {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * Load a neural network from a .augsave file
+	 * 
 	 * @author TheConnMan
-	 * @param fileName - File path to an .augsave file containing a neural network
-	 * @return - Neural network from the .augsave file
+	 * @param fileName
+	 *            File path to an .augsave file containing a neural network
+	 * @return Neural network from the .augsave file
 	 */
 	public static RectNet loadNet(String fileName) {
 		boolean valid = Net.validateAUGs(fileName);
@@ -455,16 +509,15 @@ public class RectNet extends Net {
 		int curCol = 0;
 		int curRow = 0;
 		try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
-				line = reader.readLine();
-				try {
-					lineSplit = line.split(" ");
-						String[] size = lineSplit[1].split(",");
-						side = Integer.valueOf(size[1]);
-						depth = Integer.valueOf(size[0]);
-				} catch (Exception e) {
-					System.err
-							.println("Training failed at line: " + lineNumber);
-				}
+			line = reader.readLine();
+			try {
+				lineSplit = line.split(" ");
+				String[] size = lineSplit[1].split(",");
+				side = Integer.valueOf(size[1]);
+				depth = Integer.valueOf(size[0]);
+			} catch (Exception e) {
+				System.err.println("Loading failed at line: " + lineNumber);
+			}
 		} catch (IOException x) {
 			System.err.format("IOException: %s%n", x);
 			System.exit(1);
@@ -479,23 +532,26 @@ public class RectNet extends Net {
 						break;
 					case 2:
 						String outputs[] = lineSplit[1].split(",");
-						for (int edgeNum=0; edgeNum<outputs.length; edgeNum++) {
-							net.output.addInput(net.neurons[depth-1][edgeNum], Double.parseDouble(outputs[edgeNum]));
+						for (int edgeNum = 0; edgeNum < outputs.length; edgeNum++) {
+							net.output.addInput(
+									net.neurons[depth - 1][edgeNum],
+									Double.parseDouble(outputs[edgeNum]));
 						}
 						break;
 					default:
-						curCol=Integer.valueOf(lineSplit[0]);
-						curRow=(lineNumber-3)%side;
+						curCol = Integer.valueOf(lineSplit[0]);
+						curRow = (lineNumber - 3) % side;
 						edges = lineSplit[1].split(",");
-						for (int edgeNum=0; edgeNum<edges.length; edgeNum++) {
-							net.neurons[curCol][curRow].addInput(net.neurons[curCol-1][edgeNum], Double.parseDouble(edges[edgeNum]));
+						for (int edgeNum = 0; edgeNum < edges.length; edgeNum++) {
+							net.neurons[curCol][curRow].addInput(
+									net.neurons[curCol - 1][edgeNum],
+									Double.parseDouble(edges[edgeNum]));
 						}
 						break;
 					}
 					lineNumber++;
 				} catch (Exception e) {
-					System.err
-							.println("Training failed at line: " + lineNumber);
+					System.err.println("Loading failed at line: " + lineNumber);
 				}
 			}
 		} catch (IOException x) {
@@ -506,12 +562,14 @@ public class RectNet extends Net {
 	}
 
 	public static void main(String[] args) {
-		String defaultFile = "C:\\Users\\theconnman\\workspace\\Core\\java\\nets\\test_files\\OR_clean.augtrain";
+		String defaultFile = "C:\\Users\\saf\\workspace\\AugurWorks\\Core\\java\\nets\\test_files\\OR_clean.augtrain";
 		RectNet test = RectNet.trainFile(defaultFile, true);
-		//String testFile = "C:\\Users\\theconnman\\workspace\\Core\\java\\nets\\test_files\\test.augsave";
-		//String testFile2 = "C:\\Users\\theconnman\\workspace\\Core\\java\\nets\\test_files\\test2.augsave";
-		//RectNet test = RectNet.loadNet(testFile);
-		//test.saveNet(testFile2, test);
+		// String testFile =
+		// "C:\\Users\\theconnman\\workspace\\Core\\java\\nets\\test_files\\test.augsave";
+		// String testFile2 =
+		// "C:\\Users\\theconnman\\workspace\\Core\\java\\nets\\test_files\\test2.augsave";
+		// RectNet test = RectNet.loadNet(testFile);
+		// test.saveNet(testFile2, test);
 		System.exit(0);
 	}
 }

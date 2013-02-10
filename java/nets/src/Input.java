@@ -14,7 +14,7 @@ public class Input implements Inp {
 		return this.value;
 	}
 	
-	public double getOutput(double code) {
+	public double getOutput(int code) {
 		return this.value;
 	}
 	

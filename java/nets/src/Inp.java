@@ -1,3 +1,3 @@
 public interface Inp {
-	public double getOutput(double code);
+	public double getOutput(int code);
 }

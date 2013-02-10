@@ -129,7 +129,7 @@ public class CubeNet {
 		double[][] outs = new double[x][y];
 		for (int i = 0; i < x; i++) {
 			for (int j = 0; j < y; j++) {
-				outs[i][j] = this.neurons[i][j][z - 1].getOutput(code);
+				outs[i][j] = this.neurons[i][j][z - 1].getOutput((int)code);
 			}
 		}
 		return outs;
@@ -164,7 +164,7 @@ public class CubeNet {
 		double[][] outs = new double[x][y];
 		for (int i = 0; i < x; i++) {
 			for (int j = 0; j < y; j++) {
-				outs[i][j] = this.neurons[i][j][z - 1].getOutput(code);
+				outs[i][j] = this.neurons[i][j][z - 1].getOutput((int)code);
 				System.out.print(outs[i][j] + " ");
 			}
 			System.out.println();
