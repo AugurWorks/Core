@@ -124,7 +124,7 @@ public class RectNetFixed extends Net {
 		}
 		// Make connections between neurons and inputs.
 		for (int j = 0; j < this.y; j++) {
-			this.neurons[0][j].addInput(this.inputs[j], initNum());
+			this.neurons[0][j].addInput(this.inputs[j], 1.0);
 		}
 		// Make connections between neurons and neurons.
 		for (int leftCol = 0; leftCol < this.x - 1; leftCol++) {
