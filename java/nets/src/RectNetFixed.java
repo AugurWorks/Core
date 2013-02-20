@@ -33,6 +33,8 @@ public class RectNetFixed extends Net {
 	private boolean verbose = false;
 	private Random random;
 
+	public long timeInOutput;
+
 	/**
 	 * Constructs a new RectNet with 10 inputs and 5 layers of network.
 	 */
@@ -165,12 +167,21 @@ public class RectNetFixed extends Net {
 	}
 
 	/**
-	 * Returns the output value from this network run.
+	 * Returns the output value from this network run. Uses a "build up"
+	 * technique, rather than recursive.
 	 */
 	@Override
 	public double getOutput() {
+		long before = System.nanoTime();
 		int code = random.nextInt();
-		return this.output.getOutput(code);
+		for (int i = 0; i < this.x; i++) {
+			for (int j = 0; j < this.y; j++) {
+				this.neurons[i][j].getOutput(code);
+			}
+		}
+		double d = this.output.getOutput(code);
+		this.timeInOutput += (System.nanoTime() - before);
+		return d;
 	}
 
 	/**
@@ -424,18 +435,21 @@ public class RectNetFixed extends Net {
 			}
 			System.out.println("Rounds trained: " + i);
 			System.out.println("Final score of " + -1 * score);
-			System.out.println("Time elapsed (ms): "
-					+ ((System.currentTimeMillis() - start)));
+			long elapsed = System.currentTimeMillis() - start;
+			System.out.println("Time elapsed (ms): " + elapsed);
 			// Results
+			System.out.println("Time in getOutput (ns): " + r.timeInOutput);
+			System.out.println("Percent time in getOutput: "
+					+ ((r.timeInOutput / 10000) / elapsed) + "%");
 			System.out.println("-------------------------");
-			System.out.println("Test Results: ");
-			for (int lcv = 0; lcv < inputSets.size(); lcv++) {
-				r.setInputs(inputSets.get(lcv));
-				System.out.println("Input " + lcv);
-				System.out.println("\tTarget: " + targets.get(lcv));
-				System.out.println("\tActual: " + r.getOutput());
-			}
-			System.out.println("-------------------------");
+			/*
+			 * System.out.println("Test Results: "); for (int lcv = 0; lcv <
+			 * inputSets.size(); lcv++) { r.setInputs(inputSets.get(lcv));
+			 * System.out.println("Input " + lcv);
+			 * System.out.println("\tTarget: " + targets.get(lcv));
+			 * System.out.println("\tActual: " + r.getOutput()); }
+			 * System.out.println("-------------------------");
+			 */
 		}
 		return r;
 	}
@@ -562,9 +576,9 @@ public class RectNetFixed extends Net {
 	}
 
 	public static void main(String[] args) {
-		String defaultFile = "C:\\Users\\saf\\workspace\\AugurWorks\\Core\\java\\nets\\test_files\\OR_clean.augtrain";
+		String defaultFile = "C:\\Users\\Stephen\\workspace\\AugurWorks\\Core\\java\\nets\\test_files\\Test Data.augtrain";
 
-		System.out.println("Perf test of 10^6 training rounds:");
+		System.out.println("Perf test:");
 		System.out.println("RectNet: ");
 		RectNet test1 = RectNet.trainFile(defaultFile, true);
 		System.out.println("RectNetFixed: ");
