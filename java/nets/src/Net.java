@@ -101,6 +101,85 @@ public abstract class Net {
 		return true;
 	}
 
+	public static boolean validateAUGTest(String fileName, int side) {
+		if (!(fileName.toLowerCase().endsWith(".augtrain"))) {
+			System.err.println("Training file should end in .augtrain");
+			return false;
+		}
+		Charset charset = Charset.forName("US-ASCII");
+		Path file = Paths.get(fileName);
+		try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
+			String line = null;
+			int lineNumber = 1;
+			String[] lineSplit;
+			while ((line = reader.readLine()) != null) {
+				try {
+					lineSplit = line.split(" ");
+					switch (lineNumber) {
+					case 1:
+						if (!lineSplit[0].equals("net"))
+							throw new RuntimeException();
+						String[] size = lineSplit[1].split(",");
+						if (!(Integer.valueOf(size[0]) == side))
+							throw new RuntimeException();
+						if (!(Integer.valueOf(size[1]) > 0))
+							throw new RuntimeException();
+						if (!(size.length == 2)) {
+							throw new RuntimeException();
+						}
+						break;
+					case 2:
+						if (!lineSplit[0].equals("train"))
+							throw new RuntimeException();
+						size = lineSplit[1].split(",");
+						if (!(Integer.valueOf(size[0]) > 0))
+							throw new RuntimeException();
+						if (!(Integer.valueOf(size[1]) > 0))
+							throw new RuntimeException();
+						if (!(Double.valueOf(size[2]) > 0))
+							throw new RuntimeException();
+						if (!(Integer.valueOf(size[3]) > 0))
+							throw new RuntimeException();
+						if (!(Double.valueOf(size[4]) > 0))
+							throw new RuntimeException();
+						if (!(size.length == 5)) {
+							throw new RuntimeException();
+						}
+						break;
+					case 3:
+						if (!lineSplit[0].equals("TITLES"))
+							throw new RuntimeException();
+						size = lineSplit[1].split(",");
+						if (!(size.length == side))
+							throw new RuntimeException();
+						break;
+					default:
+						if (!(Double.valueOf(lineSplit[0]) != null))
+							throw new RuntimeException();
+						size = lineSplit[1].split(",");
+						for (String s : size) {
+							if (Double.valueOf(s).equals(null)) {
+								throw new RuntimeException();
+							}
+						}
+						if (!(size.length == side))
+							throw new RuntimeException();
+						break;
+					}
+					lineNumber++;
+				} catch (Exception e) {
+					System.err.println("Validation failed at line: "
+							+ lineNumber);
+					return false;
+				}
+			}
+		} catch (IOException x) {
+			System.err.format("IOException: %s%n", x);
+			return false;
+		}
+		return true;
+	}
+	
 	/**
 	 * Validates an .augsave file format
 	 * 
@@ -133,8 +212,8 @@ public abstract class Net {
 						if (!(Integer.valueOf(size[0]) > 0)
 								|| !(Integer.valueOf(size[1]) > 0))
 							throw new RuntimeException();
-						y = Integer.valueOf(size[0]);
-						x = Integer.valueOf(size[1]);
+						y = Integer.valueOf(size[1]);
+						x = Integer.valueOf(size[0]);
 						if (!(size.length == 2)) {
 							throw new RuntimeException();
 						}
@@ -152,7 +231,7 @@ public abstract class Net {
 							throw new RuntimeException();
 						break;
 					default:
-						if ((int) ((lineNumber - 2) / y) + 1 != Integer
+						if ((int) ((lineNumber - 3) / x) + 1 != Integer
 								.valueOf(lineSplit[0]))
 							throw new RuntimeException();
 						size = lineSplit[1].split(",");
@@ -172,7 +251,7 @@ public abstract class Net {
 					return false;
 				}
 			}
-			if (lineNumber != x * y + 1)
+			if (lineNumber != x * (y-1) + 3)
 				throw new RuntimeException();
 		} catch (IOException x) {
 			System.err.format("IOException: %s%n", x);

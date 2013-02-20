@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 
 public class Neuron implements Inp {
-	private ArrayList<Double> weights;
+	public ArrayList<Double> weights;
 	private ArrayList<Inp> inputs;
 	private double offset;
 	// Cached values of last output and code.

@@ -120,7 +120,7 @@ public class RectNet extends Net {
 		}
 		// Make connections between neurons and inputs.
 		for (int j = 0; j < this.y; j++) {
-			this.neurons[0][j].addInput(this.inputs[j], initNum());
+			this.neurons[0][j].addInput(this.inputs[j], 1.0 );
 		}
 		// Make connections between neurons and neurons.
 		for (int leftCol = 0; leftCol < this.x - 1; leftCol++) {
@@ -457,8 +457,8 @@ public class RectNet extends Net {
 				return;
 			}
 			PrintWriter out = new PrintWriter(new FileWriter(fileName));
-			out.println("net " + Integer.toString(this.x) + ","
-					+ Integer.toString(this.y));
+			out.println("net " + Integer.toString(this.y) + ","
+					+ Integer.toString(this.x));
 			String line = "O ";
 			for (int j = 0; j < this.y; j++) {
 				line += this.output.getWeight(this.neurons[this.x - 1][j])
@@ -513,8 +513,8 @@ public class RectNet extends Net {
 			try {
 				lineSplit = line.split(" ");
 				String[] size = lineSplit[1].split(",");
-				side = Integer.valueOf(size[1]);
-				depth = Integer.valueOf(size[0]);
+				side = Integer.valueOf(size[0]);
+				depth = Integer.valueOf(size[1]);
 			} catch (Exception e) {
 				System.err.println("Loading failed at line: " + lineNumber);
 			}
@@ -561,15 +561,94 @@ public class RectNet extends Net {
 		return net;
 	}
 
+	/**
+	 * @param fileName
+	 * @param r
+	 */
+	public void testNet(String fileName, RectNet r) {
+		boolean valid = Net.validateAUGTest(fileName, r.y);
+		if (!valid) {
+			System.err.println("File not valid format.");
+			System.exit(1);
+		}
+		// Now we need to pull information out of the augtrain file.
+		Charset charset = Charset.forName("US-ASCII");
+		Path file = Paths.get(fileName);
+		String line = null;
+		int lineNumber = 1;
+		String[] lineSplit;
+		int side = r.y;
+		String[] size;
+		ArrayList<double[]> inputSets = new ArrayList<double[]>();
+		ArrayList<Double> targets = new ArrayList<Double>();
+		try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
+			while ((line = reader.readLine()) != null) {
+				try {
+					lineSplit = line.split(" ");
+					switch (lineNumber) {
+					case 1:
+						break;
+					case 2:
+						size = lineSplit[1].split(",");
+						break;
+					case 3:
+						// Titles
+						break;
+					default:
+						// expected
+						double target = Double.valueOf(lineSplit[0]);
+						targets.add(target);
+						// inputs
+						double[] input = new double[side];
+						size = lineSplit[1].split(",");
+						for (int i = 0; i < side; i++) {
+							input[i] = Double.valueOf(size[i]);
+						}
+						inputSets.add(input);
+						break;
+					}
+					lineNumber++;
+				} catch (Exception e) {
+					System.err
+							.println("Training failed at line: " + lineNumber);
+				}
+			}
+		} catch (IOException x) {
+			System.err.format("IOException: %s%n", x);
+			System.exit(1);
+		}
+		double score = 0;
+		for (int lcv = 0; lcv < inputSets.size(); lcv++) {
+			r.setInputs(inputSets.get(lcv));
+			score += Math.pow((targets.get(lcv) - r.getOutput()), 2);
+			// System.out.println(r.getOutput());
+		}
+		System.out.println("Final score of " + score);
+		// Results
+		
+		System.out.println("-------------------------");
+		System.out.println("Test Results: ");
+		for (int lcv = 0; lcv < inputSets.size(); lcv++) {
+			r.setInputs(inputSets.get(lcv));
+			/*System.out.println("Input " + lcv);
+			System.out.println("\tTarget: " + targets.get(lcv));
+			System.out.println("\tActual: " + r.getOutput());*/
+			System.out.println(targets.get(lcv)+","+r.getOutput());
+		}
+		System.out.println("-------------------------");
+		
+	}
+
 	public static void main(String[] args) {
-		String defaultFile = "C:\\Users\\saf\\workspace\\AugurWorks\\Core\\java\\nets\\test_files\\OR_clean.augtrain";
-		// RectNet test = RectNet.trainFile(defaultFile, true);
-		// String testFile =
+		String defaultFile = "C:\\Users\\theconnman\\workspace\\Core\\java\\nets\\test_files\\NeuralNet.augsave";
+		String defaultFile2 = "C:\\Users\\theconnman\\workspace\\Core\\java\\nets\\test_files\\Test_1_Day.augtrain";
+		/* RectNet test = RectNet.trainFile("Test Data.augtrain", true);
+		test.saveNet("NeuralNet.augsave", test); */
 		// "C:\\Users\\saf\\workspace\\AugurWorks\\Core\\java\\nets\\test_files\\test.augsave";
-		// String testFile2 =
 		// "C:\\Users\\saf\\workspace\\AugurWorks\\Core\\java\\nets\\test_files\\test2.augsave";
 		// RectNet test = RectNet.loadNet(testFile);
-		// test.saveNet(testFile2, test);
+		RectNet test = RectNet.loadNet(defaultFile);
+		test.testNet(defaultFile2, test);
 		System.exit(0);
 	}
 }
