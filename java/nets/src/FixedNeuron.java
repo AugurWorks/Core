@@ -112,6 +112,17 @@ public class FixedNeuron implements Inp {
 		return sum;
 	}
 
+	public double getOutput(double[] ins) {
+		double sum = 0;
+		for (int i = 0; i < this.numInputs; i++) {
+			sum += this.weights[i] * ins[i];
+		}
+		sum = sigmoid(sum);
+		this.lastOutput = sum;
+		return sum;
+	}
+
+	
 	/**
 	 * Returns the last output that this neuron computed.
 	 * 

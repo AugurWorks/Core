@@ -173,13 +173,19 @@ public class RectNetFixed extends Net {
 	@Override
 	public double getOutput() {
 		long before = System.nanoTime();
-		int code = random.nextInt();
+		double[] outs = new double[this.y];
+		double[] ins = new double[this.y];
+		for (int j = 0; j < this.y; j++) {
+			ins[j] = this.neurons[0][j].getOutput(0);
+		}
 		for (int i = 0; i < this.x; i++) {
 			for (int j = 0; j < this.y; j++) {
-				this.neurons[i][j].getOutput(code);
+				outs[j] = this.neurons[i][j].getOutput(ins);
 			}
+			ins = outs;
+			outs = new double[this.y];
 		}
-		double d = this.output.getOutput(code);
+		double d = this.output.getOutput(ins);
 		this.timeInOutput += (System.nanoTime() - before);
 		return d;
 	}
