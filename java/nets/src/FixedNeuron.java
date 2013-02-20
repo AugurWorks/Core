@@ -50,10 +50,7 @@ public class FixedNeuron implements Inp {
 	 *            Weight to set
 	 */
 	public void addInput(Inp n, double w) {
-		if (numInputsFilled >= this.numInputs) {
-			System.err.println("Too many inputs added to neuron");
-			return;
-		}
+		assert(numInputsFilled < this.numInputs);
 		this.inputs[numInputsFilled] = n;
 		this.weights[numInputsFilled] = w;
 		numInputsFilled++;
@@ -69,10 +66,7 @@ public class FixedNeuron implements Inp {
 	 *            Amount to change weight by.
 	 */
 	public void changeWeight(int index, double w) {
-		if (index < 0 || index >= this.numInputs) {
-			System.err.println("Index out of accepted range.");
-			return;
-		}
+		assert(index >= 0 && index < this.numInputs);
 		this.weights[index] = this.weights[index] + w;
 	}
 
@@ -141,10 +135,7 @@ public class FixedNeuron implements Inp {
 	 * @return weight to the given neuron
 	 */
 	public double getWeight(int index) {
-		if (index < 0 || index >= this.numInputs) {
-			System.err.println("Index out of accepted range.");
-			throw new RuntimeException("Index out of accepted range.");
-		}
+		assert(index >= 0 && index < this.numInputs);
 		return this.weights[index];
 	}
 

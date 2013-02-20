@@ -134,11 +134,8 @@ public class Neuron implements Inp {
 	 *             when given neuron n is not connected to this.
 	 */
 	public double getWeight(Neuron n) {
-		if (!inputs.contains(n)) {
-			throw new RuntimeException("does not contain this neuron");
-		} else {
-			int loc = inputs.indexOf(n);
-			return weights.get(loc).doubleValue();
-		}
+		assert (inputs.contains(n));
+		int loc = inputs.indexOf(n);
+		return weights.get(loc).doubleValue();
 	}
 }
