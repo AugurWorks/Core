@@ -1,0 +1,23 @@
+login.sh
+
+This file needs to be executable on your machine. 
+Make sure to run:
+
+$ chmod +x login.sh
+
+in order to allow you to execute this file.
+
+The login script does the following:
+
+1) Log in as Stephen Freiberg
+2) Search the Enron Email source for free text "enron"
+3) Get the information about the user Stephen Freiberg
+4) Log out.
+
+
+All response data is appended to the file "response.txt".
+
+Brian - if you want to get sentiment data:
+$ cat response.txt | grep -i "sentiment"
+
+that will give you a little to work with. 
