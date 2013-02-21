@@ -1,3 +1,5 @@
+---------------------------------------------
+
 login.sh
 
 This file needs to be executable on your machine. 
@@ -21,3 +23,40 @@ Brian - if you want to get sentiment data:
 $ cat response.txt | grep -i "sentiment"
 
 that will give you a little to work with. 
+
+--------------------------------------------
+
+ticker.sh
+
+usage: ./ticker.sh AAPL
+spits out information about a ticker, including:
+ticker price open dailylow dailyhigh volume (look 
+ticker.sh for details)
+
+--------------------------------------------
+
+ticker_to_db.sh
+
+usage: ./ticker_to_db.sh AAPL
+puts the information output from ticker.sh into
+the local DB.
+
+--------------------------------------------
+
+add_to_db.sh
+
+is only used as a subcall in ticker_to_db.
+adds information to the db, but args must be in a specific
+order
+
+-------------------------------------------
+
+json_parse.py
+
+parses the jsonfile response.txt, expecting that file 
+to be a response populated by login.sh.
+
+spits out the sentiment for each symbol - does not sum
+the sentiment for repeated symbols yet.
+
+------------------------------------------
