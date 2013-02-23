@@ -259,4 +259,68 @@ public abstract class Net {
 		}
 		return true;
 	}
+
+	public static boolean validateAUGPred(String fileName, int size) {
+		if (!(fileName.toLowerCase().endsWith(".augpred"))) {
+			System.err.println("Training file should end in .augpred");
+			return false;
+		}
+		Charset charset = Charset.forName("US-ASCII");
+		Path file = Paths.get(fileName);
+		try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
+			String line = null;
+			int lineNumber = 1;
+			String[] lineSplit;
+			while ((line = reader.readLine()) != null) {
+				try {
+					lineSplit = line.split(",");
+					switch (lineNumber) {
+					case 1:
+						if (!(lineSplit.length==5))
+							throw new RuntimeException();
+						for (int i = 0; i < 5; i++) {
+							try {
+						        Double.valueOf(lineSplit[i]);
+						    } catch (NumberFormatException e) {
+						        throw new RuntimeException();
+						    }
+							if (Double.valueOf(lineSplit[i])<0)
+								throw new RuntimeException();
+						}
+						if (Double.valueOf(lineSplit[0])<Double.valueOf(lineSplit[1]) || Double.valueOf(lineSplit[2])<Double.valueOf(lineSplit[3]) || Double.valueOf(lineSplit[2])>1)
+							throw new RuntimeException();
+						break;
+					case 2:
+						if (lineSplit.length!=size)
+							throw new RuntimeException();
+						break;
+					default:
+						if (lineSplit.length!=size)
+							throw new RuntimeException();
+						for (int i = 0; i < size; i++) {
+							try {
+						        Double.valueOf(lineSplit[i]);
+						    } catch (NumberFormatException e) {
+						        throw new RuntimeException();
+						    }
+							if (Double.valueOf(lineSplit[i])<0)
+								throw new RuntimeException();
+						}
+						break;
+					}
+					lineNumber++;
+				} catch (Exception e) {
+					System.err.println("Validation failed at line: "
+							+ lineNumber);
+					return false;
+				}
+			}
+			if (lineNumber != 4)
+				throw new RuntimeException();
+		} catch (IOException x) {
+			System.err.format("IOException: %s%n", x);
+			return false;
+		}
+		return true;
+	}
 }

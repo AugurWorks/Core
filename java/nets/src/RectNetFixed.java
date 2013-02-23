@@ -390,6 +390,7 @@ public class RectNetFixed extends Net {
 		boolean brokeAtLocalMax = false;
 		boolean brokeAtPerfCutoff = false;
 		for (i = 0; i < fileIter; i++) {
+			long roundTime = System.currentTimeMillis();
 			for (int lcv = 0; lcv < inputSets.size(); lcv++) {
 				r.train(inputSets.get(lcv), targets.get(lcv), rowIter,
 						learningConstant);
@@ -561,14 +562,162 @@ public class RectNetFixed extends Net {
 		return net;
 	}
 
-	public static void main(String[] args) {
-		String defaultFile = "C:\\Users\\saf\\workspace\\AugurWorks\\Core\\java\\nets\\test_files\\OR_clean.augtrain";
+	/**
+	 * @param fileName
+	 * @param r
+	 */
+	public void testNet(String fileName, RectNetFixed r) {
+		boolean valid = Net.validateAUGTest(fileName, r.y);
+		if (!valid) {
+			System.err.println("File not valid format.");
+			System.exit(1);
+		}
+		// Now we need to pull information out of the augtrain file.
+		Charset charset = Charset.forName("US-ASCII");
+		Path file = Paths.get(fileName);
+		String line = null;
+		int lineNumber = 1;
+		String[] lineSplit;
+		int side = r.y;
+		String[] size;
+		ArrayList<double[]> inputSets = new ArrayList<double[]>();
+		ArrayList<Double> targets = new ArrayList<Double>();
+		try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
+			while ((line = reader.readLine()) != null) {
+				try {
+					lineSplit = line.split(" ");
+					switch (lineNumber) {
+					case 1:
+						break;
+					case 2:
+						size = lineSplit[1].split(",");
+						break;
+					case 3:
+						// Titles
+						break;
+					default:
+						// expected
+						double target = Double.valueOf(lineSplit[0]);
+						targets.add(target);
+						// inputs
+						double[] input = new double[side];
+						size = lineSplit[1].split(",");
+						for (int i = 0; i < side; i++) {
+							input[i] = Double.valueOf(size[i]);
+						}
+						inputSets.add(input);
+						break;
+					}
+					lineNumber++;
+				} catch (Exception e) {
+					System.err
+							.println("Training failed at line: " + lineNumber);
+				}
+			}
+		} catch (IOException x) {
+			System.err.format("IOException: %s%n", x);
+			System.exit(1);
+		}
+		double score = 0;
+		for (int lcv = 0; lcv < inputSets.size(); lcv++) {
+			r.setInputs(inputSets.get(lcv));
+			score += Math.pow((targets.get(lcv) - r.getOutput()), 2);
+			// System.out.println(r.getOutput());
+		}
+		System.out.println("Final score of " + score);
+		// Results
+		
+		System.out.println("-------------------------");
+		System.out.println("Test Results: ");
+		for (int lcv = 0; lcv < inputSets.size(); lcv++) {
+			r.setInputs(inputSets.get(lcv));
+			/*System.out.println("Input " + lcv);
+			System.out.println("\tTarget: " + targets.get(lcv));
+			System.out.println("\tActual: " + r.getOutput());*/
+			System.out.println(targets.get(lcv)+","+r.getOutput());
+		}
+		System.out.println("-------------------------");
+		
+	}
 
-		System.out.println("Perf test of 10^6 training rounds:");
+	/**
+	 * 
+	 * @param trainingFile
+	 * @param predFile
+	 * @param verbose
+	 * @return
+	 */
+	public static double predictTomorrow(String trainingFile, String predFile, boolean verbose) {
+		RectNetFixed r = RectNetFixed.trainFile(trainingFile, verbose);
+		/*boolean valid = Net.validateAUGPred(predFile, r.y);
+		if (!valid) {
+			System.err.println("File not valid format.");
+			System.exit(1);
+		}*/
+		// Now we need to pull information out of the augtrain file.
+		Charset charset = Charset.forName("US-ASCII");
+		Path file = Paths.get(predFile);
+		String line = null;
+		int lineNumber = 1;
+		String[] lineSplit;
+		double maxNum = 1, minNum = 1, mx = 1, mn = 1, today = 0;
+		ArrayList<double[]> inputSets = new ArrayList<double[]>();
+		try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
+			while ((line = reader.readLine()) != null) {
+				try {
+					lineSplit=line.split(",");
+					switch (lineNumber) {
+					case 1:
+						mx=Double.valueOf(lineSplit[0]);
+						mn=Double.valueOf(lineSplit[1]);
+						maxNum=Double.valueOf(lineSplit[2]);
+						minNum=Double.valueOf(lineSplit[3]);
+						today=Double.valueOf(lineSplit[4]);
+						break;
+					case 3:
+						boolean valid = Net.validateAUGPred(predFile, lineSplit.length);
+						if (!valid) {
+							System.err.println("File not valid format.");
+							System.exit(1);
+						}
+						double[] input = new double[lineSplit.length];
+						for (int i = 0; i < lineSplit.length; i++) {
+							input[i] = Double.valueOf(lineSplit[i]);
+						}
+						inputSets.add(input);
+						break;
+					default:
+						break;
+					}
+					lineNumber++;
+				} catch (Exception e) {
+					System.err
+							.println("Training failed at line: " + lineNumber);
+				}
+			}
+		} catch (IOException x) {
+			System.err.format("IOException: %s%n", x);
+			System.exit(1);
+		}
+		r.setInputs(inputSets.get(0));
+		double scaledValue = (r.getOutput()-minNum)/(maxNum-minNum)*(mx-mn)+mn;
+		System.out.println("Today's price is $"+today);
+		System.out.println("Tomorrow's price predicted to be $"+scaledValue);
+		return scaledValue;
+	}
+	
+	public static void main(String[] args) {
+		//String trainingFile = "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\Train_1_Day.augtrain";
+		//String predFile = "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\Pred_1_Day.augpred";
+		String trainingFile = "Train_1_Day.augtrain";
+		String predFile = "Pred_1_Day.augpred";
+		
+		/*System.out.println("Perf test of 10^6 training rounds:");
 		System.out.println("RectNet: ");
 		RectNet test1 = RectNet.trainFile(defaultFile, true);
 		System.out.println("RectNetFixed: ");
-		RectNetFixed test2 = RectNetFixed.trainFile(defaultFile, true);
+		RectNetFixed test2 = RectNetFixed.trainFile(defaultFile, true);*/
+		RectNetFixed.predictTomorrow(trainingFile,predFile,false);
 
 		System.exit(0);
 	}
