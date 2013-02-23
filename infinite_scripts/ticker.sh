@@ -9,3 +9,4 @@ INPT=$( curl -s 'http://download.finance.yahoo.com/d/quotes.csv?s='$1'&f=sl1d1t1
 IFS=', ' read -a array <<< $INPT
 
 echo "${array[@]}"
+

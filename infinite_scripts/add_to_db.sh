@@ -5,6 +5,6 @@
 echo 'INSERT INTO augurworks.stocks (ticker,price,date,time,day_change,open,daily_high,daily_low,volume)
 	VALUES('$1','$2',STR_TO_DATE('$3', "%m/%d/%Y"),'$4','$5','$6','$7','$8','$9');' > query.sql
 
-mysql -uroot -psaf < query.sql &
+mysql -uroot -paugurworks < query.sql
 
 rm query.sql
