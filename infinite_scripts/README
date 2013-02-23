@@ -60,3 +60,15 @@ spits out the sentiment for each symbol - does not sum
 the sentiment for repeated symbols yet.
 
 ------------------------------------------
+
+backdate_script.sh
+
+one-off historical stock data integration script
+
+------------------------------------------
+
+backdata_download.sh
+
+helper function for one-off historical stock data download
+
+------------------------------------------
