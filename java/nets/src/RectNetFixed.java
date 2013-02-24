@@ -715,7 +715,7 @@ public class RectNetFixed extends Net {
 		// "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\Train_1_Day.augtrain";
 		// String predFile =
 		// "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\Pred_1_Day.augpred";
-		String prefix = "/root/Core/java/nets/test_files";
+		String prefix = "/root/Core/java/nets/test_files/";
 		String trainingFile = prefix + "Train_1_Day.augtrain";
 		String predFile = prefix + "Pred_1_Day.augpred";
 
