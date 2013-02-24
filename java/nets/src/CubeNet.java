@@ -824,8 +824,8 @@ public class CubeNet {
 		CubeNet c = new CubeNet(2, 2, 12);
 
 		// now let's make some training data for AND
-		double rate = 0.5;
-		double perfLimit = -1;
+		//double rate = 0.5;
+		//double perfLimit = -1;
 		double[][][] trainingData = new double[2][2][12];
 		// 0,1 for k=0..2
 		for (int k = 0; k < 3; k++) {

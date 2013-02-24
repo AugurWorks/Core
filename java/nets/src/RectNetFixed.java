@@ -390,7 +390,7 @@ public class RectNetFixed extends Net {
 		boolean brokeAtLocalMax = false;
 		boolean brokeAtPerfCutoff = false;
 		for (i = 0; i < fileIter; i++) {
-			long roundTime = System.currentTimeMillis();
+			// long roundTime = System.currentTimeMillis();
 			for (int lcv = 0; lcv < inputSets.size(); lcv++) {
 				r.train(inputSets.get(lcv), targets.get(lcv), rowIter,
 						learningConstant);
@@ -626,18 +626,20 @@ public class RectNetFixed extends Net {
 		}
 		System.out.println("Final score of " + score);
 		// Results
-		
+
 		System.out.println("-------------------------");
 		System.out.println("Test Results: ");
 		for (int lcv = 0; lcv < inputSets.size(); lcv++) {
 			r.setInputs(inputSets.get(lcv));
-			/*System.out.println("Input " + lcv);
-			System.out.println("\tTarget: " + targets.get(lcv));
-			System.out.println("\tActual: " + r.getOutput());*/
-			System.out.println(targets.get(lcv)+","+r.getOutput());
+			/*
+			 * System.out.println("Input " + lcv);
+			 * System.out.println("\tTarget: " + targets.get(lcv));
+			 * System.out.println("\tActual: " + r.getOutput());
+			 */
+			System.out.println(targets.get(lcv) + "," + r.getOutput());
 		}
 		System.out.println("-------------------------");
-		
+
 	}
 
 	/**
@@ -647,13 +649,13 @@ public class RectNetFixed extends Net {
 	 * @param verbose
 	 * @return
 	 */
-	public static double predictTomorrow(String trainingFile, String predFile, boolean verbose) {
+	public static double predictTomorrow(String trainingFile, String predFile,
+			boolean verbose) {
 		RectNetFixed r = RectNetFixed.trainFile(trainingFile, verbose);
-		/*boolean valid = Net.validateAUGPred(predFile, r.y);
-		if (!valid) {
-			System.err.println("File not valid format.");
-			System.exit(1);
-		}*/
+		/*
+		 * boolean valid = Net.validateAUGPred(predFile, r.y); if (!valid) {
+		 * System.err.println("File not valid format."); System.exit(1); }
+		 */
 		// Now we need to pull information out of the augtrain file.
 		Charset charset = Charset.forName("US-ASCII");
 		Path file = Paths.get(predFile);
@@ -665,17 +667,18 @@ public class RectNetFixed extends Net {
 		try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
 			while ((line = reader.readLine()) != null) {
 				try {
-					lineSplit=line.split(",");
+					lineSplit = line.split(",");
 					switch (lineNumber) {
 					case 1:
-						mx=Double.valueOf(lineSplit[0]);
-						mn=Double.valueOf(lineSplit[1]);
-						maxNum=Double.valueOf(lineSplit[2]);
-						minNum=Double.valueOf(lineSplit[3]);
-						today=Double.valueOf(lineSplit[4]);
+						mx = Double.valueOf(lineSplit[0]);
+						mn = Double.valueOf(lineSplit[1]);
+						maxNum = Double.valueOf(lineSplit[2]);
+						minNum = Double.valueOf(lineSplit[3]);
+						today = Double.valueOf(lineSplit[4]);
 						break;
 					case 3:
-						boolean valid = Net.validateAUGPred(predFile, lineSplit.length);
+						boolean valid = Net.validateAUGPred(predFile,
+								lineSplit.length);
 						if (!valid) {
 							System.err.println("File not valid format.");
 							System.exit(1);
@@ -700,25 +703,30 @@ public class RectNetFixed extends Net {
 			System.exit(1);
 		}
 		r.setInputs(inputSets.get(0));
-		double scaledValue = (r.getOutput()-minNum)/(maxNum-minNum)*(mx-mn)+mn;
-		System.out.println("Today's price is $"+today);
-		System.out.println("Tomorrow's price predicted to be $"+scaledValue);
+		double scaledValue = (r.getOutput() - minNum) / (maxNum - minNum)
+				* (mx - mn) + mn;
+		System.out.println("Today's price is $" + today);
+		System.out.println("Tomorrow's price predicted to be $" + scaledValue);
 		return scaledValue;
 	}
-	
-	public static void main(String[] args) {
-		//String trainingFile = "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\Train_1_Day.augtrain";
-		//String predFile = "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\Pred_1_Day.augpred";
-		String trainingFile = "Train_1_Day.augtrain";
-		String predFile = "Pred_1_Day.augpred";
-		
-		/*System.out.println("Perf test of 10^6 training rounds:");
-		System.out.println("RectNet: ");
-		RectNet test1 = RectNet.trainFile(defaultFile, true);
-		System.out.println("RectNetFixed: ");
-		RectNetFixed test2 = RectNetFixed.trainFile(defaultFile, true);*/
-		RectNetFixed.predictTomorrow(trainingFile,predFile,false);
 
+	public static void main(String[] args) {
+		// String trainingFile =
+		// "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\Train_1_Day.augtrain";
+		// String predFile =
+		// "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\Pred_1_Day.augpred";
+		String prefix = "/root/Core/java/nets/test_files";
+		String trainingFile = prefix + "Train_1_Day.augtrain";
+		String predFile = prefix + "Pred_1_Day.augpred";
+
+		/*
+		 * System.out.println("Perf test of 10^6 training rounds:");
+		 * System.out.println("RectNet: "); RectNet test1 =
+		 * RectNet.trainFile(defaultFile, true);
+		 * System.out.println("RectNetFixed: "); RectNetFixed test2 =
+		 * RectNetFixed.trainFile(defaultFile, true);
+		 */
+		RectNetFixed.predictTomorrow(trainingFile, predFile, false);
 		System.exit(0);
 	}
 }
