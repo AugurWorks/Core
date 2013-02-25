@@ -9,7 +9,7 @@ FROM = "Alfred Pennyworth"
 TO = ['stephen@augurworks.com','brian@augurworks.com','drew@augurworks.com']
 SUBJECT = 'Tomorrow\'s predictions'
 
-f = open('/root/Core/java/nohup.out')
+f = open('/root/Core/java/prediction.txt')
 pred = f.read()
 
 TEXT = pred
