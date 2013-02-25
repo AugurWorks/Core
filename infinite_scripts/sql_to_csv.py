@@ -8,8 +8,12 @@
 firstCol = 'USO'
 
 import os
+import datetime
 f = open('query.sql','w')
-f.write('SELECT ticker,price FROM augurworks.stocks WHERE DATE(date) BETWEEN "2012-02-23" AND "2013-02-23" ORDER BY date DESC;')
+today = datetime.datetime.now().strftime("%Y-%m-%d")
+ayearago = (datetime.datetime.now() - datetime.timedelta(days=365)).strftime("%Y-%m-%d")
+line = 'SELECT ticker,price FROM augurworks.stocks WHERE DATE(date) BETWEEN "' + ayearago + '" AND "' + today + '" ORDER BY date DESC;'
+f.write(line)
 f.close()
 
 stream = os.popen('mysql -uroot -paugurworks < query.sql && rm query.sql')
