@@ -9,14 +9,14 @@ firstCol = 'USO'
 
 import os
 import datetime
-f = open('query.sql','w')
+f = open('/root/Core/infinite_scripts/query.sql','w')
 today = datetime.datetime.now().strftime("%Y-%m-%d")
-ayearago = (datetime.datetime.now() - datetime.timedelta(days=365)).strftime("%Y-%m-%d")
+ayearago = "2008-01-01"
 line = 'SELECT ticker,price FROM augurworks.stocks WHERE DATE(date) BETWEEN "' + ayearago + '" AND "' + today + '" ORDER BY date DESC;'
 f.write(line)
 f.close()
 
-stream = os.popen('mysql -uroot -paugurworks < query.sql && rm query.sql')
+stream = os.popen('mysql -uroot -paugurworks < /root/Core/infinite_scripts/query.sql && rm /root/Core/infinite_scripts/query.sql')
 
 stocks = dict()
 
@@ -40,7 +40,7 @@ else:
     print firstCol + " not found in DB. First column will be " + keys[0] + "."
 
 cutoff = count / len(keys)
-f = open('something.csv','w')
+f = open('/root/Core/infinite_scripts/something.csv','w')
 lcv = 0
 while lcv < cutoff:
     line = ''
