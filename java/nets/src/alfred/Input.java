@@ -1,3 +1,4 @@
+package alfred;
 /**
  * Represents and input to the Net. Has a constant output that can be set.
  * 

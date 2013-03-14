@@ -1,3 +1,4 @@
+package alfred;
 import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -15,28 +16,29 @@ import java.util.Random;
  * @author saf
  * 
  */
-public class RectNetFixed extends Net {
+public class RectNet extends Net {
 
 	// Inputs to network
 	private Input[] inputs;
 	// Every neuron with the same i is in the
 	// same "layer". Indexed as [col][row].
-	private FixedNeuron[][] neurons;
+	private Neuron[][] neurons;
 	// X is depth of network
 	private int x;
 	// Y is height of network (number of inputs)
 	private int y;
 	// There's only one final output neuron
 	// since this is built to make booleans.
-	private FixedNeuron output;
+	private Neuron output;
 	// Prints debug output when true.
 	private boolean verbose = false;
 	private Random random;
+	public long timeInOutput;
 
 	/**
 	 * Constructs a new RectNet with 10 inputs and 5 layers of network.
 	 */
-	public RectNetFixed() {
+	public RectNet() {
 		this.x = 5;
 		this.y = 10;
 		init();
@@ -50,7 +52,7 @@ public class RectNetFixed extends Net {
 	 * @param numInputs
 	 *            number of inputs to the network
 	 */
-	public RectNetFixed(int depth, int numInputs) {
+	public RectNet(int depth, int numInputs) {
 		this.x = depth;
 		this.y = numInputs;
 		init();
@@ -67,7 +69,7 @@ public class RectNetFixed extends Net {
 	 * @param verb
 	 *            true when RectNet displays debug output.
 	 */
-	public RectNetFixed(int depth, int numInputs, boolean verb) {
+	public RectNet(int depth, int numInputs, boolean verb) {
 		this.x = depth;
 		this.y = numInputs;
 		this.verbose = verb;
@@ -89,7 +91,8 @@ public class RectNetFixed extends Net {
 	 */
 	private double getWeight(int leftCol, int leftRow, int rightCol,
 			int rightRow) {
-		return this.neurons[rightCol][rightRow].getWeight(leftRow);
+		return this.neurons[rightCol][rightRow]
+				.getWeight(this.neurons[leftCol][leftRow]);
 	}
 
 	/**
@@ -105,24 +108,21 @@ public class RectNetFixed extends Net {
 		this.random = new Random(System.nanoTime());
 		// Initialize arrays to blank neurons and inputs.
 		this.inputs = new Input[y];
-		this.neurons = new FixedNeuron[x][y];
-		this.output = new FixedNeuron(this.y);
+		this.neurons = new Neuron[x][y];
+		this.output = new Neuron();
 		// Name the neurons for possible debug. This is not a critical
 		// step.
 		output.setName("output");
 		for (int j = 0; j < this.y; j++) {
 			this.inputs[j] = new Input();
-			// initialize the first row
-			this.neurons[0][j] = new FixedNeuron(1);
-			this.neurons[0][j].setName("(" + 0 + "," + j + ")");
-			for (int i = 1; i < this.x; i++) {
-				this.neurons[i][j] = new FixedNeuron(this.y);
+			for (int i = 0; i < this.x; i++) {
+				this.neurons[i][j] = new Neuron();
 				this.neurons[i][j].setName("(" + i + "," + j + ")");
 			}
 		}
 		// Make connections between neurons and inputs.
 		for (int j = 0; j < this.y; j++) {
-			this.neurons[0][j].addInput(this.inputs[j], initNum());
+			this.neurons[0][j].addInput(this.inputs[j], 1.0);
 		}
 		// Make connections between neurons and neurons.
 		for (int leftCol = 0; leftCol < this.x - 1; leftCol++) {
@@ -169,8 +169,11 @@ public class RectNetFixed extends Net {
 	 */
 	@Override
 	public double getOutput() {
+		long before = System.nanoTime();
 		int code = random.nextInt();
-		return this.output.getOutput(code);
+		double d = this.output.getOutput(code);
+		this.timeInOutput += (System.nanoTime() - before);
+		return d;
 	}
 
 	/**
@@ -219,7 +222,8 @@ public class RectNetFixed extends Net {
 					for (rightRow = 0; rightRow < this.y; rightRow++) {
 						if (rightCol == this.x) {
 							summedRightWeightDelta += this.output
-									.getWeight(leftRow) * deltaF;
+									.getWeight(this.neurons[leftCol][leftRow])
+									* deltaF;
 						} else {
 							// summing w * delta
 							summedRightWeightDelta += getWeight(leftCol,
@@ -249,7 +253,7 @@ public class RectNetFixed extends Net {
 				// i is the output from the leftward neuron
 				double dw = learningConstant
 						* this.neurons[this.x - 1][j].getLastOutput() * deltaF;
-				this.output.changeWeight(j, dw);
+				this.output.changeWeight(this.neurons[this.x - 1][j], dw);
 			}
 			// now we do the same for the internal nodes
 			for (leftCol = this.x - 2; leftCol >= 0; leftCol--) {
@@ -263,13 +267,13 @@ public class RectNetFixed extends Net {
 								* this.neurons[leftCol][leftRow]
 										.getLastOutput()
 								* deltas[rightCol][rightRow];
-						this.neurons[rightCol][rightRow].changeWeight(leftRow,
-								dw);
+						this.neurons[rightCol][rightRow].changeWeight(
+								this.neurons[leftCol][leftRow], dw);
 						if (verbose) {
 							System.out.println(leftCol + "," + leftRow + "->"
 									+ rightCol + "," + rightRow);
 							System.out.println(this.neurons[rightCol][rightRow]
-									.getWeight(leftRow));
+									.getWeight(this.neurons[leftCol][leftRow]));
 						}
 					}
 				}
@@ -300,7 +304,7 @@ public class RectNetFixed extends Net {
 	 *            Flag to display debugging text or not
 	 * @return The trained neural network
 	 */
-	public static RectNetFixed trainFile(String fileName, boolean verbose) {
+	public static RectNet trainFile(String fileName, boolean verbose) {
 		boolean valid = Net.validateAUGt(fileName);
 		if (!valid) {
 			System.err.println("File not valid format.");
@@ -383,14 +387,13 @@ public class RectNetFixed extends Net {
 		}
 		// Actually do the training part
 		long start = System.currentTimeMillis();
-		RectNetFixed r = new RectNetFixed(depth, side);
+		RectNet r = new RectNet(depth, side);
 		double maxScore = Double.NEGATIVE_INFINITY;
 		double score = 0;
 		int i = 0;
 		boolean brokeAtLocalMax = false;
 		boolean brokeAtPerfCutoff = false;
 		for (i = 0; i < fileIter; i++) {
-			// long roundTime = System.currentTimeMillis();
 			for (int lcv = 0; lcv < inputSets.size(); lcv++) {
 				r.train(inputSets.get(lcv), targets.get(lcv), rowIter,
 						learningConstant);
@@ -425,10 +428,16 @@ public class RectNetFixed extends Net {
 			}
 			System.out.println("Rounds trained: " + i);
 			System.out.println("Final score of " + -1 * score);
-			System.out.println("Time elapsed (ms): "
-					+ ((System.currentTimeMillis() - start)));
+			
+			
+			long elapsed = System.currentTimeMillis() - start;
+			System.out.println("Time elapsed (ms): " + elapsed);
 			// Results
+			System.out.println("Time in getOutput (ns): " + r.timeInOutput);
+			System.out.println("Percent time in getOutput: "
+					+ ((r.timeInOutput / 10000) / elapsed) + "%");
 			System.out.println("-------------------------");
+			/*
 			System.out.println("Test Results: ");
 			for (int lcv = 0; lcv < inputSets.size(); lcv++) {
 				r.setInputs(inputSets.get(lcv));
@@ -436,6 +445,7 @@ public class RectNetFixed extends Net {
 				System.out.println("\tTarget: " + targets.get(lcv));
 				System.out.println("\tActual: " + r.getOutput());
 			}
+			*/
 			System.out.println("-------------------------");
 		}
 		return r;
@@ -451,7 +461,7 @@ public class RectNetFixed extends Net {
 	 * @param net
 	 *            Neural net to be saved
 	 */
-	public void saveNet(String fileName, RectNetFixed net) {
+	public void saveNet(String fileName, RectNet net) {
 		try {
 			if (!(fileName.toLowerCase().endsWith(".augsave"))) {
 				System.err
@@ -459,11 +469,12 @@ public class RectNetFixed extends Net {
 				return;
 			}
 			PrintWriter out = new PrintWriter(new FileWriter(fileName));
-			out.println("net " + Integer.toString(this.x) + ","
-					+ Integer.toString(this.y));
+			out.println("net " + Integer.toString(this.y) + ","
+					+ Integer.toString(this.x));
 			String line = "O ";
 			for (int j = 0; j < this.y; j++) {
-				line += this.output.getWeight(j) + ",";
+				line += this.output.getWeight(this.neurons[this.x - 1][j])
+						+ ",";
 			}
 			out.println(line.substring(0, line.length() - 1));
 			for (int leftCol = 0; leftCol < this.x - 1; leftCol++) {
@@ -472,7 +483,7 @@ public class RectNetFixed extends Net {
 					line = rightCol + " ";
 					for (int leftRow = 0; leftRow < this.y; leftRow++) {
 						line += net.neurons[rightCol][rightRow]
-								.getWeight(leftRow) + ",";
+								.getWeight(net.neurons[leftCol][leftRow]) + ",";
 					}
 					out.println(line.substring(0, line.length() - 1));
 				}
@@ -492,7 +503,7 @@ public class RectNetFixed extends Net {
 	 *            File path to an .augsave file containing a neural network
 	 * @return Neural network from the .augsave file
 	 */
-	public static RectNetFixed loadNet(String fileName) {
+	public static RectNet loadNet(String fileName) {
 		boolean valid = Net.validateAUGs(fileName);
 		if (!valid) {
 			System.err.println("File not valid format.");
@@ -514,8 +525,8 @@ public class RectNetFixed extends Net {
 			try {
 				lineSplit = line.split(" ");
 				String[] size = lineSplit[1].split(",");
-				side = Integer.valueOf(size[1]);
-				depth = Integer.valueOf(size[0]);
+				side = Integer.valueOf(size[0]);
+				depth = Integer.valueOf(size[1]);
 			} catch (Exception e) {
 				System.err.println("Loading failed at line: " + lineNumber);
 			}
@@ -523,7 +534,7 @@ public class RectNetFixed extends Net {
 			System.err.format("IOException: %s%n", x);
 			System.exit(1);
 		}
-		RectNetFixed net = new RectNetFixed(depth, side);
+		RectNet net = new RectNet(depth, side);
 		try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
 			while ((line = reader.readLine()) != null) {
 				try {
@@ -566,7 +577,7 @@ public class RectNetFixed extends Net {
 	 * @param fileName
 	 * @param r
 	 */
-	public void testNet(String fileName, RectNetFixed r) {
+	public void testNet(String fileName, RectNet r) {
 		boolean valid = Net.validateAUGTest(fileName, r.y);
 		if (!valid) {
 			System.err.println("File not valid format.");
@@ -626,107 +637,30 @@ public class RectNetFixed extends Net {
 		}
 		System.out.println("Final score of " + score);
 		// Results
-
+		
 		System.out.println("-------------------------");
 		System.out.println("Test Results: ");
 		for (int lcv = 0; lcv < inputSets.size(); lcv++) {
 			r.setInputs(inputSets.get(lcv));
-			/*
-			 * System.out.println("Input " + lcv);
-			 * System.out.println("\tTarget: " + targets.get(lcv));
-			 * System.out.println("\tActual: " + r.getOutput());
-			 */
-			System.out.println(targets.get(lcv) + "," + r.getOutput());
+			/*System.out.println("Input " + lcv);
+			System.out.println("\tTarget: " + targets.get(lcv));
+			System.out.println("\tActual: " + r.getOutput());*/
+			System.out.println(targets.get(lcv)+","+r.getOutput());
 		}
 		System.out.println("-------------------------");
-
-	}
-
-	/**
-	 * 
-	 * @param trainingFile
-	 * @param predFile
-	 * @param verbose
-	 * @return
-	 */
-	public static double predictTomorrow(String trainingFile, String predFile,
-			boolean verbose) {
-		RectNetFixed r = RectNetFixed.trainFile(trainingFile, verbose);
-		/*
-		 * boolean valid = Net.validateAUGPred(predFile, r.y); if (!valid) {
-		 * System.err.println("File not valid format."); System.exit(1); }
-		 */
-		// Now we need to pull information out of the augtrain file.
-		Charset charset = Charset.forName("US-ASCII");
-		Path file = Paths.get(predFile);
-		String line = null;
-		int lineNumber = 1;
-		String[] lineSplit;
-		double maxNum = 1, minNum = 1, mx = 1, mn = 1, today = 0;
-		ArrayList<double[]> inputSets = new ArrayList<double[]>();
-		try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
-			while ((line = reader.readLine()) != null) {
-				try {
-					lineSplit = line.split(",");
-					switch (lineNumber) {
-					case 1:
-						mx = Double.valueOf(lineSplit[0]);
-						mn = Double.valueOf(lineSplit[1]);
-						maxNum = Double.valueOf(lineSplit[2]);
-						minNum = Double.valueOf(lineSplit[3]);
-						today = Double.valueOf(lineSplit[4]);
-						break;
-					case 3:
-						boolean valid = Net.validateAUGPred(predFile,
-								lineSplit.length);
-						if (!valid) {
-							System.err.println("File not valid format.");
-							System.exit(1);
-						}
-						double[] input = new double[lineSplit.length];
-						for (int i = 0; i < lineSplit.length; i++) {
-							input[i] = Double.valueOf(lineSplit[i]);
-						}
-						inputSets.add(input);
-						break;
-					default:
-						break;
-					}
-					lineNumber++;
-				} catch (Exception e) {
-					System.err
-							.println("Training failed at line: " + lineNumber);
-				}
-			}
-		} catch (IOException x) {
-			System.err.format("IOException: %s%n", x);
-			System.exit(1);
-		}
-		r.setInputs(inputSets.get(0));
-		double scaledValue = (r.getOutput() - minNum) / (maxNum - minNum)
-				* (mx - mn) + mn;
-		System.out.println("Today's price is $" + today);
-		System.out.println("Tomorrow's price predicted to be $" + scaledValue);
-		return scaledValue;
+		
 	}
 
 	public static void main(String[] args) {
-		// String trainingFile =
-		// "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\Train_1_Day.augtrain";
-		// String predFile =
-		// "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\Pred_1_Day.augpred";
-		String prefix = "/root/Core/java/nets/test_files/";
-		String trainingFile = prefix + "Train_1_Day.augtrain";
-		String predFile = prefix + "Pred_1_Day.augpred";
-
-		/*
-		 * System.out.println("Perf test of 10^6 training rounds:");
-		 * System.out.println("RectNet: "); RectNet test1 =
-		 * RectNet.trainFile(defaultFile, true);
-		 * System.out.println("RectNetFixed: "); RectNetFixed test2 =
-		 * RectNetFixed.trainFile(defaultFile, true);
-		 */
-		RectNetFixed.predictTomorrow(trainingFile, predFile, false);
+		String defaultFile = "C:\\Users\\theconnman\\workspace\\Core\\java\\nets\\test_files\\NeuralNet.augsave";
+		String defaultFile2 = "C:\\Users\\theconnman\\workspace\\Core\\java\\nets\\test_files\\Test_1_Day.augtrain";
+		/* RectNet test = RectNet.trainFile("Test Data.augtrain", true);
+		test.saveNet("NeuralNet.augsave", test); */
+		// "C:\\Users\\saf\\workspace\\AugurWorks\\Core\\java\\nets\\test_files\\test.augsave";
+		// "C:\\Users\\saf\\workspace\\AugurWorks\\Core\\java\\nets\\test_files\\test2.augsave";
+		// RectNet test = RectNet.loadNet(testFile);
+		RectNet test = RectNet.loadNet(defaultFile);
+		test.testNet(defaultFile2, test);
 		System.exit(0);
 	}
 }

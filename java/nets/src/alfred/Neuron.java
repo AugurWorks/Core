@@ -1,24 +1,23 @@
-public class FixedNeuron implements Inp {
-	private double[] weights;
-	private Inp[] inputs;
-	private String name;
-	private int numInputsFilled;
-	private int numInputs;
+package alfred;
+import java.util.ArrayList;
+
+public class Neuron implements Inp {
+	public ArrayList<Double> weights;
+	private ArrayList<Inp> inputs;
+	private double offset;
+	// Cached values of last output and code.
 	private double lastOutput;
 	private int lastCode;
+	private String name;
 
 	/**
 	 * Instantiates a new neuron with empty lists of inputs, weights, and names.
-	 * 
-	 * @param numInputs
-	 *            number of inputs that this neuron will have
 	 */
-	public FixedNeuron(int numInputs) {
-		this.weights = new double[numInputs];
-		this.inputs = new Inp[numInputs];
+	public Neuron() {
+		this.weights = new ArrayList<Double>();
+		this.inputs = new ArrayList<Inp>();
+		this.offset = 0;
 		this.name = "";
-		this.numInputsFilled = 0;
-		this.numInputs = numInputs;
 	}
 
 	/**
@@ -41,8 +40,8 @@ public class FixedNeuron implements Inp {
 	}
 
 	/**
-	 * Add a neuron to the inputs list with a given weight. Assumes the neuron
-	 * is not already in the inputs list.
+	 * Add a neuron to the inputs list with a given weight. If the neuron is
+	 * already in the inputs list, set the weight to the given value.
 	 * 
 	 * @param n
 	 *            Neuron to add
@@ -50,30 +49,33 @@ public class FixedNeuron implements Inp {
 	 *            Weight to set
 	 */
 	public void addInput(Inp n, double w) {
-		if (numInputsFilled >= this.numInputs) {
-			System.err.println("Too many inputs added to neuron");
-			return;
+		if (!inputs.contains(n)) {
+			inputs.add(n);
+			weights.add(w);
+		} else {
+			int loc = inputs.indexOf(n);
+			weights.set(loc, w);
 		}
-		this.inputs[numInputsFilled] = n;
-		this.weights[numInputsFilled] = w;
-		numInputsFilled++;
 	}
 
 	/**
-	 * Changes the weight from this neuron to another, given the index of that
-	 * neuron.
+	 * Changes the weight from this neuron to another, adding that neuron if
+	 * necessary. The input w is a weight delta that is added to the original
+	 * weight.
 	 * 
-	 * @param index
-	 *            index of input to change weight to
+	 * @param n
+	 *            Input to change weight from this neuron to.
 	 * @param w
 	 *            Amount to change weight by.
 	 */
-	public void changeWeight(int index, double w) {
-		if (index < 0 || index >= this.numInputs) {
-			System.err.println("Index out of accepted range.");
-			return;
+	public void changeWeight(Inp n, double w) {
+		if (!inputs.contains(n)) {
+			inputs.add(n);
+			weights.add(w);
+		} else {
+			int loc = inputs.indexOf(n);
+			weights.set(loc, weights.get(loc) + w);
 		}
-		this.weights[index] = this.weights[index] + w;
 	}
 
 	/**
@@ -104,9 +106,10 @@ public class FixedNeuron implements Inp {
 		}
 		lastCode = code;
 		double sum = 0;
-		for (int i = 0; i < this.numInputs; i++) {
-			sum += this.weights[i] * this.inputs[i].getOutput(code);
+		for (int i = 0; i < inputs.size(); i++) {
+			sum += this.weights.get(i) * this.inputs.get(i).getOutput(code);
 		}
+		sum += offset;
 		sum = sigmoid(sum);
 		this.lastOutput = sum;
 		return sum;
@@ -122,19 +125,21 @@ public class FixedNeuron implements Inp {
 	}
 
 	/**
-	 * Returns the weight from this neuron to a different neuron given the index
-	 * to look in.
+	 * Returns the weight from this neuron to a different neuron, and throws an
+	 * exception if that neuron is not connected to this.
 	 * 
-	 * @param index
-	 *            index of Neuron to return weight to.
+	 * @param n
+	 *            Neuron to return weight to.
 	 * @return weight to the given neuron
+	 * @throws RuntimeException
+	 *             when given neuron n is not connected to this.
 	 */
-	public double getWeight(int index) {
-		if (index < 0 || index >= this.numInputs) {
-			System.err.println("Index out of accepted range.");
-			throw new RuntimeException("Index out of accepted range.");
+	public double getWeight(Neuron n) {
+		if (!inputs.contains(n)) {
+			throw new RuntimeException("does not contain this neuron");
+		} else {
+			int loc = inputs.indexOf(n);
+			return weights.get(loc).doubleValue();
 		}
-		return this.weights[index];
 	}
-
 }

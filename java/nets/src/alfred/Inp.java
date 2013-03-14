@@ -1,3 +1,4 @@
+package alfred;
 /**
  * Represents any type of object that returns an output. Used for Neuron and
  * Input.
