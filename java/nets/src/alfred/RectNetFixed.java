@@ -1,4 +1,5 @@
 package alfred;
+
 import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -123,7 +124,7 @@ public class RectNetFixed extends Net {
 		}
 		// Make connections between neurons and inputs.
 		for (int j = 0; j < this.y; j++) {
-			this.neurons[0][j].addInput(this.inputs[j], initNum());
+			this.neurons[0][j].addInput(this.inputs[j], 1.0);
 		}
 		// Make connections between neurons and neurons.
 		for (int leftCol = 0; leftCol < this.x - 1; leftCol++) {
@@ -148,7 +149,7 @@ public class RectNetFixed extends Net {
 	 *         connections.
 	 */
 	private double initNum() {
-		return Math.random() - 0.5;
+		return (Math.random() - 0.5) / (1.0 * this.y);
 	}
 
 	/**
@@ -170,8 +171,20 @@ public class RectNetFixed extends Net {
 	 */
 	@Override
 	public double getOutput() {
-		int code = random.nextInt();
-		return this.output.getOutput(code);
+		double[] outs = new double[this.y];
+		double[] ins = new double[this.y];
+		for (int j = 0; j < this.y; j++) {
+			ins[j] = this.neurons[0][j].getOutput(0);
+		}
+		for (int i = 0; i < this.x; i++) {
+			for (int j = 0; j < this.y; j++) {
+				outs[j] = this.neurons[i][j].getOutput(ins);
+			}
+			ins = outs;
+			outs = new double[this.y];
+		}
+		double d = this.output.getOutput(ins);
+		return d;
 	}
 
 	/**

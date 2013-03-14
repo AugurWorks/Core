@@ -1,8 +1,9 @@
 package alfred;
 import java.util.ArrayList;
 
+@Deprecated
 public class Neuron implements Inp {
-	public ArrayList<Double> weights;
+	private ArrayList<Double> weights;
 	private ArrayList<Inp> inputs;
 	private double offset;
 	// Cached values of last output and code.

@@ -1,4 +1,5 @@
 package alfred;
+
 public class FixedNeuron implements Inp {
 	private double[] weights;
 	private Inp[] inputs;
@@ -51,6 +52,8 @@ public class FixedNeuron implements Inp {
 	 *            Weight to set
 	 */
 	public void addInput(Inp n, double w) {
+		assert (numInputsFilled < this.numInputs);
+		assert (this.numInputsFilled >= 0);
 		if (numInputsFilled >= this.numInputs) {
 			System.err.println("Too many inputs added to neuron");
 			return;
@@ -70,6 +73,8 @@ public class FixedNeuron implements Inp {
 	 *            Amount to change weight by.
 	 */
 	public void changeWeight(int index, double w) {
+		assert (index >= 0);
+		assert (index < this.numInputs);
 		if (index < 0 || index >= this.numInputs) {
 			System.err.println("Index out of accepted range.");
 			return;
@@ -123,6 +128,26 @@ public class FixedNeuron implements Inp {
 	}
 
 	/**
+	 * Returns the output of this neuron when given an array of inputs.
+	 * Basically performs the dot product between ins and weights, then outputs
+	 * the sigmoid of that.
+	 * 
+	 * @param ins
+	 *            the input array of prior row's outputs.
+	 * @return the output of this neuron
+	 */
+	public double getOutput(double[] ins) {
+		assert (ins.length == this.numInputs);
+		double sum = 0;
+		for (int i = 0; i < this.numInputs; i++) {
+			sum += this.weights[i] * ins[i];
+		}
+		sum = sigmoid(sum);
+		this.lastOutput = sum;
+		return sum;
+	}
+
+	/**
 	 * Returns the weight from this neuron to a different neuron given the index
 	 * to look in.
 	 * 
@@ -131,6 +156,8 @@ public class FixedNeuron implements Inp {
 	 * @return weight to the given neuron
 	 */
 	public double getWeight(int index) {
+		assert (index >= 0);
+		assert (index < this.numInputs);
 		if (index < 0 || index >= this.numInputs) {
 			System.err.println("Index out of accepted range.");
 			throw new RuntimeException("Index out of accepted range.");

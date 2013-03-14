@@ -16,6 +16,7 @@ import java.util.Random;
  * @author saf
  * 
  */
+@Deprecated
 public class RectNet extends Net {
 
 	// Inputs to network
