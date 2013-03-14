@@ -77,7 +77,7 @@ public class FixedNeuron implements Inp {
 		assert (index < this.numInputs);
 		if (index < 0 || index >= this.numInputs) {
 			System.err.println("Index out of accepted range.");
-			return;
+			throw new RuntimeException("Index out of range");
 		}
 		this.weights[index] = this.weights[index] + w;
 	}
