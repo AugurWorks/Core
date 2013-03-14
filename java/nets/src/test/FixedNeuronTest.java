@@ -25,7 +25,7 @@ public class FixedNeuronTest {
 	FixedNeuron f;
 	static int SIZE = 10;
 	Random random = new Random();
-	double epsilon = 0.000001;
+	static double EPSILON = 0.000001;
 
 	/**
 	 * Provides a random legal index based on SIZE
@@ -108,14 +108,14 @@ public class FixedNeuronTest {
 	public void testChangeWeight() {
 		// initial
 		double w = f.getWeight(randomLegalIndex());
-		assertEquals("Initial weight should be zero", w, 0, epsilon);
+		assertEquals("Initial weight should be zero", w, 0, EPSILON);
 
 		// simple change weight and confirm
 		double newWeight = random.nextDouble();
 		int idx = randomLegalIndex();
 		f.changeWeight(idx, newWeight);
 		assertEquals("Weight should have changed", f.getWeight(idx), newWeight,
-				epsilon);
+				EPSILON);
 
 		// now add inputs and try again
 		double weightDelta = random.nextDouble();
@@ -126,7 +126,7 @@ public class FixedNeuronTest {
 		}
 		f.changeWeight(idx, weightDelta);
 		assertEquals("Weight should have changed", f.getWeight(idx),
-				initialWeight + weightDelta, epsilon);
+				initialWeight + weightDelta, EPSILON);
 
 		// now try illegal indices
 		try {
@@ -163,11 +163,11 @@ public class FixedNeuronTest {
 	public void testGetOutput() {
 		f = new FixedNeuron(4);
 		assertEquals("Initial lastOutput should be zero", f.getLastOutput(), 0,
-				epsilon);
+				EPSILON);
 
 		int code = 0;
 		// for initial settings, 0 should be lastCode, lastOutput should be 0.
-		assertEquals("Initial output is zero", f.getOutput(code), 0, epsilon);
+		assertEquals("Initial output is zero", f.getOutput(code), 0, EPSILON);
 
 		// now try with actual inputs
 		for (int i = 0; i < 4; i++) {
@@ -176,15 +176,15 @@ public class FixedNeuronTest {
 			f.addInput(input, 1);
 		}
 		double output = f.getOutput(0);
-		assertEquals("Last code should still be 0", output, 0, epsilon);
+		assertEquals("Last code should still be 0", output, 0, EPSILON);
 		assertEquals("Lastoutput should be same as output", output,
-				f.getLastOutput(), epsilon);
+				f.getLastOutput(), EPSILON);
 
 		output = f.getOutput(1);
 		double desired = sigmoid(0 * 1 + .1 * 1 + .2 * 1 + .3 * 1);
-		assertEquals("Output of neuron was incorrect", output, desired, epsilon);
+		assertEquals("Output of neuron was incorrect", output, desired, EPSILON);
 		assertEquals("Lastoutput should be same as output", desired,
-				f.getLastOutput(), epsilon);
+				f.getLastOutput(), EPSILON);
 
 		// change the weights
 		for (int i = 0; i < 4; i++) {
@@ -192,34 +192,34 @@ public class FixedNeuronTest {
 		}
 		output = f.getOutput(1);
 		assertEquals("Should get same result because code is the same", output,
-				desired, epsilon);
+				desired, EPSILON);
 		assertEquals("Lastoutput should be same as output", output,
-				f.getLastOutput(), epsilon);
+				f.getLastOutput(), EPSILON);
 
 		desired = sigmoid(0.0 * 1.5 + 0.1 * 1.5 + 0.2 * 1.5 + 0.3 * 1.5);
-		assertEquals("Output of neuron was incorrect", f.getOutput(2), desired, epsilon);
+		assertEquals("Output of neuron was incorrect", f.getOutput(2), desired, EPSILON);
 		assertEquals("Lastoutput should be same as output", desired,
-				f.getLastOutput(), epsilon);
+				f.getLastOutput(), EPSILON);
 
 		// now try with the getOutput(double[] ins) method
 		double[] ins = { 0, 0.1, 0.2, 0.3 };
 		output = f.getOutput(ins);
 		desired = sigmoid(0.0 * 1.5 + 0.1 * 1.5 + 0.2 * 1.5 + 0.3 * 1.5);
-		assertEquals("Output of neuron was incorrect", output, desired, epsilon);
+		assertEquals("Output of neuron was incorrect", output, desired, EPSILON);
 		assertEquals("Lastoutput should be same as output", desired,
-				f.getLastOutput(), epsilon);
+				f.getLastOutput(), EPSILON);
 
 		// change the weights
 		for (int i = 0; i < 4; i++) {
 			f.changeWeight(i, -0.5);
 		}
 		assertEquals("Lastoutput should be same as output", desired,
-				f.getLastOutput(), epsilon);
+				f.getLastOutput(), EPSILON);
 		desired = sigmoid(0 * 1 + .1 * 1 + .2 * 1 + .3 * 1);
 		output = f.getOutput(ins);
-		assertEquals("Output of neuron was incorrect", output, desired, epsilon);
+		assertEquals("Output of neuron was incorrect", output, desired, EPSILON);
 		assertEquals("Lastoutput should be same as output", desired,
-				f.getLastOutput(), epsilon);
+				f.getLastOutput(), EPSILON);
 
 	}
 }
