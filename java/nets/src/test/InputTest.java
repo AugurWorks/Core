@@ -1,7 +1,7 @@
 package test;
 
-import static org.junit.Assert.*;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.Random;
 
@@ -12,34 +12,47 @@ import org.junit.Test;
 import alfred.Input;
 
 public class InputTest {
-	Input inp;
-	Random random = new Random();
-	static double EPSILON = 0.000001;
+	private Input inp;
+	private Random random = new Random();
+	private static double EPSILON = 0.000001;
 
+	/**
+	 * Runs before each test method. Constructs a new Input.
+	 */
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 		inp = new Input();
 	}
 
+	/**
+	 * Runs after each test method.
+	 */
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() {
 		inp = null;
 	}
 
+	/**
+	 * Tests the constructors.
+	 */
 	@Test
 	public void testInput() {
 		inp = null;
 		inp = new Input();
 		assertNotNull(inp);
-	}
+		assertEquals("value should initialize to 0", inp.getValue(), 0, EPSILON);
 
-	@Test
-	public void testInputDouble() {
 		inp = null;
-		inp = new Input(random.nextDouble());
+		double w = random.nextDouble();
+		inp = new Input(w);
 		assertNotNull(inp);
+		assertEquals("value should initialize to " + w, inp.getValue(), w,
+				EPSILON);
 	}
 
+	/**
+	 * Tests getOutput and getValue.
+	 */
 	@Test
 	public void testGetValue() {
 		assertEquals("Default value should be 0", inp.getValue(), 0, EPSILON);

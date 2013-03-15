@@ -22,10 +22,10 @@ import alfred.Input;
  * 
  */
 public class FixedNeuronTest {
-	FixedNeuron f;
-	static int SIZE = 10;
-	Random random = new Random();
-	static double EPSILON = 0.000001;
+	private FixedNeuron f;
+	private static int SIZE = 10;
+	private Random random = new Random();
+	private static double EPSILON = 0.000001;
 
 	/**
 	 * Provides a random legal index based on SIZE
@@ -83,7 +83,39 @@ public class FixedNeuronTest {
 		String nullName = null;
 		f.setName(nullName);
 		assertNull(f.getName(), nullName);
+	}
 
+	/**
+	 * Tests the getting and setting of a weight.
+	 */
+	@Test
+	public void testGetSetWeight() {
+		double weight = f.getWeight(randomLegalIndex());
+		assertEquals("Initial weights should be 0", weight, 0, EPSILON);
+
+		int idx = randomLegalIndex();
+		double val = random.nextDouble();
+		f.setWeight(idx, val);
+		weight = f.getWeight(idx);
+		assertEquals("Would should have changed", weight, val, EPSILON);
+
+		// illegal locations
+		try {
+			idx = -1;
+			f.setWeight(idx, 0);
+			fail("Should not be able to set weight of negative index");
+		} catch (Exception e) {
+			// should go here
+			assertTrue(true);
+		}
+		try {
+			idx = SIZE;
+			f.setWeight(idx, 0);
+			fail("Should not be able to set weight of too large index");
+		} catch (Exception e) {
+			// should go here
+			assertTrue(true);
+		}
 	}
 
 	/**
@@ -104,6 +136,9 @@ public class FixedNeuronTest {
 		}
 	}
 
+	/**
+	 * Tests that the weight change function works.
+	 */
 	@Test
 	public void testChangeWeight() {
 		// initial
@@ -159,6 +194,9 @@ public class FixedNeuronTest {
 		}
 	}
 
+	/**
+	 * Tests the getOutput function.
+	 */
 	@Test
 	public void testGetOutput() {
 		f = new FixedNeuron(4);
@@ -197,7 +235,8 @@ public class FixedNeuronTest {
 				f.getLastOutput(), EPSILON);
 
 		desired = sigmoid(0.0 * 1.5 + 0.1 * 1.5 + 0.2 * 1.5 + 0.3 * 1.5);
-		assertEquals("Output of neuron was incorrect", f.getOutput(2), desired, EPSILON);
+		assertEquals("Output of neuron was incorrect", f.getOutput(2), desired,
+				EPSILON);
 		assertEquals("Lastoutput should be same as output", desired,
 				f.getLastOutput(), EPSILON);
 

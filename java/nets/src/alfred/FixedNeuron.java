@@ -83,6 +83,25 @@ public class FixedNeuron implements Inp {
 	}
 
 	/**
+	 * Sets the weight from this neuron to another, given the index of that
+	 * neuron and the new weight to set.
+	 * 
+	 * @param index
+	 *            index of the input to change weight to
+	 * @param w
+	 *            new weight value
+	 */
+	public void setWeight(int index, double w) {
+		assert (index >= 0);
+		assert (index < this.numInputs);
+		if (index < 0 || index >= this.numInputs) {
+			System.err.println("Index out of accepted range.");
+			throw new RuntimeException("Index out of range");
+		}
+		this.weights[index] = w;
+	}
+
+	/**
 	 * Performs the sigmoid function on an input y = 1 / (1 + exp(-alpha*x))
 	 * Used internally in getOutput method. Alpha is set to 3 currently.
 	 * 

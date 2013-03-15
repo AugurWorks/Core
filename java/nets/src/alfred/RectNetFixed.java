@@ -9,7 +9,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Random;
 
 /**
  * Simple rectangular neural network.
@@ -33,7 +32,6 @@ public class RectNetFixed extends Net {
 	private FixedNeuron output;
 	// Prints debug output when true.
 	private boolean verbose = false;
-	private Random random;
 
 	/**
 	 * Constructs a new RectNet with 10 inputs and 5 layers of network.
@@ -53,6 +51,9 @@ public class RectNetFixed extends Net {
 	 *            number of inputs to the network
 	 */
 	public RectNetFixed(int depth, int numInputs) {
+		if (depth < 1 || numInputs < 1) {
+			throw new RuntimeException("Depth and numinputs must be >= 1");
+		}
 		this.x = depth;
 		this.y = numInputs;
 		init();
@@ -70,6 +71,9 @@ public class RectNetFixed extends Net {
 	 *            true when RectNet displays debug output.
 	 */
 	public RectNetFixed(int depth, int numInputs, boolean verb) {
+		if (depth < 1 || numInputs < 1) {
+			throw new RuntimeException("Depth and numinputs must be >= 1");
+		}
 		this.x = depth;
 		this.y = numInputs;
 		this.verbose = verb;
@@ -77,7 +81,8 @@ public class RectNetFixed extends Net {
 	}
 
 	/**
-	 * Gets the weight between two neurons.
+	 * Gets the weight between two neurons. Only works for internal layers (not
+	 * the output neuron layer).
 	 * 
 	 * @param leftCol
 	 *            column number of neuron to left of connection
@@ -89,9 +94,78 @@ public class RectNetFixed extends Net {
 	 *            row number of neuron to right of connection
 	 * @return weight from right neuron to left neuron.
 	 */
-	private double getWeight(int leftCol, int leftRow, int rightCol,
-			int rightRow) {
+	public double getWeight(int leftCol, int leftRow, int rightCol, int rightRow) {
+		assert (leftCol >= 0);
+		assert (leftRow >= 0);
+		assert (rightCol >= 0);
+		assert (rightRow >= 0);
+		assert (leftCol < this.y);
+		assert (rightCol < this.y);
+		assert (leftRow < this.x);
+		assert (rightRow < this.x);
 		return this.neurons[rightCol][rightRow].getWeight(leftRow);
+	}
+
+	/**
+	 * Returns the weight from the output neuron to an input specified by the
+	 * given row.
+	 * 
+	 * @param leftRow
+	 *            the column containing the neuron to the left of the output
+	 *            neuron.
+	 * @return the weight from the output neuron to the neuron in leftRow
+	 */
+	public double getOutputNeuronWeight(int leftRow) {
+		assert (leftRow >= 0);
+		assert (leftRow < this.y);
+		return this.output.getWeight(leftRow);
+	}
+
+	/**
+	 * Sets the weight from the output neuron to an input specified by the given
+	 * row
+	 * 
+	 * @param leftRow
+	 *            the row containing the neuron to the left of the output
+	 *            neuron.
+	 * @param w
+	 *            the new weight from the output neuron to the neuron at leftRow
+	 */
+	public void setOutputNeuronWeight(int leftRow, double w) {
+		assert (leftRow >= 0);
+		assert (leftRow < this.y);
+		this.output.setWeight(leftRow, w);
+	}
+
+	/**
+	 * Sets the weight between two neurons to the given value w. Only works for
+	 * internal layers (not the output neuron layer).
+	 * 
+	 * @param leftCol
+	 *            column number of neuron to left of connection
+	 * @param leftRow
+	 *            row number of neuron to left of connections
+	 * @param rightCol
+	 *            column number of neuron to right of connection
+	 * @param rightRow
+	 *            row number of neuron to right of connection
+	 * @param w
+	 *            weight to set on connection.
+	 */
+	public void setWeight(int leftCol, int leftRow, int rightCol, int rightRow,
+			double w) {
+		assert (leftCol >= 0);
+		assert (leftRow >= 0);
+		// right column should be >= 1 because the weights from first row to
+		// inputs should never be changed
+		assert (rightCol >= 1);
+		assert (rightCol - leftCol == 1);
+		assert (rightRow >= 0);
+		assert (leftCol < this.y);
+		assert (rightCol < this.y);
+		assert (leftRow < this.x);
+		assert (rightRow < this.x);
+		this.neurons[rightCol][rightRow].setWeight(leftRow, w);
 	}
 
 	/**
@@ -103,8 +177,6 @@ public class RectNetFixed extends Net {
 	 * weights, or some other set.
 	 */
 	private void init() {
-		// Initialize random
-		this.random = new Random(System.nanoTime());
 		// Initialize arrays to blank neurons and inputs.
 		this.inputs = new Input[y];
 		this.neurons = new FixedNeuron[x][y];
