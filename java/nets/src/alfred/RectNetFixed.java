@@ -105,20 +105,22 @@ public class RectNetFixed extends Net {
 		assert (rightRow < this.x);
 		return this.neurons[rightCol][rightRow].getWeight(leftRow);
 	}
-	
+
 	/**
 	 * Returns the width of this net
+	 * 
 	 * @return the width of this net
 	 */
 	public int getX() {
 		return x;
 	}
-	
-	/** 
+
+	/**
 	 * returns the height of this net
+	 * 
 	 * @return the height of this net
 	 */
-	public int getY(){
+	public int getY() {
 		return y;
 	}
 
@@ -262,9 +264,12 @@ public class RectNetFixed extends Net {
 		double[] outs = new double[this.y];
 		double[] ins = new double[this.y];
 		for (int j = 0; j < this.y; j++) {
+			// the code in getOutput can be anything *except* 0.
 			ins[j] = this.neurons[0][j].getOutput(1);
 		}
-		for (int i = 0; i < this.x; i++) {
+		// indexing must start at 1, because we've already computed
+		// the output from the 0th row in the previous 3 lines.
+		for (int i = 1; i < this.x; i++) {
 			for (int j = 0; j < this.y; j++) {
 				outs[j] = this.neurons[i][j].getOutput(ins);
 			}

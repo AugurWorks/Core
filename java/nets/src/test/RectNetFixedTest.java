@@ -31,21 +31,84 @@ public class RectNetFixedTest {
 
 	@Test
 	public void testGetOutput() {
-		fail("Not yet implemented");
+		// rectangular example
+		int width = 2;
+		int height = 3;
+		net = new RectNetFixed(width, height);
+		double[] inpts = new double[height];
+		for (int i = 0; i < height; i++) {
+			inpts[i] = 1.0;
+		}
+		net.setInputs(inpts);
+		testFirstLayerWeightsHelper(net);
+		// i worked this out by hand ... :(
+		double weight = 0.1;
+		for (int leftCol = 0; leftCol < width - 1; leftCol++) {
+			int rightCol = leftCol + 1;
+			for (int leftRow = 0; leftRow < height; leftRow++) {
+				for (int rightRow = 0; rightRow < height; rightRow++) {
+					net.setWeight(leftCol, leftRow, rightCol, rightRow, weight);
+				}
+			}
+		}
+		for (int leftRow = 0; leftRow < height; leftRow++) {
+			net.setOutputNeuronWeight(leftRow, weight);
+		}
+		testFirstLayerWeightsHelper(net);
+		// answer should be 0.6529:
+		double output = net.getOutput();
+		// use a small epsilon because i only used a few digits in matlab
+		assertEquals("output should be 0.6529", output, 0.6529, 0.00005);
+
+		// square example
+		width = 2;
+		height = 2;
+		net = new RectNetFixed(width, height);
+		inpts = new double[height];
+		inpts[0] = 0.2;
+		inpts[1] = 0.8;
+		net.setInputs(inpts);
+		testFirstLayerWeightsHelper(net);
+		// i worked this out by hand ... :(
+		weight = 0.2;
+		for (int leftCol = 0; leftCol < width - 1; leftCol++) {
+			int rightCol = leftCol + 1;
+			for (int leftRow = 0; leftRow < height; leftRow++) {
+				for (int rightRow = 0; rightRow < height; rightRow++) {
+					net.setWeight(leftCol, leftRow, rightCol, rightRow, weight);
+				}
+			}
+		}
+		for (int leftRow = 0; leftRow < height; leftRow++) {
+			net.setOutputNeuronWeight(leftRow, 0.4);
+		}
+		testFirstLayerWeightsHelper(net);
+		// answer should be 0.8487:
+		System.out.println("\n\n\n");
+		output = net.getOutput();
+		// use a small epsilon because i only used a few digits in matlab
+		assertEquals("output should be 0.8487", output, 0.8487, 0.00005);
+		testFirstLayerWeightsHelper(net);
 	}
 
 	/**
-	 * Contains constructor tests.
+	 * Contains constructor tests, and trivial getX getY tests.
 	 */
 	@Test
 	public void testRectNetFixed() {
 		net = null;
 		net = new RectNetFixed();
 		assertNotNull(net);
+		assertEquals(net.getX(), 5);
+		assertEquals(net.getY(), 10);
 		net = null;
 
-		net = new RectNetFixed(random.nextInt(10) + 1, random.nextInt(1000) + 1);
+		int x = random.nextInt(10) + 1;
+		int y = random.nextInt(1000) + 1;
+		net = new RectNetFixed(x, y);
 		assertNotNull(net);
+		assertEquals(net.getX(), x);
+		assertEquals(net.getY(), y);
 		try {
 			net = new RectNetFixed(0, 10);
 			fail("Should not be able to construct a 0 depth net.");
@@ -62,13 +125,19 @@ public class RectNetFixedTest {
 		}
 
 		net = null;
-		net = new RectNetFixed(random.nextInt(10) + 1,
-				random.nextInt(1000) + 1, false);
+		x = random.nextInt(10) + 1;
+		y = random.nextInt(1000) + 1;
+		net = new RectNetFixed(x, y, false);
 		assertNotNull(net);
+		assertEquals(net.getX(), x);
+		assertEquals(net.getY(), y);
 		net = null;
-		net = new RectNetFixed(random.nextInt(10) + 1,
-				random.nextInt(1000) + 1, true);
+		x = random.nextInt(10) + 1;
+		y = random.nextInt(1000) + 1;
+		net = new RectNetFixed(x, y, true);
 		assertNotNull(net);
+		assertEquals(net.getX(), x);
+		assertEquals(net.getY(), y);
 		try {
 			net = new RectNetFixed(0, 10, true);
 			fail("Should not be able to construct a 0 depth net.");
@@ -131,31 +200,30 @@ public class RectNetFixedTest {
 		// legal inputs
 		double scalar = random.nextDouble();
 		for (int leftCol = 0; leftCol < DEPTH - 1; leftCol++) {
-			for (int rightCol = 1; rightCol < DEPTH; rightCol++) {
-				for (int leftRow = 0; leftRow < NUMINPUTS; leftRow++) {
-					for (int rightRow = 0; rightRow < NUMINPUTS; rightRow++) {
-						double weight = scalar
-								* ((leftCol + rightCol) * rightRow - rightCol);
-						net.setWeight(leftCol, leftRow, rightCol, rightRow,
-								weight);
-					}
+			int rightCol = leftCol + 1;
+			for (int leftRow = 0; leftRow < NUMINPUTS; leftRow++) {
+				for (int rightRow = 0; rightRow < NUMINPUTS; rightRow++) {
+					double weight = scalar
+							* ((leftCol + rightCol) * rightRow - rightCol);
+					net.setWeight(leftCol, leftRow, rightCol, rightRow, weight);
 				}
 			}
 		}
+
 		for (int leftCol = 0; leftCol < DEPTH - 1; leftCol++) {
-			for (int rightCol = 1; rightCol < DEPTH; rightCol++) {
-				for (int leftRow = 0; leftRow < NUMINPUTS; leftRow++) {
-					for (int rightRow = 0; rightRow < NUMINPUTS; rightRow++) {
-						double desired = scalar
-								* ((leftCol + rightCol) * rightRow - rightCol);
-						double actual = net.getWeight(leftCol, leftRow,
-								rightCol, rightRow);
-						assertEquals("Weight should have changed", actual,
-								desired, EPSILON);
-					}
+			int rightCol = leftCol + 1;
+			for (int leftRow = 0; leftRow < NUMINPUTS; leftRow++) {
+				for (int rightRow = 0; rightRow < NUMINPUTS; rightRow++) {
+					double desired = scalar
+							* ((leftCol + rightCol) * rightRow - rightCol);
+					double actual = net.getWeight(leftCol, leftRow, rightCol,
+							rightRow);
+					assertEquals("Weight should have changed", actual, desired,
+							EPSILON);
 				}
 			}
 		}
+
 		// confirm that the first layer never changed
 		testFirstLayerWeightsHelper(net);
 		// now for the output neuron
@@ -212,30 +280,6 @@ public class RectNetFixedTest {
 			assertTrue(true);
 		}
 		// left row too big
-		try {
-			leftCol = random.nextInt(DEPTH - 1);
-			rightCol = leftCol + 1;
-			rightRow = random.nextInt(NUMINPUTS - 1);
-			leftRow = NUMINPUTS;
-			net.getWeight(leftCol, leftRow, rightCol, rightRow);
-			fail("Should not get too big indexed weight");
-		} catch (Exception e) {
-			// should go here
-			assertTrue(true);
-		}
-		// left col too small
-		try {
-			leftCol = -1;
-			rightCol = leftCol + 1;
-			rightRow = random.nextInt(NUMINPUTS - 1);
-			leftRow = random.nextInt(NUMINPUTS - 1);
-			net.getWeight(leftCol, leftRow, rightCol, rightRow);
-			fail("Should not get negative indexed weight");
-		} catch (Exception e) {
-			// should go here
-			assertTrue(true);
-		}
-		// left col too big
 		try {
 			leftCol = random.nextInt(DEPTH - 1);
 			rightCol = leftCol + 1;
@@ -320,30 +364,6 @@ public class RectNetFixedTest {
 			// should go here
 			assertTrue(true);
 		}
-		// left col too small
-		try {
-			leftCol = -1;
-			rightCol = leftCol + 1;
-			rightRow = random.nextInt(NUMINPUTS - 1);
-			leftRow = random.nextInt(NUMINPUTS - 1);
-			net.setWeight(leftCol, leftRow, rightCol, rightRow, w);
-			fail("Should not get negative indexed weight");
-		} catch (Exception e) {
-			// should go here
-			assertTrue(true);
-		}
-		// left col too big
-		try {
-			leftCol = random.nextInt(DEPTH - 1);
-			rightCol = leftCol + 1;
-			rightRow = random.nextInt(NUMINPUTS - 1);
-			leftRow = NUMINPUTS;
-			net.setWeight(leftCol, leftRow, rightCol, rightRow, w);
-			fail("Should not get too big indexed weight");
-		} catch (Exception e) {
-			// should go here
-			assertTrue(true);
-		}
 		// right col too small
 		try {
 			leftCol = random.nextInt(DEPTH - 1);
@@ -403,6 +423,7 @@ public class RectNetFixedTest {
 			// should go here
 			assertTrue(true);
 		}
+		testFirstLayerWeightsHelper(net);
 	}
 
 	/**
@@ -419,7 +440,7 @@ public class RectNetFixedTest {
 	 * layer to the first layer of neurons contains only 1.0 values
 	 */
 	public boolean testFirstLayerWeightsHelper(RectNetFixed f) {
-		for (int i = 0; i < NUMINPUTS; i++) {
+		for (int i = 0; i < f.getY(); i++) {
 			double weight = f.getWeight(0, 0, 0, i);
 			assertEquals("Weight from first layer to inputs should be 1.0",
 					1.0, weight, EPSILON);
