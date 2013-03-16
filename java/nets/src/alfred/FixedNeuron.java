@@ -138,6 +138,21 @@ public class FixedNeuron implements Inp {
 	}
 
 	/**
+	 * Gets the output of this neuron, requiring recursion.
+	 * 
+	 * @return the output from this neuron
+	 */
+	public double getOutput() {
+		double sum = 0;
+		for (int i = 0; i < this.numInputs; i++) {
+			sum += this.weights[i] * this.inputs[i].getOutput();
+		}
+		sum = sigmoid(sum);
+		this.lastOutput = sum;
+		return sum;
+	}
+
+	/**
 	 * Returns the last output that this neuron computed.
 	 * 
 	 * @return the last output that this neuron computed.

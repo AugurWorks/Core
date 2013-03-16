@@ -1,6 +1,8 @@
 package test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Random;
@@ -17,7 +19,6 @@ public class RectNetFixedTest {
 	private static double EPSILON = 0.000001;
 	private static int NUMINPUTS = 4;
 	private static int DEPTH = 2;
-	private static boolean VERBOSE = false;
 
 	@Before
 	public void setUp() throws Exception {

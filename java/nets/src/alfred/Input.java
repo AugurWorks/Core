@@ -1,4 +1,5 @@
 package alfred;
+
 /**
  * Represents and input to the Net. Has a constant output that can be set.
  * 
@@ -40,8 +41,18 @@ public class Input implements Inp {
 	 * 
 	 * @param code
 	 *            unused.
+	 * @return the value of this input
 	 */
 	public double getOutput(int code) {
+		return this.value;
+	}
+
+	/**
+	 * Returns the value of this Input.
+	 * 
+	 * @return the value of this input.
+	 */
+	public double getOutput() {
 		return this.value;
 	}
 

@@ -143,4 +143,10 @@ public class Neuron implements Inp {
 			return weights.get(loc).doubleValue();
 		}
 	}
+
+	@Override
+	public double getOutput() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }

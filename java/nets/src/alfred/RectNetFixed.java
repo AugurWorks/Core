@@ -264,8 +264,8 @@ public class RectNetFixed extends Net {
 		double[] outs = new double[this.y];
 		double[] ins = new double[this.y];
 		for (int j = 0; j < this.y; j++) {
-			// the code in getOutput can be anything *except* 0.
-			ins[j] = this.neurons[0][j].getOutput(1);
+			// require recursion (depth = 0) here.
+			ins[j] = this.neurons[0][j].getOutput();
 		}
 		// indexing must start at 1, because we've already computed
 		// the output from the 0th row in the previous 3 lines.
@@ -321,7 +321,8 @@ public class RectNetFixed extends Net {
 				for (leftRow = 0; leftRow < this.y; leftRow++) {
 					double lastOutput = this.neurons[leftCol][leftRow]
 							.getLastOutput();
-					double delta = lastOutput * (1 - lastOutput);
+					// since we're using alpha = 3 in the neurons
+					double delta = 3 * lastOutput * (1 - lastOutput);
 					double summedRightWeightDelta = 0;
 					for (rightRow = 0; rightRow < this.y; rightRow++) {
 						if (rightCol == this.x) {
@@ -394,7 +395,9 @@ public class RectNetFixed extends Net {
 	 */
 	private double outputError(double desired) {
 		this.getOutput();
-		return this.output.getLastOutput() * (1 - this.output.getLastOutput())
+		// since we're using alpha = 3 in the neurons
+		return 3 * this.output.getLastOutput()
+				* (1 - this.output.getLastOutput())
 				* (desired - this.output.getLastOutput());
 	}
 
@@ -822,10 +825,11 @@ public class RectNetFixed extends Net {
 		// "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\Train_1_Day.augtrain";
 		// String predFile =
 		// "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\Pred_1_Day.augpred";
-		String prefix = "/root/Core/java/nets/test_files/";
-		String trainingFile = prefix + "Train_1_Day.augtrain";
-		String predFile = prefix + "Pred_1_Day.augpred";
-
+		// String prefix = "/root/Core/java/nets/test_files/";
+		String prefix = "C:\\Users\\Stephen\\workspace\\AugurWorks\\Core\\java\\nets\\test_files\\";
+		// String trainingFile = prefix + "Train_1_Day.augtrain";
+		// String predFile = prefix + "Pred_1_Day.augpred";
+		RectNetFixed.trainFile(prefix + "OR_clean.augtrain", true);
 		/*
 		 * System.out.println("Perf test of 10^6 training rounds:");
 		 * System.out.println("RectNet: "); RectNet test1 =
@@ -833,7 +837,7 @@ public class RectNetFixed extends Net {
 		 * System.out.println("RectNetFixed: "); RectNetFixed test2 =
 		 * RectNetFixed.trainFile(defaultFile, true);
 		 */
-		RectNetFixed.predictTomorrow(trainingFile, predFile, false);
+		// RectNetFixed.predictTomorrow(trainingFile, predFile, false);
 		System.exit(0);
 	}
 }

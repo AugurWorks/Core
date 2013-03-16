@@ -1,4 +1,5 @@
 package alfred;
+
 /**
  * Represents any type of object that returns an output. Used for Neuron and
  * Input.
@@ -15,4 +16,11 @@ public interface Inp {
 	 * @return Output of this Inp
 	 */
 	public double getOutput(int code);
+
+	/**
+	 * Returns the output of this Inp. Requires recursion.
+	 * 
+	 * @return output of this Inp
+	 */
+	public double getOutput();
 }
