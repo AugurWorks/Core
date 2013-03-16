@@ -469,7 +469,7 @@ public class RectNetFixedTest {
 		double afterOutput = net.getOutput();
 		double afterDistance = Math.abs(desired - afterOutput);
 		assertTrue(afterDistance < distance);
-		testFirstLayerWeightsHelper(net);
+		assertTrue(testFirstLayerWeightsHelper(net));
 
 		// now run a few more times
 		output = net.getOutput();
@@ -479,7 +479,7 @@ public class RectNetFixedTest {
 		afterOutput = net.getOutput();
 		afterDistance = Math.abs(desired - afterOutput);
 		assertTrue(afterDistance < distance);
-		testFirstLayerWeightsHelper(net);
+		assertTrue(testFirstLayerWeightsHelper(net));
 
 		// here's one that's done by hand
 		inpts[0] = 0.6;
@@ -497,7 +497,7 @@ public class RectNetFixedTest {
 				net.getOutputNeuronWeight(0), 0.0314, 0.00005);
 		assertEquals("Output weight to bottom should change",
 				net.getOutputNeuronWeight(1), -0.2696, 0.00005);
-
+		assertTrue(testFirstLayerWeightsHelper(net));
 		// expect w'0 = 0.0314 + 0.8*0.8581*-0.1549
 		// expect w'1 = -0.2696 + 0.8*0.3543*-0.1549
 		net.train(inpts, desired, 1, learningConstant);
@@ -505,7 +505,7 @@ public class RectNetFixedTest {
 				net.getOutputNeuronWeight(0), -0.0749, 0.00006);
 		assertEquals("Output weight to bottom should change",
 				net.getOutputNeuronWeight(1), -0.3135, 0.00006);
-
+		assertTrue(testFirstLayerWeightsHelper(net));
 		// now do the same thing for two rounds
 		net = new RectNetFixed(1, 2);
 		// set all the weights by hand
@@ -518,7 +518,7 @@ public class RectNetFixedTest {
 				net.getOutputNeuronWeight(1), -0.3135, 0.00006);
 
 		// 2x2 done by hand
-		net = new RectNetFixed(2, 2,true);
+		net = new RectNetFixed(2, 2, true);
 		// set the weights
 		net.setOutputNeuronWeight(0, 0.8);
 		net.setOutputNeuronWeight(1, -0.6);
@@ -536,13 +536,14 @@ public class RectNetFixedTest {
 		output = net.getOutput();
 		assertEquals("output should start at 0.7238", 0.7238, output, 0.00005);
 		net.train(inpts, desired, iterations, learningConstant);
-
+		assertTrue(testFirstLayerWeightsHelper(net));
 		double wAB = net.getWeight(0, 0, 1, 0);
 		double wAD = net.getWeight(0, 0, 1, 1);
 		double wCB = net.getWeight(0, 1, 1, 0);
 		double wCD = net.getWeight(0, 1, 1, 1);
 		double wBo = net.getOutputNeuronWeight(0);
 		double wDo = net.getOutputNeuronWeight(1);
+		output = net.getOutput();
 
 		assertEquals("wAB should change", wAB, 0.1633, 0.00005);
 		assertEquals("wAD should change", wAD, -0.0787, 0.00005);
@@ -550,6 +551,16 @@ public class RectNetFixedTest {
 		assertEquals("wCD should change", wCD, -0.0802, 0.00005);
 		assertEquals("wBo should change", wBo, 0.4854, 0.00005);
 		assertEquals("wDo should change", wDo, -0.7783, 0.00005);
+
+		// because propagated error blows up in sigmoid, we have to do
+		// this all in the test case...
+		double inB = wAB * sigmoid(inpts[0]) + wCB * sigmoid(inpts[1]);
+		double inD = wAD * sigmoid(inpts[0]) + wCD * sigmoid(inpts[1]);
+		double outB = sigmoid(inB);
+		double outD = sigmoid(inD);
+		double inO = wBo * outB + wDo * outD;
+		double expectedOutput = sigmoid(inO);
+		assertEquals("output should change", output, expectedOutput, 0.00005);
 	}
 
 	@Test
@@ -575,5 +586,17 @@ public class RectNetFixedTest {
 	@Test
 	public void testPredictTomorrow() {
 		fail("Not yet implemented");
+	}
+
+	/**
+	 * Performs the sigmoid function on an input y = 1 / (1 + exp(-alpha*x))
+	 * Used internally in getOutput method. Alpha is set to 3 currently.
+	 * 
+	 * @param input
+	 *            X
+	 * @return sigmoid(x)
+	 */
+	private double sigmoid(double input) {
+		return 1.0 / (1.0 + Math.exp(-3.0 * input));
 	}
 }
