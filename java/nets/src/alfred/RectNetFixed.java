@@ -328,6 +328,11 @@ public class RectNetFixed extends Net {
 						if (rightCol == this.x) {
 							summedRightWeightDelta += this.output
 									.getWeight(leftRow) * deltaF;
+							// without the break, we were adding too many of the
+							// contributions of the output node when computing
+							// the deltas value for the layer immediately left
+							// of it.
+							break;
 						} else {
 							// summing w * delta
 							summedRightWeightDelta += getWeight(leftCol,

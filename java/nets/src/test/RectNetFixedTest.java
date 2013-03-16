@@ -505,7 +505,7 @@ public class RectNetFixedTest {
 				net.getOutputNeuronWeight(0), -0.0749, 0.00006);
 		assertEquals("Output weight to bottom should change",
 				net.getOutputNeuronWeight(1), -0.3135, 0.00006);
-		
+
 		// now do the same thing for two rounds
 		net = new RectNetFixed(1, 2);
 		// set all the weights by hand
@@ -516,6 +516,40 @@ public class RectNetFixedTest {
 				net.getOutputNeuronWeight(0), -0.0749, 0.00006);
 		assertEquals("Output weight to bottom should change",
 				net.getOutputNeuronWeight(1), -0.3135, 0.00006);
+
+		// 2x2 done by hand
+		net = new RectNetFixed(2, 2,true);
+		// set the weights
+		net.setOutputNeuronWeight(0, 0.8);
+		net.setOutputNeuronWeight(1, -0.6);
+		net.setWeight(0, 0, 1, 0, 0.2);
+		net.setWeight(0, 0, 1, 1, -0.11);
+		net.setWeight(0, 1, 1, 0, 0.4);
+		net.setWeight(0, 1, 1, 1, -0.2);
+		learningConstant = 0.87;
+		iterations = 1;
+		desired = -0.14;
+		inpts[0] = -0.55;
+		inpts[1] = 0.16;
+		net.setInputs(inpts);
+
+		output = net.getOutput();
+		assertEquals("output should start at 0.7238", 0.7238, output, 0.00005);
+		net.train(inpts, desired, iterations, learningConstant);
+
+		double wAB = net.getWeight(0, 0, 1, 0);
+		double wAD = net.getWeight(0, 0, 1, 1);
+		double wCB = net.getWeight(0, 1, 1, 0);
+		double wCD = net.getWeight(0, 1, 1, 1);
+		double wBo = net.getOutputNeuronWeight(0);
+		double wDo = net.getOutputNeuronWeight(1);
+
+		assertEquals("wAB should change", wAB, 0.1633, 0.00005);
+		assertEquals("wAD should change", wAD, -0.0787, 0.00005);
+		assertEquals("wCB should change", wCB, 0.2591, 0.00005);
+		assertEquals("wCD should change", wCD, -0.0802, 0.00005);
+		assertEquals("wBo should change", wBo, 0.4854, 0.00005);
+		assertEquals("wDo should change", wDo, -0.7783, 0.00005);
 	}
 
 	@Test
