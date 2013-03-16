@@ -419,7 +419,7 @@ public class RectNetFixed extends Net {
 		boolean valid = Net.validateAUGt(fileName);
 		if (!valid) {
 			System.err.println("File not valid format.");
-			System.exit(1);
+			throw new RuntimeException("File not valid");
 		}
 		// Now we need to pull information out of the augtrain file.
 		Charset charset = Charset.forName("US-ASCII");
@@ -480,7 +480,7 @@ public class RectNetFixed extends Net {
 			}
 		} catch (IOException x) {
 			System.err.format("IOException: %s%n", x);
-			System.exit(1);
+			throw new RuntimeException("IOException in parsing file");
 		}
 		// Information about the training file.
 		if (verbose) {
@@ -566,7 +566,7 @@ public class RectNetFixed extends Net {
 	 * @param net
 	 *            Neural net to be saved
 	 */
-	public void saveNet(String fileName, RectNetFixed net) {
+	public static void saveNet(String fileName, RectNetFixed net) {
 		try {
 			if (!(fileName.toLowerCase().endsWith(".augsave"))) {
 				System.err
@@ -574,18 +574,18 @@ public class RectNetFixed extends Net {
 				return;
 			}
 			PrintWriter out = new PrintWriter(new FileWriter(fileName));
-			out.println("net " + Integer.toString(this.x) + ","
-					+ Integer.toString(this.y));
+			out.println("net " + Integer.toString(net.getX()) + ","
+					+ Integer.toString(net.getY()));
 			String line = "O ";
-			for (int j = 0; j < this.y; j++) {
-				line += this.output.getWeight(j) + ",";
+			for (int j = 0; j < net.getY(); j++) {
+				line += net.getOutputNeuronWeight(j) + ",";
 			}
 			out.println(line.substring(0, line.length() - 1));
-			for (int leftCol = 0; leftCol < this.x - 1; leftCol++) {
+			for (int leftCol = 0; leftCol < net.getX() - 1; leftCol++) {
 				int rightCol = leftCol + 1;
-				for (int rightRow = 0; rightRow < this.y; rightRow++) {
+				for (int rightRow = 0; rightRow < net.getY(); rightRow++) {
 					line = rightCol + " ";
-					for (int leftRow = 0; leftRow < this.y; leftRow++) {
+					for (int leftRow = 0; leftRow < net.getY(); leftRow++) {
 						line += net.neurons[rightCol][rightRow]
 								.getWeight(leftRow) + ",";
 					}
@@ -595,7 +595,7 @@ public class RectNetFixed extends Net {
 			out.close();
 		} catch (IOException e) {
 			System.err.println("Error occured opening file to saveNet");
-			e.printStackTrace();
+			throw new RuntimeException("Could not open file");
 		}
 	}
 
@@ -611,7 +611,7 @@ public class RectNetFixed extends Net {
 		boolean valid = Net.validateAUGs(fileName);
 		if (!valid) {
 			System.err.println("File not valid format.");
-			System.exit(1);
+			throw new RuntimeException("File not valid format");
 		}
 		// Now we need to pull information out of the augsave file.
 		Charset charset = Charset.forName("US-ASCII");
@@ -636,7 +636,7 @@ public class RectNetFixed extends Net {
 			}
 		} catch (IOException x) {
 			System.err.format("IOException: %s%n", x);
-			System.exit(1);
+			throw new RuntimeException("Failed to load file");
 		}
 		RectNetFixed net = new RectNetFixed(depth, side);
 		try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
@@ -649,8 +649,7 @@ public class RectNetFixed extends Net {
 					case 2:
 						String outputs[] = lineSplit[1].split(",");
 						for (int edgeNum = 0; edgeNum < outputs.length; edgeNum++) {
-							net.output.addInput(
-									net.neurons[depth - 1][edgeNum],
+							net.output.setWeight(edgeNum,
 									Double.parseDouble(outputs[edgeNum]));
 						}
 						break;
@@ -659,8 +658,7 @@ public class RectNetFixed extends Net {
 						curRow = (lineNumber - 3) % side;
 						edges = lineSplit[1].split(",");
 						for (int edgeNum = 0; edgeNum < edges.length; edgeNum++) {
-							net.neurons[curCol][curRow].addInput(
-									net.neurons[curCol - 1][edgeNum],
+							net.neurons[curCol][curRow].setWeight(edgeNum,
 									Double.parseDouble(edges[edgeNum]));
 						}
 						break;
@@ -672,7 +670,7 @@ public class RectNetFixed extends Net {
 			}
 		} catch (IOException x) {
 			System.err.format("IOException: %s%n", x);
-			System.exit(1);
+			throw new RuntimeException("Failed to load file");
 		}
 		return net;
 	}
@@ -685,7 +683,7 @@ public class RectNetFixed extends Net {
 		boolean valid = Net.validateAUGTest(fileName, r.y);
 		if (!valid) {
 			System.err.println("File not valid format.");
-			System.exit(1);
+			throw new RuntimeException("File not valid format");
 		}
 		// Now we need to pull information out of the augtrain file.
 		Charset charset = Charset.forName("US-ASCII");

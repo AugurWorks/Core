@@ -19,10 +19,13 @@ public class RectNetFixedTest {
 	private static double EPSILON = 0.000001;
 	private static int NUMINPUTS = 4;
 	private static int DEPTH = 2;
+	private String prefix;
 
 	@Before
 	public void setUp() throws Exception {
 		net = new RectNetFixed(DEPTH, NUMINPUTS);
+		prefix = System.getProperty("user.dir");
+		prefix = prefix + "\\nets\\src\\test\\test_train_files\\";
 	}
 
 	@After
@@ -518,7 +521,7 @@ public class RectNetFixedTest {
 				net.getOutputNeuronWeight(1), -0.3135, 0.00006);
 
 		// 2x2 done by hand
-		net = new RectNetFixed(2, 2, true);
+		net = new RectNetFixed(2, 2, false);
 		// set the weights
 		net.setOutputNeuronWeight(0, 0.8);
 		net.setOutputNeuronWeight(1, -0.6);
@@ -565,27 +568,141 @@ public class RectNetFixedTest {
 
 	@Test
 	public void testTrainFile() {
-		fail("Not yet implemented");
+		// try a broken file - should fail
+		try {
+			RectNetFixed.trainFile(prefix + "broken_data.augtrain", false);
+			fail("Should not have succeeded on a broken file");
+		} catch (Exception e) {
+			// should go here
+			assertTrue(true);
+		}
+		// try a broken file - should fail
+		try {
+			RectNetFixed.trainFile(prefix + "broken_header.augtrain", false);
+			fail("Should not have succeeded on a broken file");
+		} catch (Exception e) {
+			// should go here
+			assertTrue(true);
+		}
+		// try a broken file - should fail
+		try {
+			RectNetFixed.trainFile(prefix + "broken_numinputs.augtrain", false);
+			fail("Should not have succeeded on a broken file");
+		} catch (Exception e) {
+			// should go here
+			assertTrue(true);
+		}
+		// try a broken file - should fail
+		try {
+			RectNetFixed.trainFile(prefix + "broken_titles.augtrain", false);
+			fail("Should not have succeeded on a broken file");
+		} catch (Exception e) {
+			// should go here
+			assertTrue(true);
+		}
+		// try a broken file - should fail
+		try {
+			RectNetFixed.trainFile(prefix + "broken_trainline.augtrain", false);
+			fail("Should not have succeeded on a broken file");
+		} catch (Exception e) {
+			// should go here
+			assertTrue(true);
+		}
+		// now a working file
+		try {
+			net = RectNetFixed.trainFile(prefix + "OR_clean.augtrain", false);
+			assertNotNull(net);
+			assertEquals("X should be 3", 3, net.getX());
+			assertEquals("Y should be 2", 2, net.getY());
+
+			net.setInputs(new double[] { 0, 0 });
+			double output = net.getOutput();
+			double diff = Math.pow(0 - output, 2);
+
+			net.setInputs(new double[] { 0, 1.0 });
+			output = net.getOutput();
+			diff += Math.pow(1 - output, 2);
+
+			net.setInputs(new double[] { 1.0, 0.0 });
+			output = net.getOutput();
+			diff += Math.pow(1 - output, 2);
+
+			net.setInputs(new double[] { 1.0, 1.0 });
+			output = net.getOutput();
+			diff += Math.pow(1 - output, 2);
+
+			// Should have run to completion
+			assertTrue(diff / 4.0 < 0.1);
+		} catch (Exception e) {
+			// should not go here
+			fail("Should not have exploded on a valid file");
+		}
+		// AND_clean
+		try {
+			net = RectNetFixed.trainFile(prefix + "AND_clean.augtrain", false);
+			assertNotNull(net);
+			assertEquals("X should be 4", 4, net.getX());
+			assertEquals("Y should be 2", 2, net.getY());
+
+			net.setInputs(new double[] { 0, 0 });
+			double output = net.getOutput();
+			double diff = Math.pow(0 - output, 2);
+
+			net.setInputs(new double[] { 0, 1.0 });
+			output = net.getOutput();
+			diff += Math.pow(0 - output, 2);
+
+			net.setInputs(new double[] { 1.0, 0.0 });
+			output = net.getOutput();
+			diff += Math.pow(0 - output, 2);
+
+			net.setInputs(new double[] { 1.0, 1.0 });
+			output = net.getOutput();
+			diff += Math.pow(1 - output, 2);
+
+			// Should have run to completion
+			assertTrue(diff / 4 < 0.1);
+		} catch (Exception e) {
+			// should not go here
+			fail("Should not have exploded on a valid file");
+		}
 	}
 
 	@Test
 	public void testSaveNet() {
-		fail("Not yet implemented");
-	}
-
-	@Test
-	public void testLoadNet() {
-		fail("Not yet implemented");
-	}
-
-	@Test
-	public void testTestNet() {
-		fail("Not yet implemented");
-	}
-
-	@Test
-	public void testPredictTomorrow() {
-		fail("Not yet implemented");
+		// 2x2 done by hand
+		net = new RectNetFixed(2, 2, false);
+		// set the weights
+		net.setOutputNeuronWeight(0, 0.8);
+		net.setOutputNeuronWeight(1, -0.6);
+		net.setWeight(0, 0, 1, 0, 0.2);
+		net.setWeight(0, 0, 1, 1, -0.11);
+		net.setWeight(0, 1, 1, 0, 0.4);
+		net.setWeight(0, 1, 1, 1, -0.2);
+		testFirstLayerWeightsHelper(net);
+		try {
+			RectNetFixed.saveNet(prefix + "2by2.augsave", net);
+			net = null;
+			net = RectNetFixed.loadNet(prefix + "2by2.augsave");
+			assertNotNull(net);
+			assertEquals("X should be 2",2,net.getX());
+			assertEquals("Y should be 2",2,net.getY());
+			testFirstLayerWeightsHelper(net);
+			double Bo = net.getOutputNeuronWeight(0);
+			assertEquals("weights should be correct",Bo,0.8,EPSILON);
+			double Do = net.getOutputNeuronWeight(1);
+			assertEquals("weights should be correct",Do,-0.6,EPSILON);
+			double AB = net.getWeight(0,0,1,0);
+			assertEquals("weights should be correct",AB,0.2,EPSILON);
+			double CB = net.getWeight(0,1,1,0);
+			assertEquals("weights should be correct",CB,0.4,EPSILON);
+			double AD = net.getWeight(0,0,1,1);
+			assertEquals("weights should be correct",AD,-0.11,EPSILON);
+			double CD = net.getWeight(0,1,1,1);
+			assertEquals("weights should be correct",CD,-0.2,EPSILON);
+		} catch (Exception e) {
+			fail("Net should have saved");
+		}
 	}
 
 	/**

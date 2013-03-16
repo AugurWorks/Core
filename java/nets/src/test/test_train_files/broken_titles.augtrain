@@ -1,6 +1,6 @@
-net 2,4
+net 2,3
 train 1,50000,1,20000,0.1
-TITLES A,B
+TITLES A,B,C
 0 0,0
 0 1,0
 0 0,1
