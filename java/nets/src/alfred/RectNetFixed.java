@@ -516,6 +516,17 @@ public class RectNetFixed extends Net {
 				score += Math.pow((targets.get(lcv) - r.getOutput()), 2);
 			}
 			score *= -1.0;
+			score = score / (1.0 * inputSets.size());
+			learningConstant = -1.0*Math.log(-1.0*score)/2.0;
+			if (i % 100 == 0) {
+				System.out.println(i + " rounds trained.");
+				System.out
+						.println("Current score: " + -1.0*score);
+				System.out.println("Current learning constant: " + learningConstant);
+				System.out.println("Time elapsed (s): "
+						+ (System.currentTimeMillis() - start) / 1000.0);
+				System.out.println("");
+			}
 			if (score > -1.0 * cutoff) {
 				brokeAtPerfCutoff = true;
 				break;
@@ -830,9 +841,9 @@ public class RectNetFixed extends Net {
 		// "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\Pred_1_Day.augpred";
 		// String prefix = "/root/Core/java/nets/test_files/";
 		String prefix = "C:\\Users\\Stephen\\workspace\\AugurWorks\\Core\\java\\nets\\test_files\\";
-		// String trainingFile = prefix + "Train_1_Day.augtrain";
-		// String predFile = prefix + "Pred_1_Day.augpred";
-		RectNetFixed.trainFile(prefix + "OR_clean.augtrain", true);
+		String trainingFile = prefix + "Train_1_Day.augtrain";
+		String predFile = prefix + "Pred_1_Day.augpred";
+		// RectNetFixed.trainFile(prefix + "OR_clean.augtrain", true);
 		/*
 		 * System.out.println("Perf test of 10^6 training rounds:");
 		 * System.out.println("RectNet: "); RectNet test1 =
@@ -840,7 +851,7 @@ public class RectNetFixed extends Net {
 		 * System.out.println("RectNetFixed: "); RectNetFixed test2 =
 		 * RectNetFixed.trainFile(defaultFile, true);
 		 */
-		// RectNetFixed.predictTomorrow(trainingFile, predFile, false);
+		RectNetFixed.predictTomorrow(trainingFile, predFile, true);
 		System.exit(0);
 	}
 }
