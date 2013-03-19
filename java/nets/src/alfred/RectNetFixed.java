@@ -517,7 +517,7 @@ public class RectNetFixed extends Net {
 			}
 			score *= -1.0;
 			score = score / (1.0 * inputSets.size());
-			learningConstant = -1.0*Math.log(-1.0*score)/2.0;
+			learningConstant = -1.0*Math.log(-1.0*score)/5.0;
 			if (i % 100 == 0) {
 				System.out.println(i + " rounds trained.");
 				System.out
@@ -556,13 +556,17 @@ public class RectNetFixed extends Net {
 			// Results
 			System.out.println("-------------------------");
 			System.out.println("Test Results: ");
-			for (int lcv = 0; lcv < inputSets.size(); lcv++) {
+			for (int lcv = 0; lcv < Math.min(inputSets.size(),10); lcv++) {
 				r.setInputs(inputSets.get(lcv));
 				System.out.println("Input " + lcv);
 				System.out.println("\tTarget: " + targets.get(lcv));
 				System.out.println("\tActual: " + r.getOutput());
 			}
 			System.out.println("-------------------------");
+		}
+		if (brokeAtLocalMax) {
+			System.out.println("Retraining");
+			r = RectNetFixed.trainFile(fileName, verbose);
 		}
 		return r;
 	}
@@ -835,12 +839,8 @@ public class RectNetFixed extends Net {
 	}
 
 	public static void main(String[] args) {
-		// String trainingFile =
-		// "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\Train_1_Day.augtrain";
-		// String predFile =
-		// "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\Pred_1_Day.augpred";
-		// String prefix = "/root/Core/java/nets/test_files/";
-		String prefix = "C:\\Users\\Stephen\\workspace\\AugurWorks\\Core\\java\\nets\\test_files\\";
+		String prefix = "/root/Core/java/nets/test_files/";
+		// String prefix = "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\";
 		String trainingFile = prefix + "Train_1_Day.augtrain";
 		String predFile = prefix + "Pred_1_Day.augpred";
 		// RectNetFixed.trainFile(prefix + "OR_clean.augtrain", true);
