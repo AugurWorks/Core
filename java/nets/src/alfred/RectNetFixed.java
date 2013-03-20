@@ -239,7 +239,7 @@ public class RectNetFixed extends Net {
 	 *         connections.
 	 */
 	private double initNum() {
-		return (Math.random() - 0.5) / (1.0 * this.y);
+		return (Math.random()-.5) *100.0 / (1.0 * this.y);
 	}
 
 	/**
@@ -517,7 +517,7 @@ public class RectNetFixed extends Net {
 			}
 			score *= -1.0;
 			score = score / (1.0 * inputSets.size());
-			learningConstant = -1.0*Math.log(-1.0*score)/5.0;
+			learningConstant = -1.0*Math.log(-1.0*score)/500.0;
 			if (i % 100 == 0) {
 				System.out.println(i + " rounds trained.");
 				System.out

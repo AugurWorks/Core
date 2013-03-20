@@ -29,8 +29,8 @@ reader=csv.reader(fileReader) #Open and read file at readFileName
 #Header data for .augtain files
 iterationsPerRow=1
 iterationsOfFile=5000
-learningConstant=1
-minNumTrainingRounds=200
+learningConstant=.001
+minNumTrainingRounds=100
 cutoffOfPerformance=.001
 arrayDepth=4
 
