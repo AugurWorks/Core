@@ -125,7 +125,15 @@ public abstract class Net {
 							throw new RuntimeException();
 						if (!(Integer.valueOf(size[1]) > 0))
 							throw new RuntimeException();
-						if (!(size.length == 2)) {
+						if (!(Double.valueOf(size[2]) > 0))
+							throw new RuntimeException();
+						if (!(Double.valueOf(size[3]) > 0))
+							throw new RuntimeException();
+						if (!(Double.valueOf(size[4]) > 0))
+							throw new RuntimeException();
+						if (!(Double.valueOf(size[5]) > 0))
+							throw new RuntimeException();
+						if (!(size.length == 6)) {
 							throw new RuntimeException();
 						}
 						break;

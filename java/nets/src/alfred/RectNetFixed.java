@@ -239,7 +239,7 @@ public class RectNetFixed extends Net {
 	 *         connections.
 	 */
 	private double initNum() {
-		return (Math.random()-.5) *100.0 / (1.0 * this.y);
+		return 0;//(Math.random()-.5) * 100.0 / (1.0 * this.y);
 	}
 
 	/**
@@ -517,11 +517,33 @@ public class RectNetFixed extends Net {
 			}
 			score *= -1.0;
 			score = score / (1.0 * inputSets.size());
-			learningConstant = -1.0*Math.log(-1.0*score)/500.0;
-			if (i % 100 == 0) {
+			learningConstant = -1.0*Math.log(-1.0*score)/200.0;
+			if (i % 1000 == 0) {
+				int diffCounter = 0;
+				int diffCounter2 = 0;
+				double diffCutoff = .1;
+				double diffCutoff2 = .05;
+				for (int lcv = 0; lcv < inputSets.size(); lcv++) {
+					r.setInputs(inputSets.get(lcv));
+					if (Math.abs(targets.get(lcv)-r.getOutput())>diffCutoff) {
+						diffCounter++;
+					}
+					if (Math.abs(targets.get(lcv)-r.getOutput())>diffCutoff2) {
+						diffCounter2++;
+					}
+				}
 				System.out.println(i + " rounds trained.");
 				System.out
 						.println("Current score: " + -1.0*score);
+				System.out.println("Max Score=" + maxScore);
+				System.out.println("Inputs Over " + diffCutoff + "=" + diffCounter);
+				System.out.println("Inputs Over " + diffCutoff2 + "=" + diffCounter2);
+				double diff = 0;
+				for (int lcv = 0; lcv < inputSets.size(); lcv++) {
+					r.setInputs(inputSets.get(lcv));
+					diff+=r.getOutput()-targets.get(lcv);
+				}
+				System.out.println("AvgDiff=" + diff / (1.0 * inputSets.size()));
 				System.out.println("Current learning constant: " + learningConstant);
 				System.out.println("Time elapsed (s): "
 						+ (System.currentTimeMillis() - start) / 1000.0);
@@ -550,7 +572,7 @@ public class RectNetFixed extends Net {
 				System.out.println("Training round limit reached.");
 			}
 			System.out.println("Rounds trained: " + i);
-			System.out.println("Final score of " + -1 * score);
+			System.out.println("Final score of " + -1.0 * score / (1.0 * inputSets.size()));
 			System.out.println("Time elapsed (ms): "
 					+ ((System.currentTimeMillis() - start)));
 			// Results
@@ -710,12 +732,17 @@ public class RectNetFixed extends Net {
 		String[] size;
 		ArrayList<double[]> inputSets = new ArrayList<double[]>();
 		ArrayList<Double> targets = new ArrayList<Double>();
+		double[] maxMinNums = new double[4];
 		try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
 			while ((line = reader.readLine()) != null) {
 				try {
 					lineSplit = line.split(" ");
 					switch (lineNumber) {
 					case 1:
+						String[] temp = lineSplit[1].split(",");
+						for (int j = 0; j < 4; j++) {
+							maxMinNums[j] = Double.valueOf(temp[j+2]);
+						}
 						break;
 					case 2:
 						size = lineSplit[1].split(",");
@@ -752,19 +779,21 @@ public class RectNetFixed extends Net {
 			score += Math.pow((targets.get(lcv) - r.getOutput()), 2);
 			// System.out.println(r.getOutput());
 		}
-		System.out.println("Final score of " + score);
+		System.out.println("Final score of " + score / (1.0 * inputSets.size()));
 		// Results
 
 		System.out.println("-------------------------");
 		System.out.println("Test Results: ");
+		System.out.println("Actual, Prediction");
 		for (int lcv = 0; lcv < inputSets.size(); lcv++) {
 			r.setInputs(inputSets.get(lcv));
-			/*
-			 * System.out.println("Input " + lcv);
-			 * System.out.println("\tTarget: " + targets.get(lcv));
-			 * System.out.println("\tActual: " + r.getOutput());
-			 */
-			System.out.println(targets.get(lcv) + "," + r.getOutput());
+			
+			/**System.out.println("Input " + lcv);
+			System.out.println("\tTarget: " + targets.get(lcv));
+			System.out.println("\tActual: " + r.getOutput());**/
+			double tempTarget = (targets.get(lcv)-maxMinNums[3])*(maxMinNums[0]-maxMinNums[1])/(maxMinNums[2]-maxMinNums[3])+maxMinNums[1];
+			double tempOutput = (r.getOutput()-maxMinNums[3])*(maxMinNums[0]-maxMinNums[1])/(maxMinNums[2]-maxMinNums[3])+maxMinNums[1];
+			System.out.println(tempTarget + "," + tempOutput);
 		}
 		System.out.println("-------------------------");
 
@@ -841,8 +870,8 @@ public class RectNetFixed extends Net {
 	public static void main(String[] args) {
 		String prefix = "/root/Core/java/nets/test_files/";
 		// String prefix = "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\";
-		String trainingFile = prefix + "Train_1_Day.augtrain";
-		String predFile = prefix + "Pred_1_Day.augpred";
+		/**String trainingFile = prefix + "Train_1_Day.augtrain";
+		String predFile = prefix + "Pred_1_Day.augpred";**/
 		// RectNetFixed.trainFile(prefix + "OR_clean.augtrain", true);
 		/*
 		 * System.out.println("Perf test of 10^6 training rounds:");
@@ -851,7 +880,13 @@ public class RectNetFixed extends Net {
 		 * System.out.println("RectNetFixed: "); RectNetFixed test2 =
 		 * RectNetFixed.trainFile(defaultFile, true);
 		 */
-		RectNetFixed.predictTomorrow(trainingFile, predFile, true);
+		//RectNetFixed.predictTomorrow(trainingFile, predFile, true);
+		
+		String trainingFile = prefix + "TwoThirds.augtrain";
+		String testFile = prefix + "OneThird.augtrain";
+		RectNetFixed r = RectNetFixed.trainFile(trainingFile, true);
+		RectNetFixed.saveNet("TwoThirdsTrained.augsave", r);
+		r.testNet(testFile, r);
 		System.exit(0);
 	}
 }
