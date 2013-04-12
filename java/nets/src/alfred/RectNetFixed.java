@@ -19,19 +19,19 @@ import java.util.ArrayList;
 public class RectNetFixed extends Net {
 
 	// Inputs to network
-	private Input[] inputs;
+	protected Input[] inputs;
 	// Every neuron with the same i is in the
 	// same "layer". Indexed as [col][row].
-	private FixedNeuron[][] neurons;
+	protected FixedNeuron[][] neurons;
 	// X is depth of network
-	private int x;
+	protected int x;
 	// Y is height of network (number of inputs)
-	private int y;
+	protected int y;
 	// There's only one final output neuron
 	// since this is built to make booleans.
-	private FixedNeuron output;
+	protected FixedNeuron output;
 	// Prints debug output when true.
-	private boolean verbose = false;
+	protected boolean verbose = false;
 
 	/**
 	 * Constructs a new RectNet with 10 inputs and 5 layers of network.
@@ -398,7 +398,7 @@ public class RectNetFixed extends Net {
 	 *            the desired output.
 	 * @return error using equation (output*(1-output)*(desired-output))
 	 */
-	private double outputError(double desired) {
+	protected double outputError(double desired) {
 		this.getOutput();
 		// since we're using alpha = 3 in the neurons
 		return 3 * this.output.getLastOutput()
@@ -517,8 +517,8 @@ public class RectNetFixed extends Net {
 			}
 			score *= -1.0;
 			score = score / (1.0 * inputSets.size());
-			learningConstant = -1.0*Math.log(-1.0*score)/2.0;
 			if (i % 100 == 0) {
+				//learningConstant = -1.0*Math.log(-1.0*score)/3;
 				System.out.println(i + " rounds trained.");
 				System.out
 						.println("Current score: " + -1.0*score);
@@ -842,8 +842,9 @@ public class RectNetFixed extends Net {
 		// String prefix = "/root/Core/java/nets/test_files/";
 		String prefix = "C:\\Users\\Stephen\\workspace\\AugurWorks\\Core\\java\\nets\\test_files\\";
 		String trainingFile = prefix + "Train_1_Day.augtrain";
-		String predFile = prefix + "Pred_1_Day.augpred";
-		// RectNetFixed.trainFile(prefix + "OR_clean.augtrain", true);
+		//String predFile = prefix + "Pred_1_Day.augpred";
+		//RectNetFixed.trainFile(prefix + "OR_clean.augtrain", true);
+		RectNetFixed.trainFile(prefix + "Train_1_Day.augtrain", true);
 		/*
 		 * System.out.println("Perf test of 10^6 training rounds:");
 		 * System.out.println("RectNet: "); RectNet test1 =
@@ -851,7 +852,7 @@ public class RectNetFixed extends Net {
 		 * System.out.println("RectNetFixed: "); RectNetFixed test2 =
 		 * RectNetFixed.trainFile(defaultFile, true);
 		 */
-		RectNetFixed.predictTomorrow(trainingFile, predFile, true);
+		//RectNetFixed.predictTomorrow(trainingFile, predFile, true);
 		System.exit(0);
 	}
 }
