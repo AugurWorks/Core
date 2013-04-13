@@ -19,19 +19,19 @@ import java.util.ArrayList;
 public class RectNetFixed extends Net {
 
 	// Inputs to network
-	private Input[] inputs;
+	protected Input[] inputs;
 	// Every neuron with the same i is in the
 	// same "layer". Indexed as [col][row].
-	private FixedNeuron[][] neurons;
+	protected FixedNeuron[][] neurons;
 	// X is depth of network
-	private int x;
+	protected int x;
 	// Y is height of network (number of inputs)
-	private int y;
+	protected int y;
 	// There's only one final output neuron
 	// since this is built to make booleans.
-	private FixedNeuron output;
+	protected FixedNeuron output;
 	// Prints debug output when true.
-	private boolean verbose = false;
+	protected boolean verbose = false;
 
 	/**
 	 * Constructs a new RectNet with 10 inputs and 5 layers of network.
@@ -398,7 +398,7 @@ public class RectNetFixed extends Net {
 	 *            the desired output.
 	 * @return error using equation (output*(1-output)*(desired-output))
 	 */
-	private double outputError(double desired) {
+	protected double outputError(double desired) {
 		this.getOutput();
 		// since we're using alpha = 3 in the neurons
 		return 3 * this.output.getLastOutput()
@@ -898,7 +898,6 @@ public class RectNetFixed extends Net {
 		 * RectNetFixed.trainFile(defaultFile, true);
 		 */
 		//RectNetFixed.predictTomorrow(trainingFile, predFile, true);
-		
 		String trainingFile = prefix + "TwoThirds.augtrain";
 		String testFile = prefix + "OneThird.augtrain";
 		//RectNetFixed r = RectNetFixed.trainFile(trainingFile, true, prefix + "TwoThirdsTrained.augsave");
