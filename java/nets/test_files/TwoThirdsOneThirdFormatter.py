@@ -19,7 +19,7 @@ def var(array,start,length):
 def scale(value,mx,mn,maxNum,minNum):
     return (value-mn)/(mx-mn)*(maxNum-minNum)+minNum
 
-readFileName='Generic Full Training Data.csv'
+readFileName='TwoStocks.csv'
 writer2=open('OneThird.augtrain', 'wb') #Open testing file for writing
 writer=open('TwoThirds.augtrain', 'wb') #Open training file for writing
 fileReader=open(readFileName,'rb')
@@ -27,14 +27,14 @@ reader=csv.reader(fileReader) #Open and read file at readFileName
 
 #Header data for .augtain files
 iterationsPerRow=1
-iterationsOfFile=5000
-learningConstant=.001
-minNumTrainingRounds=5000
-cutoffOfPerformance=.001
+iterationsOfFile=100000
+learningConstant=.01
+minNumTrainingRounds=100000
+cutoffOfPerformance=.0001
 arrayDepth=4
 
 #Information for creating the .augtrain files
-daysBack=8 #Number of additional days used as inputs for stock data
+daysBack=12 #Number of additional days used as inputs for stock data
 varDays=200 #Number of days used in calculating the recent variance
 daysAhead=1 #Number of days ahead predicted
 

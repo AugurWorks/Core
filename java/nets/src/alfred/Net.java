@@ -221,8 +221,8 @@ public abstract class Net {
 						if (!(Integer.valueOf(size[0]) > 0)
 								|| !(Integer.valueOf(size[1]) > 0))
 							throw new RuntimeException();
-						y = Integer.valueOf(size[1]);
-						x = Integer.valueOf(size[0]);
+						y = Integer.valueOf(size[0]);
+						x = Integer.valueOf(size[1]);
 						if (!(size.length == 2)) {
 							throw new RuntimeException();
 						}
