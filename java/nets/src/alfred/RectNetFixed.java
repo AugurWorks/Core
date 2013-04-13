@@ -239,7 +239,7 @@ public class RectNetFixed extends Net {
 	 *         connections.
 	 */
 	private double initNum() {
-		return (Math.random() - 0.5) / (1.0 * this.y);
+		return 0;//(Math.random()-.5) * 100.0 / (1.0 * this.y);
 	}
 
 	/**
@@ -415,7 +415,7 @@ public class RectNetFixed extends Net {
 	 *            Flag to display debugging text or not
 	 * @return The trained neural network
 	 */
-	public static RectNetFixed trainFile(String fileName, boolean verbose) {
+	public static RectNetFixed trainFile(String fileName, boolean verbose, String saveFile) {
 		boolean valid = Net.validateAUGt(fileName);
 		if (!valid) {
 			System.err.println("File not valid format.");
@@ -501,6 +501,8 @@ public class RectNetFixed extends Net {
 		RectNetFixed r = new RectNetFixed(depth, side);
 		double maxScore = Double.NEGATIVE_INFINITY;
 		double score = 0;
+		double lastScore = Double.POSITIVE_INFINITY;
+		double bestCheck = Double.POSITIVE_INFINITY;
 		int i = 0;
 		boolean brokeAtLocalMax = false;
 		boolean brokeAtPerfCutoff = false;
@@ -517,16 +519,46 @@ public class RectNetFixed extends Net {
 			}
 			score *= -1.0;
 			score = score / (1.0 * inputSets.size());
-			if (i % 100 == 0) {
-				//learningConstant = -1.0*Math.log(-1.0*score)/3;
+			/*if (Math.abs(lastScore + score) < .000001 && learningConstant < .01) {
+				learningConstant*=1.1;
+			}*/
+			if (i % 1000 == 0) {
+				int diffCounter = 0;
+				int diffCounter2 = 0;
+				double diffCutoff = .1;
+				double diffCutoff2 = .05;
+				if (bestCheck > -1.0*score) {
+					RectNetFixed.saveNet(saveFile, r);
+					bestCheck = -1.0*score;
+				}
+				for (int lcv = 0; lcv < inputSets.size(); lcv++) {
+					r.setInputs(inputSets.get(lcv));
+					if (Math.abs(targets.get(lcv)-r.getOutput())>diffCutoff) {
+						diffCounter++;
+					}
+					if (Math.abs(targets.get(lcv)-r.getOutput())>diffCutoff2) {
+						diffCounter2++;
+					}
+				}
 				System.out.println(i + " rounds trained.");
 				System.out
 						.println("Current score: " + -1.0*score);
+				System.out.println("Min Score=" + -1.0*maxScore);
+				System.out.println("Score change=" + (lastScore + score));
+				System.out.println("Inputs Over " + diffCutoff + "=" + diffCounter + " of " + inputSets.size());
+				System.out.println("Inputs Over " + diffCutoff2 + "=" + diffCounter2 + " of " + inputSets.size());
+				double diff = 0;
+				for (int lcv = 0; lcv < inputSets.size(); lcv++) {
+					r.setInputs(inputSets.get(lcv));
+					diff+=r.getOutput()-targets.get(lcv);
+				}
+				System.out.println("AvgDiff=" + diff / (1.0 * inputSets.size()));
 				System.out.println("Current learning constant: " + learningConstant);
 				System.out.println("Time elapsed (s): "
 						+ (System.currentTimeMillis() - start) / 1000.0);
 				System.out.println("");
 			}
+			lastScore = -1.0*score;
 			if (score > -1.0 * cutoff) {
 				brokeAtPerfCutoff = true;
 				break;
@@ -550,19 +582,23 @@ public class RectNetFixed extends Net {
 				System.out.println("Training round limit reached.");
 			}
 			System.out.println("Rounds trained: " + i);
-			System.out.println("Final score of " + -1 * score);
+			System.out.println("Final score of " + -1.0 * score / (1.0 * inputSets.size()));
 			System.out.println("Time elapsed (ms): "
 					+ ((System.currentTimeMillis() - start)));
 			// Results
 			System.out.println("-------------------------");
 			System.out.println("Test Results: ");
-			for (int lcv = 0; lcv < inputSets.size(); lcv++) {
+			for (int lcv = 0; lcv < Math.min(inputSets.size(),10); lcv++) {
 				r.setInputs(inputSets.get(lcv));
 				System.out.println("Input " + lcv);
 				System.out.println("\tTarget: " + targets.get(lcv));
 				System.out.println("\tActual: " + r.getOutput());
 			}
 			System.out.println("-------------------------");
+		}
+		if (brokeAtLocalMax) {
+			System.out.println("Retraining");
+			r = RectNetFixed.trainFile(fileName, verbose, saveFile);
 		}
 		return r;
 	}
@@ -706,12 +742,17 @@ public class RectNetFixed extends Net {
 		String[] size;
 		ArrayList<double[]> inputSets = new ArrayList<double[]>();
 		ArrayList<Double> targets = new ArrayList<Double>();
+		double[] maxMinNums = new double[4];
 		try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
 			while ((line = reader.readLine()) != null) {
 				try {
 					lineSplit = line.split(" ");
 					switch (lineNumber) {
 					case 1:
+						String[] temp = lineSplit[1].split(",");
+						for (int j = 0; j < 4; j++) {
+							maxMinNums[j] = Double.valueOf(temp[j+2]);
+						}
 						break;
 					case 2:
 						size = lineSplit[1].split(",");
@@ -748,22 +789,31 @@ public class RectNetFixed extends Net {
 			score += Math.pow((targets.get(lcv) - r.getOutput()), 2);
 			// System.out.println(r.getOutput());
 		}
-		System.out.println("Final score of " + score);
+		System.out.println("Final score of " + score / (1.0 * inputSets.size()));
 		// Results
 
 		System.out.println("-------------------------");
 		System.out.println("Test Results: ");
+		System.out.println("Actual, Prediction");
+		score = 0;
+		double score2 = 0;
 		for (int lcv = 0; lcv < inputSets.size(); lcv++) {
 			r.setInputs(inputSets.get(lcv));
-			/*
-			 * System.out.println("Input " + lcv);
-			 * System.out.println("\tTarget: " + targets.get(lcv));
-			 * System.out.println("\tActual: " + r.getOutput());
-			 */
-			System.out.println(targets.get(lcv) + "," + r.getOutput());
+			
+			/**System.out.println("Input " + lcv);
+			System.out.println("\tTarget: " + targets.get(lcv));
+			System.out.println("\tActual: " + r.getOutput());**/
+			double tempTarget = (targets.get(lcv)-maxMinNums[3])*(maxMinNums[0]-maxMinNums[1])/(maxMinNums[2]-maxMinNums[3])+maxMinNums[1];
+			double tempOutput = (r.getOutput()-maxMinNums[3])*(maxMinNums[0]-maxMinNums[1])/(maxMinNums[2]-maxMinNums[3])+maxMinNums[1];
+			System.out.println(tempTarget + "," + tempOutput);
+			score += Math.abs(tempTarget-tempOutput);
+			score2 += Math.pow(tempTarget-tempOutput, 2);
 		}
+		score /= (1.0 * inputSets.size());
+		score2 /= (1.0 * inputSets.size());
 		System.out.println("-------------------------");
-
+		System.out.println("Average error=" + score);
+		System.out.println("Average squared error=" + score2);
 	}
 
 	/**
@@ -774,8 +824,8 @@ public class RectNetFixed extends Net {
 	 * @return
 	 */
 	public static double predictTomorrow(String trainingFile, String predFile,
-			boolean verbose) {
-		RectNetFixed r = RectNetFixed.trainFile(trainingFile, verbose);
+			boolean verbose, String saveFile) {
+		RectNetFixed r = RectNetFixed.trainFile(trainingFile, verbose, saveFile);
 		/*
 		 * boolean valid = Net.validateAUGPred(predFile, r.y); if (!valid) {
 		 * System.err.println("File not valid format."); System.exit(1); }
@@ -835,16 +885,11 @@ public class RectNetFixed extends Net {
 	}
 
 	public static void main(String[] args) {
-		// String trainingFile =
-		// "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\Train_1_Day.augtrain";
-		// String predFile =
-		// "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\Pred_1_Day.augpred";
-		// String prefix = "/root/Core/java/nets/test_files/";
-		String prefix = "C:\\Users\\Stephen\\workspace\\AugurWorks\\Core\\java\\nets\\test_files\\";
-		//String trainingFile = prefix + "Train_1_Day.augtrain";
-		//String predFile = prefix + "Pred_1_Day.augpred";
-		//RectNetFixed.trainFile(prefix + "OR_clean.augtrain", true);
-		RectNetFixed.trainFile(prefix + "Train_1_Day.augtrain", true);
+		//String prefix = "/root/Core/java/nets/test_files/";
+		String prefix = "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\";
+		/**String trainingFile = prefix + "Train_1_Day.augtrain";
+		String predFile = prefix + "Pred_1_Day.augpred";**/
+		// RectNetFixed.trainFile(prefix + "OR_clean.augtrain", true);
 		/*
 		 * System.out.println("Perf test of 10^6 training rounds:");
 		 * System.out.println("RectNet: "); RectNet test1 =
@@ -853,6 +898,14 @@ public class RectNetFixed extends Net {
 		 * RectNetFixed.trainFile(defaultFile, true);
 		 */
 		//RectNetFixed.predictTomorrow(trainingFile, predFile, true);
+		String trainingFile = prefix + "TwoThirds.augtrain";
+		String testFile = prefix + "OneThird.augtrain";
+		//RectNetFixed r = RectNetFixed.trainFile(trainingFile, true, prefix + "TwoThirdsTrained.augsave");
+		
+		String savedFile = prefix + "TwoThirdsTrained.augsave";
+		RectNetFixed r = RectNetFixed.loadNet(savedFile);
+		
+		r.testNet(testFile, r);
 		System.exit(0);
 	}
 }
