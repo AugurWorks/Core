@@ -155,24 +155,18 @@ public class PatternParallelRectNet extends RectNetFixed {
 					java.util.Collections.shuffle(list);
 					// TODO pick a fraction
 					int subsetSize = inputSets.size() / nodes;
-					subsetSize = 200;
+					subsetSize = 200; // FIXME
 					double[][] inpts = new double[subsetSize][inputSets.get(0).length];
 					double[] desired = new double[subsetSize];
-					//System.out.println("Subset: " + nodeNum);
 					for (int location = 0; location < subsetSize; location++) {
 						int index = list.get(location); 
 						inpts[location] = inputSets.get(index);
 						desired[location] = targets.get(index);
-						
-						//System.out.println("inpts: " + inpts[location][0] + " " + inpts[location][1]);
-						//System.out.println("desired: " + desired[location]);
-						//System.out.println("");
 					}
 					PatternParallelNode p = new PatternParallelNode(r, inpts,
 							desired, rowIter, learningConstant);
 					futures.add(service.submit(p));
 				}
-				double totalDW = 0;
 				// Sync and check the status
 				for (int futNum = 0; futNum < futures.size(); futNum++) {
 					Future<WeightDelta> future = futures.get(futNum);
@@ -185,7 +179,6 @@ public class PatternParallelRectNet extends RectNetFixed {
 						// i is the output from the leftward neuron
 						double dw = wd.getOutputDelta(j)  / (1.0*nodes);
 						r.output.changeWeight(j, dw);
-						totalDW += Math.abs(dw);
 					}
 					// now we do the same for the internal nodes
 					for (int leftCol = r.x - 2; leftCol >= 0; leftCol--) {
@@ -199,12 +192,10 @@ public class PatternParallelRectNet extends RectNetFixed {
 										rightRow, leftRow) / (1.0*nodes);
 								r.neurons[rightCol][rightRow].changeWeight(
 										leftRow, dw);
-								totalDW += Math.abs(dw);
 							}
 						}
 					}
 				}
-				//System.out.println("Total DW: " + totalDW);
 				score = 0;
 				for (int lcv = 0; lcv < inputSets.size(); lcv++) {
 					r.setInputs(inputSets.get(lcv));
@@ -212,8 +203,6 @@ public class PatternParallelRectNet extends RectNetFixed {
 				}
 				score *= -1.0;
 				score = score / (1.0 * inputSets.size());
-				//System.out.println("Current score: " + -1.0 * score);
-				//System.out.println("");
 				if (i % 100 == 0) {
 					// learningConstant = -1.0*Math.log(-1.0*score)/3;
 					System.out.println(i + " rounds trained.");
@@ -249,14 +238,14 @@ public class PatternParallelRectNet extends RectNetFixed {
 					+ ((System.currentTimeMillis() - start)));
 			// Results
 			System.out.println("-------------------------");
-			System.out.println("Test Results: ");
+			//System.out.println("Test Results: ");
 			for (int lcv = 0; lcv < inputSets.size(); lcv++) {
 				r.setInputs(inputSets.get(lcv));
 				//System.out.println("Input " + lcv);
 				//System.out.println("\tTarget: " + targets.get(lcv));
 				//System.out.println("\tActual: " + r.getOutput());
 			}
-			System.out.println("-------------------------");
+			//System.out.println("-------------------------");
 		}
 		return r;
 	}
