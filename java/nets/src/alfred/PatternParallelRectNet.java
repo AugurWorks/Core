@@ -43,7 +43,7 @@ public class PatternParallelRectNet extends RectNetFixed {
 	 * @throws InterruptedException
 	 */
 	public static PatternParallelRectNet trainFile(String fileName, int nodes,
-			boolean verbose, String saveFile) throws InterruptedException,
+			boolean verbose, String saveFile, boolean testing) throws InterruptedException,
 			ExecutionException {
 		/*
 		 * Copy-paste from the RectNetFixed parsing code. TODO abstract this
@@ -137,8 +137,10 @@ public class PatternParallelRectNet extends RectNetFixed {
 		PatternParallelRectNet r = new PatternParallelRectNet(depth, side);
 		double maxScore = Double.NEGATIVE_INFINITY;
 		double score = 0;
+		double testScore = 0;
 		double lastScore = Double.POSITIVE_INFINITY;
 		double bestCheck = Double.POSITIVE_INFINITY;
+		double bestTestCheck = Double.POSITIVE_INFINITY;
 		int i = 0;
 		boolean brokeAtPerfCutoff = false;
 
@@ -213,6 +215,20 @@ public class PatternParallelRectNet extends RectNetFixed {
 					double diffCutoff2 = .05;
 					if (bestCheck > -1.0 * score) {
 						RectNetFixed.saveNet(saveFile, r);
+						if (testing) {
+							int idx = saveFile.replaceAll("\\\\", "/").lastIndexOf(
+									"/");
+							int idx2 = saveFile.lastIndexOf(
+											".");
+							testScore = RectNetFixed.testNet(
+									saveFile.substring(0, idx + 1)
+											+ "OneThird.augtrain", r, verbose);
+							if (testScore < bestTestCheck) {
+								RectNetFixed.saveNet(saveFile.substring(0, idx2)
+										+ "Test.augsave", r);
+								bestTestCheck = testScore;
+							}
+						}
 						bestCheck = -1.0 * score;
 					}
 					for (int lcv = 0; lcv < inputSets.size(); lcv++) {
@@ -227,6 +243,10 @@ public class PatternParallelRectNet extends RectNetFixed {
 					System.out.println(i + " rounds trained.");
 					System.out.println("Current score: " + -1.0 * score);
 					System.out.println("Min Score=" + -1.0 * maxScore);
+					if (testing) {
+						System.out.println("Current Test Score=" + testScore);
+						System.out.println("Min Test Score=" + bestTestCheck);
+					}
 					System.out.println("Score change=" + (lastScore + score));
 					System.out.println("Inputs Over " + diffCutoff + "="
 							+ diffCounter + " of " + inputSets.size());
@@ -361,28 +381,15 @@ public class PatternParallelRectNet extends RectNetFixed {
 	public static void main(String[] args) {
 		// String prefix =
 		// "C:\\Users\\Stephen\\workspace\\AugurWorks\\Core\\java\\nets\\test_files\\";
-		//String prefix = "/root/Core/java/nets/test_files/";
-		String prefix = "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\";
-		/**
-		 * String trainingFile = prefix + "Train_1_Day.augtrain"; String
-		 * predFile = prefix + "Pred_1_Day.augpred";
-		 **/
-		// RectNetFixed.trainFile(prefix + "OR_clean.augtrain", true);
-		/*
-		 * System.out.println("Perf test of 10^6 training rounds:");
-		 * System.out.println("RectNet: "); RectNet test1 =
-		 * RectNet.trainFile(defaultFile, true);
-		 * System.out.println("RectNetFixed: "); RectNetFixed test2 =
-		 * RectNetFixed.trainFile(defaultFile, true);
-		 */
-		// RectNetFixed.predictTomorrow(trainingFile, predFile, true);
+		String prefix = "/root/Core/java/nets/test_files/";
+		// String prefix = "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\";
 		String trainingFile = prefix + "TwoThirds.augtrain";
 		String testFile = prefix + "OneThird.augtrain";
 		String savedFile = prefix + "TwoThirdsTrained.augsave";
 		PatternParallelRectNet r;
 		try {
-			r = PatternParallelRectNet.trainFile(trainingFile, 4, true, savedFile);
-			r.testNet(testFile, r);
+			r = PatternParallelRectNet.trainFile(trainingFile, 4, false, savedFile, true);
+			RectNetFixed.testNet(testFile, r, true);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -392,7 +399,7 @@ public class PatternParallelRectNet extends RectNetFixed {
 		}
 
 		/*r = PatternParallelRectNet.loadNet(savedFile);
-		r.testNet(testFile, r);*/
+		RectNetFixed.testNet(testFile, r, true);*/
 
 
 		System.exit(0);
