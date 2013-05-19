@@ -43,7 +43,8 @@ public class PatternParallelRectNet extends RectNetFixed {
 	 * @throws InterruptedException
 	 */
 	public static PatternParallelRectNet trainFile(String fileName, int nodes,
-			boolean verbose) throws InterruptedException, ExecutionException {
+			boolean verbose, String saveFile, boolean testing) throws InterruptedException,
+			ExecutionException {
 		/*
 		 * Copy-paste from the RectNetFixed parsing code. TODO abstract this
 		 * code block into another method.
@@ -136,6 +137,10 @@ public class PatternParallelRectNet extends RectNetFixed {
 		PatternParallelRectNet r = new PatternParallelRectNet(depth, side);
 		double maxScore = Double.NEGATIVE_INFINITY;
 		double score = 0;
+		double testScore = 0;
+		double lastScore = Double.POSITIVE_INFINITY;
+		double bestCheck = Double.POSITIVE_INFINITY;
+		double bestTestCheck = Double.POSITIVE_INFINITY;
 		int i = 0;
 		boolean brokeAtPerfCutoff = false;
 
@@ -159,7 +164,7 @@ public class PatternParallelRectNet extends RectNetFixed {
 					double[][] inpts = new double[subsetSize][inputSets.get(0).length];
 					double[] desired = new double[subsetSize];
 					for (int location = 0; location < subsetSize; location++) {
-						int index = list.get(location); 
+						int index = list.get(location);
 						inpts[location] = inputSets.get(index);
 						desired[location] = targets.get(index);
 					}
@@ -177,7 +182,7 @@ public class PatternParallelRectNet extends RectNetFixed {
 						// w' = w + r*i*delta
 						// r is the learning constant
 						// i is the output from the leftward neuron
-						double dw = wd.getOutputDelta(j)  / (1.0*nodes);
+						double dw = wd.getOutputDelta(j) / (1.0 * nodes);
 						r.output.changeWeight(j, dw);
 					}
 					// now we do the same for the internal nodes
@@ -189,7 +194,7 @@ public class PatternParallelRectNet extends RectNetFixed {
 								// r is the learning constant
 								// i is the output from the leftward neuron
 								double dw = wd.getInnerDelta(rightCol,
-										rightRow, leftRow) / (1.0*nodes);
+										rightRow, leftRow) / (1.0 * nodes);
 								r.neurons[rightCol][rightRow].changeWeight(
 										leftRow, dw);
 							}
@@ -204,16 +209,63 @@ public class PatternParallelRectNet extends RectNetFixed {
 				score *= -1.0;
 				score = score / (1.0 * inputSets.size());
 				if (i % 100 == 0) {
-					// learningConstant = -1.0*Math.log(-1.0*score)/3;
+					int diffCounter = 0;
+					int diffCounter2 = 0;
+					double diffCutoff = .1;
+					double diffCutoff2 = .05;
+					if (bestCheck > -1.0 * score) {
+						RectNetFixed.saveNet(saveFile, r);
+						if (testing) {
+							int idx = saveFile.replaceAll("\\\\", "/").lastIndexOf(
+									"/");
+							int idx2 = saveFile.lastIndexOf(
+											".");
+							testScore = RectNetFixed.testNet(
+									saveFile.substring(0, idx + 1)
+											+ "OneThird.augtrain", r, verbose);
+							if (testScore < bestTestCheck) {
+								RectNetFixed.saveNet(saveFile.substring(0, idx2)
+										+ "Test.augsave", r);
+								bestTestCheck = testScore;
+							}
+						}
+						bestCheck = -1.0 * score;
+					}
+					for (int lcv = 0; lcv < inputSets.size(); lcv++) {
+						r.setInputs(inputSets.get(lcv));
+						if (Math.abs(targets.get(lcv) - r.getOutput()) > diffCutoff) {
+							diffCounter++;
+						}
+						if (Math.abs(targets.get(lcv) - r.getOutput()) > diffCutoff2) {
+							diffCounter2++;
+						}
+					}
 					System.out.println(i + " rounds trained.");
-					System.out.println("Active Threads: " + java.lang.Thread.activeCount());
 					System.out.println("Current score: " + -1.0 * score);
+					System.out.println("Min Score=" + -1.0 * maxScore);
+					if (testing) {
+						System.out.println("Current Test Score=" + testScore);
+						System.out.println("Min Test Score=" + bestTestCheck);
+					}
+					System.out.println("Score change=" + (lastScore + score));
+					System.out.println("Inputs Over " + diffCutoff + "="
+							+ diffCounter + " of " + inputSets.size());
+					System.out.println("Inputs Over " + diffCutoff2 + "="
+							+ diffCounter2 + " of " + inputSets.size());
+					double diff = 0;
+					for (int lcv = 0; lcv < inputSets.size(); lcv++) {
+						r.setInputs(inputSets.get(lcv));
+						diff += r.getOutput() - targets.get(lcv);
+					}
+					System.out.println("AvgDiff=" + diff
+							/ (1.0 * inputSets.size()));
 					System.out.println("Current learning constant: "
 							+ learningConstant);
 					System.out.println("Time elapsed (s): "
 							+ (System.currentTimeMillis() - start) / 1000.0);
 					System.out.println("");
 				}
+				lastScore = -1.0 * score;
 				if (score > -1.0 * cutoff) {
 					brokeAtPerfCutoff = true;
 					break;
@@ -238,32 +290,118 @@ public class PatternParallelRectNet extends RectNetFixed {
 					+ ((System.currentTimeMillis() - start)));
 			// Results
 			System.out.println("-------------------------");
-			//System.out.println("Test Results: ");
+			// System.out.println("Test Results: ");
 			for (int lcv = 0; lcv < inputSets.size(); lcv++) {
 				r.setInputs(inputSets.get(lcv));
-				//System.out.println("Input " + lcv);
-				//System.out.println("\tTarget: " + targets.get(lcv));
-				//System.out.println("\tActual: " + r.getOutput());
+				// System.out.println("Input " + lcv);
+				// System.out.println("\tTarget: " + targets.get(lcv));
+				// System.out.println("\tActual: " + r.getOutput());
 			}
-			//System.out.println("-------------------------");
+			// System.out.println("-------------------------");
 		}
 		return r;
 	}
 
+	/**
+	 * Load a neural network from a .augsave file
+	 * 
+	 * @author TheConnMan
+	 * @param fileName
+	 *            File path to an .augsave file containing a neural network
+	 * @return Neural network from the .augsave file
+	 */
+	public static PatternParallelRectNet loadNet(String fileName) {
+		boolean valid = Net.validateAUGs(fileName);
+		if (!valid) {
+			System.err.println("File not valid format.");
+			throw new RuntimeException("File not valid format");
+		}
+		// Now we need to pull information out of the augsave file.
+		Charset charset = Charset.forName("US-ASCII");
+		Path file = Paths.get(fileName);
+		String line = null;
+		int lineNumber = 1;
+		String[] lineSplit;
+		String[] edges;
+		int side = 0;
+		int depth = 0;
+		int curCol = 0;
+		int curRow = 0;
+		try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
+			line = reader.readLine();
+			try {
+				lineSplit = line.split(" ");
+				String[] size = lineSplit[1].split(",");
+				side = Integer.valueOf(size[1]);
+				depth = Integer.valueOf(size[0]);
+			} catch (Exception e) {
+				System.err.println("Loading failed at line: " + lineNumber);
+			}
+		} catch (IOException x) {
+			System.err.format("IOException: %s%n", x);
+			throw new RuntimeException("Failed to load file");
+		}
+		PatternParallelRectNet net = new PatternParallelRectNet(depth, side);
+		try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
+			while ((line = reader.readLine()) != null) {
+				try {
+					lineSplit = line.split(" ");
+					switch (lineNumber) {
+					case 1:
+						break;
+					case 2:
+						String outputs[] = lineSplit[1].split(",");
+						for (int edgeNum = 0; edgeNum < outputs.length; edgeNum++) {
+							net.output.setWeight(edgeNum,
+									Double.parseDouble(outputs[edgeNum]));
+						}
+						break;
+					default:
+						curCol = Integer.valueOf(lineSplit[0]);
+						curRow = (lineNumber - 3) % side;
+						edges = lineSplit[1].split(",");
+						for (int edgeNum = 0; edgeNum < edges.length; edgeNum++) {
+							net.neurons[curCol][curRow].setWeight(edgeNum,
+									Double.parseDouble(edges[edgeNum]));
+						}
+						break;
+					}
+					lineNumber++;
+				} catch (Exception e) {
+					System.err.println("Loading failed at line: " + lineNumber);
+				}
+			}
+		} catch (IOException x) {
+			System.err.format("IOException: %s%n", x);
+			throw new RuntimeException("Failed to load file");
+		}
+		return net;
+	}
+	
 	public static void main(String[] args) {
-		String prefix = "C:\\Users\\Stephen\\workspace\\AugurWorks\\Core\\java\\nets\\test_files\\";
-		
-		String trainingFile = prefix + "dirty_or.augtrain";
-		
+		// String prefix =
+		// "C:\\Users\\Stephen\\workspace\\AugurWorks\\Core\\java\\nets\\test_files\\";
+		String prefix = "/root/Core/java/nets/test_files/";
+		// String prefix = "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\";
+		String trainingFile = prefix + "TwoThirds.augtrain";
+		String testFile = prefix + "OneThird.augtrain";
+		String savedFile = prefix + "TwoThirdsTrained.augsave";
+		PatternParallelRectNet r;
 		try {
-			PatternParallelRectNet.trainFile(trainingFile, 100, true);
+			r = PatternParallelRectNet.trainFile(trainingFile, 4, false, savedFile, true);
+			RectNetFixed.testNet(testFile, r, true);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (ExecutionException e) {
-			System.out.println(e.getCause());
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
+		/*r = PatternParallelRectNet.loadNet(savedFile);
+		RectNetFixed.testNet(testFile, r, true);*/
+
+
 		System.exit(0);
 	}
 }
