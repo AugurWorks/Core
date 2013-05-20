@@ -5,7 +5,6 @@ import sys
 
 start_date = sys.argv[1]
 end_date = sys.argv[2]
-
 # Get the JSON response
 json_string = open('response.txt', 'r').read()
 

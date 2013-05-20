@@ -11,27 +11,25 @@ start_date=`head -n 1 ftext_words.txt`
 end_date=`head -n 2 ftext_words.txt | tail -n 1`
 start_date=`date -d $start_date '+%s'`
 end_date=`date -d $end_date '+%s'`
-days_passed=`echo $(( (end_date-start_date)/86400 ))`
-num_days=0
 
-while [ $start_date -le $end_date ]
+while [ $start_date -lt $end_date ]
 do 
 	tail -n +3 ftext_words.txt | while read line
 	do
 		# Search the enron / email community for enron, and output JSON data
-		query='{"qt": [{"ftext":"'
-		query+="$line\""
-		query+='}],"output": {"format": "json"},'
 		
 		first=`date -d "@$start_date" '+%D'`
 		next=$(( $start_date + 86400 ))
 		next=`date -d "@$next" '+%D'`
 		
-		query+='"time":{"min":'
-		query+="$first\""
+		query='{"qt": [{"etext":"'
+		query+="$line\""
+		query+='},'
+		query+='{"time": {"min":'
+		query+="\"$first\","
 		query+='"max":'
-		query+="$next\""
-		query+='}}'
+		query+="\"$next\""
+		query+='}}],"output": {"format": "json"}}'
 		
 		echo $query > query.tmp
 		
