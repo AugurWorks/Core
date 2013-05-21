@@ -5,14 +5,14 @@ import sys
 
 start_date = sys.argv[1]
 end_date = sys.argv[2]
+keyword = sys.argv[3]
 # Get the JSON response
 json_string = open('response.txt', 'r').read()
 
 # Find the stuff that has sentiment
 # Note: this does not sum the total sentiment if any name is repeated
 data = json.loads(json_string)
-print "start date: " + str(start_date)
-print "end date: " + str(end_date)
+print "start date: " + str(start_date) + ", end date: " + str(end_date) + ", keyword: " + str(keyword)
 print "disambiguated name,sentiment,significance"
 
 info = {}

@@ -16,8 +16,7 @@ while [ $start_date -lt $end_date ]
 do 
 	tail -n +3 ftext_words.txt | while read line
 	do
-		# Search the enron / email community for enron, and output JSON data
-		
+
 		first=`date -d "@$start_date" '+%D'`
 		next=$(( $start_date + 86400 ))
 		next=`date -d "@$next" '+%D'`
@@ -33,11 +32,11 @@ do
 		
 		echo $query > query.tmp
 		
-		curl -b cookies.txt -XPOST $URL"/api/knowledge/document/query/502997fde4b01d16a3e19876" -d @query.tmp > response.txt
+		curl -b cookies.txt -XPOST $URL"/api/knowledge/document/query/50ecaf5ae4b0ea25955cdfb8" -d @query.tmp > response.txt
 		
 		rm query.tmp
 		
-		python ./json_parsing.py $first $next >> sentiment.csv
+		python ./json_parsing.py $first $next $line >> sentiment.csv
 	done
 	start_date=$(( $start_date + 86400 ))
 done
