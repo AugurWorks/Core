@@ -570,7 +570,7 @@ public class RectNetFixedTest {
 	public void testTrainFile() {
 		// try a broken file - should fail
 		try {
-			RectNetFixed.trainFile(prefix + "broken_data.augtrain", false, "test");
+			RectNetFixed.trainFile(prefix + "broken_data.augtrain", false, "test", false);
 			fail("Should not have succeeded on a broken file");
 		} catch (Exception e) {
 			// should go here
@@ -578,7 +578,7 @@ public class RectNetFixedTest {
 		}
 		// try a broken file - should fail
 		try {
-			RectNetFixed.trainFile(prefix + "broken_header.augtrain", false, "test");
+			RectNetFixed.trainFile(prefix + "broken_header.augtrain", false, "test", false);
 			fail("Should not have succeeded on a broken file");
 		} catch (Exception e) {
 			// should go here
@@ -586,7 +586,7 @@ public class RectNetFixedTest {
 		}
 		// try a broken file - should fail
 		try {
-			RectNetFixed.trainFile(prefix + "broken_numinputs.augtrain", false, "test");
+			RectNetFixed.trainFile(prefix + "broken_numinputs.augtrain", false, "test", false);
 			fail("Should not have succeeded on a broken file");
 		} catch (Exception e) {
 			// should go here
@@ -594,7 +594,7 @@ public class RectNetFixedTest {
 		}
 		// try a broken file - should fail
 		try {
-			RectNetFixed.trainFile(prefix + "broken_titles.augtrain", false, "test");
+			RectNetFixed.trainFile(prefix + "broken_titles.augtrain", false, "test", false);
 			fail("Should not have succeeded on a broken file");
 		} catch (Exception e) {
 			// should go here
@@ -602,7 +602,7 @@ public class RectNetFixedTest {
 		}
 		// try a broken file - should fail
 		try {
-			RectNetFixed.trainFile(prefix + "broken_trainline.augtrain", false, "test");
+			RectNetFixed.trainFile(prefix + "broken_trainline.augtrain", false, "test", false);
 			fail("Should not have succeeded on a broken file");
 		} catch (Exception e) {
 			// should go here
@@ -610,7 +610,7 @@ public class RectNetFixedTest {
 		}
 		// now a working file
 		try {
-			net = RectNetFixed.trainFile(prefix + "OR_clean.augtrain", false, "test");
+			net = RectNetFixed.trainFile(prefix + "OR_clean.augtrain", false, "test", false);
 			assertNotNull(net);
 			assertEquals("X should be 3", 3, net.getX());
 			assertEquals("Y should be 2", 2, net.getY());
@@ -639,7 +639,7 @@ public class RectNetFixedTest {
 		}
 		// AND_clean
 		try {
-			net = RectNetFixed.trainFile(prefix + "AND_clean.augtrain", false, "test");
+			net = RectNetFixed.trainFile(prefix + "AND_clean.augtrain", false, "test", false);
 			assertNotNull(net);
 			assertEquals("X should be 4", 4, net.getX());
 			assertEquals("Y should be 2", 2, net.getY());

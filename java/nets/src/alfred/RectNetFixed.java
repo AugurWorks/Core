@@ -529,21 +529,21 @@ public class RectNetFixed extends Net {
 				double diffCutoff2 = .05;
 				if (bestCheck > -1.0 * score) {
 					RectNetFixed.saveNet(saveFile, r);
-					if (testing) {
-						int idx = saveFile.replaceAll("\\\\", "/").lastIndexOf(
-								"/");
-						int idx2 = saveFile.lastIndexOf(
-										".");
-						testScore = RectNetFixed.testNet(
-								saveFile.substring(0, idx + 1)
-										+ "OneThird.augtrain", r, verbose);
-						if (testScore < bestTestCheck) {
-							RectNetFixed.saveNet(saveFile.substring(0, idx2)
-									+ "Test.augsave", r);
-							bestTestCheck = testScore;
-						}
-					}
 					bestCheck = -1.0 * score;
+				}
+				if (testing) {
+					int idx = saveFile.replaceAll("\\\\", "/").lastIndexOf(
+							"/");
+					int idx2 = saveFile.lastIndexOf(
+									".");
+					testScore = RectNetFixed.testNet(
+							saveFile.substring(0, idx + 1)
+									+ "OneThird.augtrain", r, verbose);
+					if (testScore < bestTestCheck) {
+						RectNetFixed.saveNet(saveFile.substring(0, idx2)
+								+ "Test.augsave", r);
+						bestTestCheck = testScore;
+					}
 				}
 				for (int lcv = 0; lcv < inputSets.size(); lcv++) {
 					r.setInputs(inputSets.get(lcv));
@@ -919,29 +919,34 @@ public class RectNetFixed extends Net {
 	}
 
 	public static void main(String[] args) {
-		// String prefix = "/root/Core/java/nets/test_files/";
-		String prefix = "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\";
-		/**
-		 * String trainingFile = prefix + "Train_1_Day.augtrain"; String
-		 * predFile = prefix + "Pred_1_Day.augpred";
-		 **/
-		// RectNetFixed.trainFile(prefix + "OR_clean.augtrain", true);
-		/*
-		 * System.out.println("Perf test of 10^6 training rounds:");
-		 * System.out.println("RectNet: "); RectNet test1 =
-		 * RectNet.trainFile(defaultFile, true);
-		 * System.out.println("RectNetFixed: "); RectNetFixed test2 =
-		 * RectNetFixed.trainFile(defaultFile, true);
-		 */
-		// RectNetFixed.predictTomorrow(trainingFile, predFile, true);
-		String trainingFile = prefix + "TwoThirds.augtrain";
-		String testFile = prefix + "OneThird.augtrain";
-
-		String savedFile = prefix + "TwoThirdsTrained.augsave";
-		// RectNetFixed r = RectNetFixed.trainFile(trainingFile, false, savedFile, true);
-		RectNetFixed r = RectNetFixed.loadNet(savedFile);
-
-		RectNetFixed.testNet(testFile, r, true);
+		int trigger=1;
+		int pre=0;
+		
+		String prefix, trainingFile, predFile, testFile, savedFile;
+		if (pre==0) {
+			prefix = "/root/Core/java/nets/test_files/";
+		} else {
+			prefix = "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\";
+		}
+		if (trigger==1) {
+			// Predict
+			trainingFile = prefix + "Train_1_Day.augtrain";
+			predFile = prefix + "Pred_1_Day.augpred";
+			savedFile = prefix + "TwoThirdsTrained.augsave";
+			RectNetFixed.predictTomorrow(trainingFile, predFile, true, savedFile);
+		} else if (trigger==2) {
+			//Test
+			trainingFile = prefix + "TwoThirds.augtrain";
+			testFile = prefix + "OneThird.augtrain";
+			savedFile = prefix + "TwoThirdsTrained.augsave";
+			RectNetFixed r = RectNetFixed.loadNet(savedFile);
+			RectNetFixed.testNet(testFile, r, true);
+		} else if (trigger==3) {
+			//Train
+			trainingFile = prefix + "TwoThirds.augtrain";
+			savedFile = prefix + "TwoThirdsTrained.augsave";
+			RectNetFixed.trainFile(trainingFile, false, savedFile, true);
+		}
 		System.exit(0);
 	}
 }

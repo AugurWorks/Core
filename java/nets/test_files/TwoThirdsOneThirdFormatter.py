@@ -19,7 +19,7 @@ def var(array,start,length):
 def scale(value,mx,mn,maxNum,minNum):
     return (value-mn)/(mx-mn)*(maxNum-minNum)+minNum
 
-readFileName='TwoStocks.csv'
+readFileName='USO.csv'
 writer2=open('OneThird.augtrain', 'wb') #Open testing file for writing
 writer=open('TwoThirds.augtrain', 'wb') #Open training file for writing
 fileReader=open(readFileName,'rb')
@@ -28,15 +28,20 @@ reader=csv.reader(fileReader) #Open and read file at readFileName
 #Header data for .augtain files
 iterationsPerRow=1
 iterationsOfFile=100000
-learningConstant=.01
+learningConstant=.04
 minNumTrainingRounds=100000
-cutoffOfPerformance=.0001
-arrayDepth=4
+cutoffOfPerformance=.00001
+arrayDepth=5
+
+#Max/min info
+maxNum=.9
+minNum=.1
 
 #Information for creating the .augtrain files
-daysBack=12 #Number of additional days used as inputs for stock data
-varDays=200 #Number of days used in calculating the recent variance
+daysBack=50 #Number of additional days used as inputs for stock data
+varDays=0 #Number of days used in calculating the recent variance
 daysAhead=1 #Number of days ahead predicted
+daysUsed=100 #Number of days to use total
 
 #Count how many total days are in the file
 numRows=0
@@ -71,14 +76,12 @@ for i in range(numStocks):
         variance[i][j]=var(close[i],j,varDays)
 
 #Define max, min, and max/min arrays for scaling
-maxNum=.9
-minNum=.1
 maxArray=[[float("-inf") for i in range(numStocks)] for j in range(3)]
 minArray=[[float("inf") for i in range(numStocks)] for j in range(3)]
 
 #Find max and mins of all inputs
 for i in range(numStocks):
-    for j in range(numRows-varDays):
+    for j in range(min(numRows-varDays,daysUsed)):
         maxArray[0][i]=max(maxArray[0][i],close[i][j])
         maxArray[1][i]=max(maxArray[1][i],percentageChange[i][j])
         maxArray[2][i]=max(maxArray[2][i],variance[i][j])
@@ -87,26 +90,32 @@ for i in range(numStocks):
         minArray[2][i]=min(minArray[2][i],variance[i][j])
 
 #Write header rows for .augtrain file
-writer.write('net '+str(numStocks*daysBack*3)+','+str(arrayDepth)+'\n')
-writer2.write('net '+str(numStocks*daysBack*3)+','+str(arrayDepth)+','+str(maxArray[0][0])+','+str(minArray[0][0])+','+str(maxNum)+','+str(minNum)+'\n')
+writer.write('net '+str(numStocks*daysBack*2-daysBack)+','+str(arrayDepth)+','+str(maxArray[0][0])+','+str(minArray[0][0])+','+str(maxNum)+','+str(minNum)+'\n')
+writer2.write('net '+str(numStocks*daysBack*2-daysBack)+','+str(arrayDepth)+','+str(maxArray[0][0])+','+str(minArray[0][0])+','+str(maxNum)+','+str(minNum)+'\n')
 writer.write('train '+str(iterationsPerRow)+','+str(iterationsOfFile)+','+str(learningConstant)+','+str(minNumTrainingRounds)+','+str(cutoffOfPerformance)+'\n')
 writer2.write('train '+str(iterationsPerRow)+','+str(iterationsOfFile)+','+str(learningConstant)+','+str(minNumTrainingRounds)+','+str(cutoffOfPerformance)+'\n')
 string='TITLES '
 for j in range(daysBack):
     for i in range(numStocks):
-        string+='Close_Day_Back_'+str(j)+',Percent_Change_Day_Back_'+str(j)+',Variance_Day_Back_'+str(j)
+        if i!=0:
+            string+='Close_Day_Back_'+str(j)+','
+        #string+='Percent_Change_Day_Back_'+str(j)+',Variance_Day_Back_'+str(j)
+        string+='Percent_Change_Day_Back_'+str(j)
         if not (i==numStocks-1 and j==daysBack-1):
             string+=','
 writer.write(string+'\n')
 writer2.write(string+'\n')
 
-oneThirdMark=(numRows-varDays-daysBack-daysAhead)/3
+oneThirdMark=(min(numRows-varDays-daysBack-daysAhead,daysUsed+daysAhead))/3
 #Write the rest of the .augtrain files
-for r in range(daysAhead,numRows-varDays-daysBack):
+for r in range(daysAhead,min(numRows-varDays-daysBack,daysAhead+daysUsed)):
     string=str(scale(close[0][r-daysAhead],maxArray[0][0],minArray[0][0],maxNum,minNum))+' '
     for j in range(daysBack):
         for i in range(numStocks):
-            string+=str(scale(close[i][r+j],maxArray[0][i],minArray[0][i],maxNum,minNum))+','+str(scale(percentageChange[i][r+j],maxArray[1][i],minArray[1][i],maxNum,minNum))+','+str(scale(variance[i][r+j],maxArray[2][i],minArray[2][i],maxNum,minNum))
+            if i!=0:
+                string+=str(scale(close[i][r+j],maxArray[0][i],minArray[0][i],maxNum,minNum))+','
+            #string+=str(scale(percentageChange[i][r+j],maxArray[1][i],minArray[1][i],maxNum,minNum))+','+str(scale(variance[i][r+j],maxArray[2][i],minArray[2][i],maxNum,minNum))
+            string+=str(scale(percentageChange[i][r+j],maxArray[1][i],minArray[1][i],maxNum,minNum))
             if not (i==numStocks-1 and j==daysBack-1):
                 string+=','
     if r+daysAhead<oneThirdMark:
@@ -117,4 +126,3 @@ for r in range(daysAhead,numRows-varDays-daysBack):
 #Close writers
 writer.close()
 writer2.close()
-
