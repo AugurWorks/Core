@@ -12,8 +12,6 @@ json_string = open('response.txt', 'r').read()
 # Find the stuff that has sentiment
 # Note: this does not sum the total sentiment if any name is repeated
 data = json.loads(json_string)
-print "start date: " + str(start_date) + ", end date: " + str(end_date) + ", keyword: " + str(keyword)
-print "disambiguated name,sentiment,significance"
 
 info = {}
 for i in range(len(data["data"])):
@@ -29,7 +27,10 @@ for i in range(len(data["data"])):
 				info[name] = (sentiment,significance)
 		except: 
 			continue
-			
+
+score=0
 for i in info:
 	(a,b) = info[i]
-	print i.replace(",", "") + "," + str(a) + "," + str(b)
+	score+=a*b
+
+print str(score)
