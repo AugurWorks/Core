@@ -10,11 +10,11 @@ public class ReaderManager implements Runnable {
 			Thread t = new Thread();
 			while (true) {
 				if (t.isAlive()) {
-					Thread.sleep(5000);
+					Thread.sleep(10000);
 				} else {
-					t = new Thread(new TwitterReader(filename, 5));
+					t = new Thread(new TwitterReader(filename, 50));
 					t.start();
-					Thread.sleep(5000);
+					Thread.sleep(10000);
 				}
 			}
 		} catch (Exception e) {

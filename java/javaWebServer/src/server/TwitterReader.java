@@ -97,7 +97,7 @@ public class TwitterReader implements Runnable {
 		twitterStream.addListener(listener);
 
 		FilterQuery query = new FilterQuery();
-		String track[] = { "opec", "big data", "bieber" };
+		String track[] = { "opec", "big data", "obama", "iran", "oil", "red sea" };
 		query.track(track);
 		twitterStream.filter(query);
 	}
