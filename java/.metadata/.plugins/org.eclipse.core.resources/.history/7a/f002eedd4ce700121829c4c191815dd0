@@ -1,0 +1,34 @@
+package server;
+
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+// A Webserver waits for clients to connect, then starts a separate
+// thread to handle the request.
+
+public class Webserver {
+	private static ServerSocket serverSocket;
+
+	public static void main(String[] args) {
+
+		// start up a twitter thing.
+		// twitter thing grabs shit from twitter, then dumps to a file.
+		try {
+			String filename = System.getProperty("user.dir")
+					+ "/src/server/twitter.rss";
+			Thread t = new Thread(new TwitterReader(filename));
+			t.start();
+	
+			serverSocket = new ServerSocket(8000); // Start, listen on port 1020
+			while (true) {
+					Socket s = serverSocket.accept(); // Wait for a client to
+														// connect
+					new ClientHandler(s); // Handle the client in a separate thread
+					System.out.println(x);
+			}
+		} (catch Exception e) {
+			e.printStackTrace();
+		}
+	}
+}

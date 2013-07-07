@@ -1,0 +1,10 @@
+package server;
+
+public class ReaderManager implements Runnable {
+
+	@Override
+	public void run() {
+
+	}
+
+}

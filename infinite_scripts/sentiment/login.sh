@@ -12,15 +12,18 @@ end_date=`head -n 2 ftext_words.txt | tail -n 1`
 start_date=`date -d $start_date '+%s'`
 end_date=`date -d $end_date '+%s'`
 
+rm response.txt
+
 while [ $start_date -lt $end_date ]
 do 
 	tail -n +3 ftext_words.txt | while read line
 	do
-
+		# Increment the end date
 		first=`date -d "@$start_date" '+%D'`
 		next=$(( $start_date + 86400 ))
 		next=`date -d "@$next" '+%D'`
 		
+		# Using etext, do the query
 		query='{"qt": [{"etext":"'
 		query+="$line\""
 		query+='},'
@@ -32,11 +35,14 @@ do
 		
 		echo $query > query.tmp
 		
-		curl -b cookies.txt -XPOST $URL"/api/knowledge/document/query/50ecaf5ae4b0ea25955cdfb8" -d @query.tmp > response.txt
+		# There should be the response to each query on one line of the response.txt file.
+		echo "$first" . "," . "$next" . "," . "$line\n" >> response.txt
+		curl -b cookies.txt -XPOST $URL"/api/knowledge/document/query/50ecaf5ae4b0ea25955cdfb8" -d @query.tmp >> response.txt
+		echo "" >> response.txt
 		
 		rm query.tmp
 		
-		python ./json_parsing.py $first $next $line >> sentiment.csv
+#		python ./json_parsing.py $first $next $line >> sentiment.csv
 	done
 	start_date=$(( $start_date + 86400 ))
 done
@@ -45,6 +51,9 @@ done
 #curl -b cookies.txt $URL"/api/social/person/get" > /dev/null
 #cho ""
 #echo ""
+
+# Parse all of the responses at once.
+python ./batch_json_parse.py 
 
 # Log out
 curl -b cookies.txt $URL"/api/auth/logout" > /dev/null
