@@ -57,7 +57,7 @@ f = open('/root/Core/infinite_scripts/query.sql','w')
 today = datetime.datetime.now().strftime("%Y-%m-%d")
 ayearago = "2008-01-01"
 daysInMonth=[31,28,31,30,31,30,31,31,30,31,30,31]
-line = 'SELECT ticker,price,date FROM augurworks.stocks WHERE (DATE(date) BETWEEN "' + ayearago + '" AND "' + today + '") ORDER BY date DESC;'
+line = 'SELECT ticker,price,date,day_change FROM augurworks.stocks WHERE (DATE(date) BETWEEN "' + ayearago + '" AND "' + today + '") ORDER BY date DESC;'
 f.write(line)
 f.close()
 
@@ -65,11 +65,10 @@ stream = os.popen('mysql -uroot -paugurworks < /root/Core/infinite_scripts/query
 
 stocks = dict()
 dates = dict()
-dateList = []
+dayChanges = dict()
 
 stream.readline()
 
-f2 = open('/root/Core/infinite_scripts/dates.csv','w')
 count = 0
 for line in stream:
     if "SELECT" in line:
@@ -79,16 +78,11 @@ for line in stream:
     if words[0] in stocks.keys():
         stocks[words[0]].append(words[1])
         dates[words[0]].append(words[2])
+        dayChanges[words[0]].append(words[3])
     else:
         stocks[words[0]] = [words[1]]
         dates[words[0]] = [words[2]]
-    if words[2] not in dateList:
-        dateList.append(words[2])
-
-dateList.sort()
-dateList.reverse()
-for i in range(len(dateList)):
-    f2.write(dateList[i]+"\n")
+        dayChanges[words[0]] = [words[3]]
 
 keys = stocks.keys()
 
@@ -99,7 +93,7 @@ else:
     print firstCol + " not found in DB. First column will be " + keys[0] + "."
 
 cutoff = count / len(keys)
-f = open('/root/Core/infinite_scripts/something.csv','w')
+f = open('/root/Core/infinite_scripts/day_changes.csv','w')
 lcv = 0
 
 curDate=dates[firstCol][lcv]
@@ -116,6 +110,7 @@ while lcv < cutoff:
     day=int(curDate[8:10])
     curCPI=currentCPI(cpi, daysInMonth, year, month, day)
     line = ''
+    line = line + dayChanges[keys[0]][lcv] + ','
     for key in keys:
         line = line + str(float(stocks[key][lcv])/curCPI*todayCPI) + ','
     line = line[:-1]
@@ -124,4 +119,3 @@ while lcv < cutoff:
     lcv = lcv + 1
 
 f.close()
-f2.close()

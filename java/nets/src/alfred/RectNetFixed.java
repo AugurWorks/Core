@@ -856,10 +856,8 @@ public class RectNetFixed extends Net {
 	 * @param verbose
 	 * @return
 	 */
-	public static double predictTomorrow(String trainingFile, String predFile,
+	public static double predictTomorrow(RectNetFixed r, String trainingFile, String predFile,
 			boolean verbose, String saveFile) {
-		RectNetFixed r = RectNetFixed.trainFile(trainingFile, verbose,
-				saveFile, false);
 		/*
 		 * boolean valid = Net.validateAUGPred(predFile, r.y); if (!valid) {
 		 * System.err.println("File not valid format."); System.exit(1); }
@@ -914,38 +912,43 @@ public class RectNetFixed extends Net {
 		double scaledValue = (r.getOutput() - minNum) / (maxNum - minNum)
 				* (mx - mn) + mn;
 		System.out.println("Today's price is $" + today);
-		System.out.println("Tomorrow's price predicted to be $" + scaledValue);
+		System.out.println("Tomorrow's price/change predicted to be $" + scaledValue);
 		return scaledValue;
 	}
 
 	public static void main(String[] args) {
-		int trigger=1;
-		int pre=0;
+		//What the net was trained for - prediction or twoThirds/oneThird
+		boolean predict=false;
+		//Which file system - root or local
+		boolean root=false;
+		//Where the net comes from - training of loading
+		boolean train=false;
 		
-		String prefix, trainingFile, predFile, testFile, savedFile;
-		if (pre==0) {
+		String prefix, trainingFile, trainingFile2, predFile, testFile, savedFile;
+		if (root) {
 			prefix = "/root/Core/java/nets/test_files/";
 		} else {
 			prefix = "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\";
 		}
-		if (trigger==1) {
+		trainingFile = prefix + "Train_1_Day.augtrain";
+		predFile = prefix + "Pred_1_Day.augpred";
+		savedFile = prefix + "TwoThirdsTrained.augsave";
+		trainingFile2 = prefix + "TwoThirds.augtrain";
+		testFile = prefix + "OneThird.augtrain";
+		RectNetFixed r;
+		if (train && predict) {
+			r = RectNetFixed.trainFile(trainingFile, false, savedFile, false);
+		} else if (train && !predict) {
+			r = RectNetFixed.trainFile(trainingFile2, false, savedFile, true);
+		} else {
+			r = RectNetFixed.loadNet(savedFile);
+		}
+		if (predict) {
 			// Predict
-			trainingFile = prefix + "Train_1_Day.augtrain";
-			predFile = prefix + "Pred_1_Day.augpred";
-			savedFile = prefix + "TwoThirdsTrained.augsave";
-			RectNetFixed.predictTomorrow(trainingFile, predFile, true, savedFile);
-		} else if (trigger==2) {
+			RectNetFixed.predictTomorrow(r, trainingFile, predFile, true, savedFile);
+		} else {
 			//Test
-			trainingFile = prefix + "TwoThirds.augtrain";
-			testFile = prefix + "OneThird.augtrain";
-			savedFile = prefix + "TwoThirdsTrained.augsave";
-			RectNetFixed r = RectNetFixed.loadNet(savedFile);
 			RectNetFixed.testNet(testFile, r, true);
-		} else if (trigger==3) {
-			//Train
-			trainingFile = prefix + "TwoThirds.augtrain";
-			savedFile = prefix + "TwoThirdsTrained.augsave";
-			RectNetFixed.trainFile(trainingFile, false, savedFile, true);
 		}
 		System.exit(0);
 	}

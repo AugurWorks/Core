@@ -65,11 +65,9 @@ stream = os.popen('mysql -uroot -paugurworks < /root/Core/infinite_scripts/query
 
 stocks = dict()
 dates = dict()
-dateList = []
 
 stream.readline()
 
-f2 = open('/root/Core/infinite_scripts/dates.csv','w')
 count = 0
 for line in stream:
     if "SELECT" in line:
@@ -82,13 +80,6 @@ for line in stream:
     else:
         stocks[words[0]] = [words[1]]
         dates[words[0]] = [words[2]]
-    if words[2] not in dateList:
-        dateList.append(words[2])
-
-dateList.sort()
-dateList.reverse()
-for i in range(len(dateList)):
-    f2.write(dateList[i]+"\n")
 
 keys = stocks.keys()
 
@@ -124,4 +115,3 @@ while lcv < cutoff:
     lcv = lcv + 1
 
 f.close()
-f2.close()

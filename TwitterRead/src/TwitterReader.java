@@ -1,6 +1,10 @@
+import java.awt.List;
+import java.io.Console;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Scanner;
 
 import twitter4j.FilterQuery;
 import twitter4j.StallWarning;
@@ -27,6 +31,22 @@ public class TwitterReader {
 		System.out.println("Starting connect...");
 		final PrintWriter out = new PrintWriter(new FileWriter("C:\\Users\\TheConnMan\\Downloads\\outputfile.txt"));
 
+		System.out.println("What do you want to track? Separate by hitting the return key, end with 'done'");
+
+		ArrayList<String> track = new ArrayList<String>();
+		Scanner scanner = new Scanner (System.in);
+		while (1==1) {
+			String input = scanner.next();
+			if (input.equalsIgnoreCase("done")) {
+					break;
+			} else {
+				track.add(input);
+			}
+		}
+		String[] track2 = new String[track.size()];
+		for (int i=0; i < track.size(); i++) {
+			track2[i]=track.get(i);
+		}
 		ConfigurationBuilder builder = new ConfigurationBuilder();
 		builder.setOAuthAccessToken(ACCESS_TOKEN);
 		builder.setOAuthAccessTokenSecret(ACCESS_TOKEN_SECRET);
@@ -36,7 +56,7 @@ public class TwitterReader {
 		StatusListener listener = new StatusListener() {
 			@Override
 			public void onStatus(Status status) {
-				out.println(status.getUser().getName() + " : "
+				System.out.println(status.getUser().getName() + " : "
 						+ status.getText());
 			}
 
@@ -70,11 +90,8 @@ public class TwitterReader {
 		twitterStream.addListener(listener);
 		//twitterStream.sample();
 		FilterQuery query = new FilterQuery();
-		String track[] = {"nemo"};
-		//String track[] = {"opec", "big data"};
-		query.track(track);
-		double locations[][] = {{42.244531,-83.776245},{42.321747,-83.664322}};
-		//query.locations(locations);
+		//String track[] = {"bomb", "Boston", "gunshot", "police"};
+		query.track(track2);
 		twitterStream.filter(query);
 	}
 }
