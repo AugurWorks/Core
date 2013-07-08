@@ -33,21 +33,26 @@
 <part id="0"/>
 <part id="1"/>
 <part id="2"/>
+<part id="3"/>
 </presentation>
 </folder>
 </info>
 </editorArea>
 <editor id="org.eclipse.jdt.ui.CompilationUnitEditor" name="Webserver.java" partName="Webserver.java" path="/home/saf/augurworks_core/java/javaWebServer/src/server/Webserver.java" title="Webserver.java" tooltip="javaWebServer/src/server/Webserver.java" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/javaWebServer/src/server/Webserver.java"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="372" selectionTopPixel="0"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="248" selectionTopPixel="0"/>
 </editor>
 <editor id="org.eclipse.jdt.ui.CompilationUnitEditor" name="ReaderManager.java" partName="ReaderManager.java" path="/home/saf/augurworks_core/java/javaWebServer/src/server/ReaderManager.java" title="ReaderManager.java" tooltip="javaWebServer/src/server/ReaderManager.java" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/javaWebServer/src/server/ReaderManager.java"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="388" selectionTopPixel="0"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="52" selectionTopPixel="0"/>
 </editor>
-<editor activePart="true" focus="true" id="org.eclipse.jdt.ui.CompilationUnitEditor" name="TwitterReader.java" partName="TwitterReader.java" path="/home/saf/augurworks_core/java/javaWebServer/src/server/TwitterReader.java" title="TwitterReader.java" tooltip="javaWebServer/src/server/TwitterReader.java" workbook="DefaultEditorWorkbook">
+<editor id="org.eclipse.jdt.ui.CompilationUnitEditor" name="TwitterReader.java" partName="TwitterReader.java" path="/home/saf/augurworks_core/java/javaWebServer/src/server/TwitterReader.java" title="TwitterReader.java" tooltip="javaWebServer/src/server/TwitterReader.java" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/javaWebServer/src/server/TwitterReader.java"/>
-<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="1386" selectionTopPixel="1853"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="3540" selectionTopPixel="974"/>
+</editor>
+<editor activePart="true" focus="true" id="org.eclipse.jdt.ui.CompilationUnitEditor" name="ClientHandler.java" partName="ClientHandler.java" path="/home/saf/augurworks_core/java/javaWebServer/src/server/ClientHandler.java" title="ClientHandler.java" tooltip="javaWebServer/src/server/ClientHandler.java" workbook="DefaultEditorWorkbook">
+<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/javaWebServer/src/server/ClientHandler.java"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="935" selectionTopPixel="255"/>
 </editor>
 </editors>
 <views>
@@ -61,6 +66,7 @@
 <viewState PRIMARY_SORT_FIELD="org.eclipse.ui.ide.severityAndDescriptionField" categoryGroup="org.eclipse.ui.ide.severity" markerContentGenerator="org.eclipse.ui.ide.problemsGenerator" partName="Problems">
 <expanded>
 <category IMemento.internal.id="Errors (1 item)"/>
+<category IMemento.internal.id="Warnings"/>
 <category IMemento.internal.id="Errors"/>
 </expanded>
 <columnWidths org.eclipse.ui.ide.locationField="105" org.eclipse.ui.ide.markerType="868" org.eclipse.ui.ide.pathField="140" org.eclipse.ui.ide.resourceField="105" org.eclipse.ui.ide.severityAndDescriptionField="561"/>
@@ -103,17 +109,11 @@
 <view id="org.eclipse.ui.console.ConsoleView" partName="Console">
 <viewState/>
 </view>
-<view id="org.eclipse.jdt.ui.SourceView" partName="Declaration">
-<viewState/>
-</view>
 <view id="org.eclipse.ui.views.ContentOutline" partName="Outline">
 <viewState/>
 </view>
-<view id="org.eclipse.jdt.ui.JavadocView" partName="Javadoc">
-<viewState/>
-</view>
 </views>
-<perspectives activePart="org.eclipse.ui.console.ConsoleView" activePerspective="org.eclipse.jdt.ui.JavaPerspective">
+<perspectives activePart="org.eclipse.jdt.ui.CompilationUnitEditor" activePerspective="org.eclipse.jdt.ui.JavaPerspective">
 <perspective editorAreaTrimState="2" editorAreaVisible="1" fixed="0" version="0.016">
 <descriptor class="org.eclipse.ui.internal.ide.application.ResourcePerspective" id="org.eclipse.ui.resourcePerspective" label="Resource"/>
 <alwaysOnActionSet id="org.eclipse.ui.cheatsheets.actionSet"/>
@@ -235,14 +235,12 @@
 <hide_toolbar_item_id id="org.eclipse.debug.ui.commands.RunToLine"/>
 <hide_toolbar_item_id id="org.eclipse.jdt.ui.actions.OpenProjectWizard"/>
 <hide_toolbar_item_id id="org.eclipse.ui.edit.text.toggleShowSelectedElementOnly"/>
-<view id="org.eclipse.ui.views.ProblemView"/>
-<view id="org.eclipse.ui.console.ConsoleView"/>
-<view id="org.eclipse.jdt.ui.JavadocView"/>
-<view id="org.eclipse.jdt.ui.SourceView"/>
 <view id="org.eclipse.jdt.ui.PackageExplorer"/>
 <view id="org.eclipse.jdt.ui.TypeHierarchy"/>
 <view id="org.eclipse.ui.navigator.ProjectExplorer"/>
 <view id="org.eclipse.ui.views.ContentOutline"/>
+<view id="org.eclipse.ui.views.ProblemView"/>
+<view id="org.eclipse.ui.console.ConsoleView"/>
 <fastViewBars/>
 <layout>
 <mainWindow>
@@ -268,21 +266,12 @@
 </folder>
 </info>
 <info part="org.eclipse.ui.editorss" ratio="0.14642082" ratioLeft="270" ratioRight="1574" relationship="2" relative="left"/>
-<info folder="true" part="bottom" ratio="0.69648564" ratioLeft="654" ratioRight="285" relationship="4" relative="org.eclipse.ui.editorss">
-<folder activePageID="org.eclipse.ui.console.ConsoleView" appearance="2" expanded="2">
-<page content="org.eclipse.ui.views.ProblemView" label="Problems"/>
-<page content="org.eclipse.ui.console.ConsoleView" label="Console"/>
-<page content="org.eclipse.jdt.ui.JavadocView" label="Javadoc"/>
-<page content="org.eclipse.jdt.ui.SourceView" label="Declaration"/>
+<info folder="true" part="bottom" ratio="0.7944622" ratioLeft="746" ratioRight="193" relationship="4" relative="org.eclipse.ui.editorss">
+<folder appearance="2" expanded="2">
 <page content="org.eclipse.search.ui.views.SearchView" label="LabelNotFound"/>
 <page content="org.eclipse.ui.views.BookmarkView" label="LabelNotFound"/>
 <page content="org.eclipse.ui.views.ProgressView" label="LabelNotFound"/>
-<presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory">
-<part id="0"/>
-<part id="1"/>
-<part id="2"/>
-<part id="3"/>
-</presentation>
+<presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory"/>
 </folder>
 </info>
 <info folder="true" part="right" ratio="0.7496393" ratioLeft="1039" ratioRight="347" relationship="2" relative="org.eclipse.ui.editorss">
@@ -301,6 +290,23 @@
 <presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory"/>
 </folder>
 </info>
+<info folder="true" part="org.eclipse.ui.internal.ViewStack@10cbb03" ratio="0.5111821" ratioLeft="480" ratioRight="459" relationship="4" relative="org.eclipse.ui.editorss">
+<folder activePageID="org.eclipse.ui.console.ConsoleView" appearance="2" expanded="2">
+<page content="org.eclipse.ui.views.ProblemView" label="Problems"/>
+<page content="org.eclipse.ui.console.ConsoleView" label="Console"/>
+<page content="org.eclipse.jdt.ui.JavadocView" label="LabelNotFound"/>
+<presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory">
+<part id="0"/>
+<part id="1"/>
+</presentation>
+</folder>
+</info>
+<info folder="true" part="org.eclipse.ui.internal.ViewStack@15fd70d" ratio="0.7491228" ratioLeft="427" ratioRight="143" relationship="4" relative="org.eclipse.ui.editorss">
+<folder appearance="2" expanded="2">
+<page content="org.eclipse.jdt.ui.SourceView" label="LabelNotFound"/>
+<presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory"/>
+</folder>
+</info>
 </mainWindow>
 </layout>
 </perspective>
@@ -309,160 +315,162 @@
 <navigationHistory>
 <editors>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" path="/javaWebServer/src/server/TwitterReader.java"/>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" path="/javaWebServer/src/server/Webserver.java"/>
-<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" path="/javaWebServer/src/server/ClientHandler.java"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" path="/javaWebServer/src/server/ReaderManager.java"/>
 <editor factoryID="org.eclipse.jdt.ui.ClassFileEditorInputFactory" id="org.eclipse.jdt.ui.ClassFileEditor" org.eclipse.jdt.ui.ClassFileIdentifier="=javaWebServer/\/usr\/lib\/jvm\/java-7-openjdk-i386\/jre\/lib\/rt.jar&lt;java.io(BufferedWriter.class"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" path="/javaWebServer/src/server/Webserver.java"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" path="/javaWebServer/src/server/ReaderManager.java"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" path="/TwitterRead/src/TwitterReader.java"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" path="/javaWebServer/src/server/ClientHandler.java"/>
 </editors>
-<item historyLabel="Webserver.java" index="1">
-<position/>
-</item>
-<item historyLabel="TwitterReader.java" index="0">
-<position info="not_deleted" x="1643" y="0"/>
-</item>
-<item historyLabel="TwitterReader.java" index="0">
-<position info="not_deleted" x="3663" y="0"/>
-</item>
-<item historyLabel="Webserver.java" index="1">
-<position/>
-</item>
-<item historyLabel="TwitterReader.java" index="0">
-<position info="not_deleted" x="1430" y="0"/>
-</item>
-<item historyLabel="Webserver.java" index="1">
-<position/>
-</item>
-<item historyLabel="TwitterReader.java" index="0">
-<position info="not_deleted" x="1430" y="0"/>
-</item>
-<item historyLabel="ClientHandler.java" index="2">
-<position/>
-</item>
-<item historyLabel="TwitterReader.java" index="0">
-<position info="not_deleted" x="15" y="0"/>
-</item>
-<item historyLabel="ClientHandler.java" index="2">
-<position/>
-</item>
-<item historyLabel="Webserver.java" index="1">
-<position info="not_deleted" x="464" y="0"/>
-</item>
-<item historyLabel="ClientHandler.java" index="2">
-<position/>
-</item>
-<item historyLabel="Webserver.java" index="1">
-<position info="not_deleted" x="569" y="0"/>
-</item>
-<item historyLabel="TwitterReader.java" index="0">
-<position info="not_deleted" x="4194" y="0"/>
-</item>
-<item historyLabel="Webserver.java" index="1">
-<position/>
-</item>
-<item historyLabel="TwitterReader.java" index="0">
-<position info="not_deleted" x="1438" y="0"/>
-</item>
-<item historyLabel="Webserver.java" index="1">
-<position info="not_deleted" x="380" y="0"/>
-</item>
-<item historyLabel="ClientHandler.java" index="2">
-<position info="not_deleted" x="1041" y="0"/>
-</item>
-<item historyLabel="Webserver.java" index="1">
-<position info="not_deleted" x="380" y="0"/>
-</item>
-<item historyLabel="Webserver.java" index="1">
-<position info="not_deleted" x="313" y="0"/>
-</item>
-<item historyLabel="ReaderManager.java" index="3">
-<position/>
-</item>
-<item historyLabel="TwitterReader.java" index="0">
-<position info="not_deleted" x="1438" y="0"/>
-</item>
-<item historyLabel="Webserver.java" index="1">
-<position/>
-</item>
-<item historyLabel="ReaderManager.java" index="3">
-<position/>
-</item>
-<item historyLabel="Webserver.java" index="1">
-<position/>
-</item>
-<item historyLabel="ReaderManager.java" index="3">
-<position/>
-</item>
-<item historyLabel="Webserver.java" index="1">
-<position/>
-</item>
-<item historyLabel="ReaderManager.java" index="3">
-<position/>
-</item>
-<item historyLabel="Webserver.java" index="1">
-<position info="not_deleted" x="338" y="0"/>
-</item>
-<item historyLabel="Webserver.java" index="1">
-<position info="not_deleted" x="372" y="0"/>
-</item>
-<item historyLabel="ReaderManager.java" index="3">
-<position/>
-</item>
-<item historyLabel="ReaderManager.java" index="3">
-<position info="not_deleted" x="232" y="0"/>
-</item>
-<item historyLabel="ReaderManager.java" index="3">
-<position info="not_deleted" x="215" y="0"/>
-</item>
-<item historyLabel="ReaderManager.java" index="3">
-<position info="not_deleted" x="424" y="0"/>
-</item>
-<item historyLabel="ReaderManager.java" index="3">
-<position info="not_deleted" x="390" y="0"/>
-</item>
-<item historyLabel="TwitterReader.java" index="0">
-<position info="not_deleted" x="1438" y="0"/>
-</item>
-<item historyLabel="ReaderManager.java" index="3">
-<position info="not_deleted" x="390" y="0"/>
-</item>
-<item historyLabel="TwitterReader.java" index="0">
-<position info="not_deleted" x="1489" y="0"/>
-</item>
-<item historyLabel="ReaderManager.java" index="3">
-<position info="not_deleted" x="346" y="0"/>
-</item>
-<item historyLabel="TwitterReader.java" index="0">
-<position info="not_deleted" x="2479" y="22"/>
-</item>
-<item historyLabel="TwitterReader.java" index="0">
-<position info="not_deleted" x="3969" y="40"/>
-</item>
-<item historyLabel="TwitterReader.java" index="0">
-<position info="not_deleted" x="4259" y="15"/>
-</item>
 <item historyLabel="TwitterReader.java" index="0">
 <position/>
 </item>
-<item historyLabel="BufferedWriter.class" index="4">
+<item historyLabel="BufferedWriter.class" index="2">
 <position info="not_deleted" x="0" y="0"/>
 </item>
 <item historyLabel="TwitterReader.java" index="0">
 <position info="not_deleted" x="2584" y="0"/>
 </item>
-<item historyLabel="ReaderManager.java" index="3">
+<item historyLabel="ReaderManager.java" index="1">
 <position info="not_deleted" x="346" y="0"/>
 </item>
 <item historyLabel="TwitterReader.java" index="0">
 <position info="not_deleted" x="4432" y="0"/>
 </item>
-<item historyLabel="ReaderManager.java" index="3">
+<item historyLabel="ReaderManager.java" index="1">
 <position info="not_deleted" x="388" y="0"/>
 </item>
 <item historyLabel="TwitterReader.java" index="0">
 <position info="not_deleted" x="4432" y="0"/>
 </item>
-<item active="true" historyLabel="TwitterReader.java" index="0">
+<item historyLabel="TwitterReader.java" index="0">
 <position info="not_deleted" x="4298" y="0"/>
+</item>
+<item historyLabel="Webserver.java" index="3">
+<position info="not_deleted" x="372" y="0"/>
+</item>
+<item historyLabel="ReaderManager.java" index="4">
+<position/>
+</item>
+<item historyLabel="TwitterReader.java" index="0">
+<position info="not_deleted" x="1366" y="0"/>
+</item>
+<item historyLabel="TwitterReader.java" index="0">
+<position info="not_deleted" x="4812" y="0"/>
+</item>
+<item historyLabel="ReaderManager.java" index="4">
+<position/>
+</item>
+<item historyLabel="TwitterReader.java" index="0">
+<position info="not_deleted" x="4812" y="0"/>
+</item>
+<item historyLabel="TwitterReader.java" index="0">
+<position info="not_deleted" x="1822" y="0"/>
+</item>
+<item historyLabel="TwitterReader.java" index="0">
+<position info="not_deleted" x="1483" y="12"/>
+</item>
+<item historyLabel="TwitterReader.java" index="0">
+<position info="not_deleted" x="4629" y="11"/>
+</item>
+<item historyLabel="TwitterReader.java" index="0">
+<position info="not_deleted" x="4516" y="0"/>
+</item>
+<item historyLabel="TwitterReader.java" index="0">
+<position info="not_deleted" x="4532" y="0"/>
+</item>
+<item historyLabel="Webserver.java" index="3">
+<position info="not_deleted" x="689" y="0"/>
+</item>
+<item historyLabel="TwitterReader.java" index="5">
+<position info="not_deleted" x="0" y="0"/>
+</item>
+<item historyLabel="TwitterReader.java" index="5">
+<position info="not_deleted" x="1646" y="0"/>
+</item>
+<item historyLabel="TwitterReader.java" index="5">
+<position info="not_deleted" x="1646" y="0"/>
+</item>
+<item historyLabel="Webserver.java" index="3">
+<position info="not_deleted" x="488" y="0"/>
+</item>
+<item historyLabel="ReaderManager.java" index="4">
+<position/>
+</item>
+<item historyLabel="TwitterReader.java" index="0">
+<position info="not_deleted" x="4532" y="0"/>
+</item>
+<item historyLabel="TwitterReader.java" index="0">
+<position info="not_deleted" x="3114" y="0"/>
+</item>
+<item historyLabel="ReaderManager.java" index="4">
+<position/>
+</item>
+<item historyLabel="Webserver.java" index="3">
+<position info="not_deleted" x="488" y="0"/>
+</item>
+<item historyLabel="ReaderManager.java" index="4">
+<position/>
+</item>
+<item historyLabel="TwitterReader.java" index="0">
+<position info="not_deleted" x="4331" y="0"/>
+</item>
+<item historyLabel="ReaderManager.java" index="4">
+<position/>
+</item>
+<item historyLabel="Webserver.java" index="3">
+<position info="not_deleted" x="372" y="0"/>
+</item>
+<item historyLabel="ReaderManager.java" index="4">
+<position/>
+</item>
+<item historyLabel="TwitterReader.java" index="0">
+<position info="not_deleted" x="3998" y="0"/>
+</item>
+<item historyLabel="ReaderManager.java" index="4">
+<position/>
+</item>
+<item historyLabel="TwitterReader.java" index="0">
+<position info="not_deleted" x="2264" y="0"/>
+</item>
+<item historyLabel="ReaderManager.java" index="4">
+<position info="not_deleted" x="246" y="0"/>
+</item>
+<item historyLabel="TwitterReader.java" index="0">
+<position info="not_deleted" x="2264" y="0"/>
+</item>
+<item historyLabel="TwitterReader.java" index="0">
+<position info="not_deleted" x="3540" y="0"/>
+</item>
+<item historyLabel="ReaderManager.java" index="4">
+<position info="not_deleted" x="265" y="0"/>
+</item>
+<item historyLabel="ReaderManager.java" index="4">
+<position info="not_deleted" x="318" y="0"/>
+</item>
+<item historyLabel="ReaderManager.java" index="4">
+<position info="not_deleted" x="137" y="0"/>
+</item>
+<item historyLabel="TwitterReader.java" index="0">
+<position info="not_deleted" x="3540" y="0"/>
+</item>
+<item historyLabel="ReaderManager.java" index="4">
+<position info="not_deleted" x="137" y="0"/>
+</item>
+<item historyLabel="Webserver.java" index="3">
+<position info="not_deleted" x="248" y="0"/>
+</item>
+<item historyLabel="ReaderManager.java" index="4">
+<position info="not_deleted" x="137" y="0"/>
+</item>
+<item historyLabel="ClientHandler.java" index="6">
+<position info="not_deleted" x="2623" y="0"/>
+</item>
+<item historyLabel="ReaderManager.java" index="4">
+<position info="not_deleted" x="52" y="0"/>
+</item>
+<item active="true" historyLabel="ClientHandler.java" index="6">
+<position info="not_deleted" x="0" y="0"/>
 </item>
 </navigationHistory>
 <input factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/" type="8"/>
@@ -474,7 +482,6 @@
 <trimItem IMemento.internal.id="left"/>
 </trimArea>
 <trimArea IMemento.internal.id="131072">
-<trimItem IMemento.internal.id="org.eclipse.ui.editorss"/>
 <trimItem IMemento.internal.id="bottom"/>
 <trimItem IMemento.internal.id="right"/>
 </trimArea>
@@ -485,10 +492,14 @@
 <trimItem IMemento.internal.id="org.eclise.ui.internal.FastViewBar"/>
 <trimItem IMemento.internal.id="org.eclipse.jface.action.StatusLineManager"/>
 <trimItem IMemento.internal.id="org.eclipse.ui.internal.progress.ProgressRegion"/>
+<trimItem IMemento.internal.id="org.eclipse.ui.internal.ViewStack@10cbb03"/>
 </trimArea>
 </trimLayout>
 </window>
 <mruList>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" name="ClientHandler.java" tooltip="javaWebServer/src/server/ClientHandler.java">
+<persistable path="/javaWebServer/src/server/ClientHandler.java"/>
+</file>
 <file factoryID="org.eclipse.jdt.ui.ClassFileEditorInputFactory" id="org.eclipse.jdt.ui.ClassFileEditor" name="BufferedWriter.class" tooltip="java.io.BufferedWriter">
 <persistable org.eclipse.jdt.ui.ClassFileIdentifier="=javaWebServer/\/usr\/lib\/jvm\/java-7-openjdk-i386\/jre\/lib\/rt.jar&lt;java.io(BufferedWriter.class"/>
 </file>
@@ -497,9 +508,6 @@
 </file>
 <file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" name="ReaderManager.java" tooltip="javaWebServer/src/server/ReaderManager.java">
 <persistable path="/javaWebServer/src/server/ReaderManager.java"/>
-</file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" name="ClientHandler.java" tooltip="javaWebServer/src/server/ClientHandler.java">
-<persistable path="/javaWebServer/src/server/ClientHandler.java"/>
 </file>
 <file factoryID="org.eclipse.jdt.ui.ClassFileEditorInputFactory" id="org.eclipse.jdt.ui.ClassFileEditor" name="StringTokenizer.class" tooltip="java.util.StringTokenizer">
 <persistable org.eclipse.jdt.ui.ClassFileIdentifier="=javaWebServer/\/usr\/lib\/jvm\/java-7-openjdk-i386\/jre\/lib\/rt.jar&lt;java.util(StringTokenizer.class"/>

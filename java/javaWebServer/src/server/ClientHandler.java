@@ -19,6 +19,7 @@ class ClientHandler extends Thread {
 	// Start the thread in the constructor
 	public ClientHandler(Socket s) {
 		socket = s;
+		System.out.println("Request from: " + s.getInetAddress().getHostAddress());
 		start();
 	}
 
@@ -84,6 +85,7 @@ class ClientHandler extends Thread {
 				// Open the file (may throw FileNotFoundException)
 				filename = System.getProperty("user.dir") + "/src/server/"
 						+ filename;
+				System.out.println("Serving the file: " + filename);
 				InputStream f = new FileInputStream(filename);
 
 				// Determine the MIME type and print HTTP header
