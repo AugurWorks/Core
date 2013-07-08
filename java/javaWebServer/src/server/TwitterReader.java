@@ -123,11 +123,12 @@ public class TwitterReader {
 			String buildDate = dateFormat.format(cal.getTime());
 			String s = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?> \n"
 					+ "<rss version=\"2.0\"> \n" + "<channel>\n"
-					+ "<title>Twitter?</title> \n"
+					+ "<title>Twitter</title> \n"
 					+ "<description>AugurWorks First Guess</description>\n"
-					+ "<link></link> \n" + "<lastBuildDate>" + buildDate
+					+ "<link>localhost:8000/twitter.rss</link> \n" + "<lastBuildDate>" + buildDate
 					+ "</lastBuildDate> \n" + "<pubDate>" + buildDate
-					+ "</pubDate> \n";
+					+ "</pubDate> \n"
+					+ "<ttl>1800</ttl>\n";
 			bw.write(s);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -137,12 +138,14 @@ public class TwitterReader {
 	private synchronized void printItem(Status status) {
 		try {
 			if (status.getUser().getLang().equals("en")) {
-				String s = "<item> \n" + "<author>"
-						+ status.getUser().getScreenName() + "</author>\n"
-						+ "<text>" + status.getText() + "</text>\n"
+				String s = "<item> \n" + "<title>"
+						+ status.getUser().getScreenName() + "</title>\n"
+						+ "<description>" + status.getText() + "</description>\n"
+						+ "<link>" + status.getSource() + "</link>\n"
+						+ "<guid>" + status.getId() + "</guid>"
 						+ "<pubDate>"
 						+ dateFormat.format(status.getCreatedAt())
-						+ "</pubDate>" + "</item>\n";
+						+ "</pubDate>\n" + "</item>\n";
 				bw.write(s);
 				statusesCounted++;
 				if (statusesCounted >= MAX_STATUSES) {
