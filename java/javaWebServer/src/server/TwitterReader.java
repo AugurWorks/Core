@@ -112,7 +112,7 @@ public class TwitterReader {
 		}
 		twitterStream.cleanUp();
 		String destination = System.getProperty("user.dir")
-				+ "/src/server/twitter.rss";
+				+ "/src/server/www/twitter.rss";
 		File destinationFile = new File(destination);
 		this.f.renameTo(destinationFile);
 		this.isDone = true;

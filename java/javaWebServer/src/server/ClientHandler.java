@@ -83,7 +83,7 @@ class ClientHandler extends Thread {
 				}
 
 				// Open the file (may throw FileNotFoundException)
-				filename = System.getProperty("user.dir") + "/src/server/"
+				filename = System.getProperty("user.dir") + "/src/server/www/"
 						+ filename;
 				System.out.println("Serving the file: " + filename);
 				InputStream f = new FileInputStream(filename);
