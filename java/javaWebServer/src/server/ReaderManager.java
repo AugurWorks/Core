@@ -7,14 +7,14 @@ public class ReaderManager implements Runnable {
 		try {
 			String filename = System.getProperty("user.dir")
 					+ "/src/server/temp.rss";
-			Thread t = new Thread();
+			int max = 50;
 			while (true) {
-				if (t.isAlive()) {
-					Thread.sleep(10000);
-				} else {
-					t = new Thread(new TwitterReader(filename, 50));
-					t.start();
-					Thread.sleep(10000);
+				TwitterReader tr = new TwitterReader(filename, max);
+				tr.go();
+				while (!tr.isDone()) {
+					int millis = 10000;
+					System.out.println("TR not done yet. Sleeping for " + millis/1000 + " seconds.");
+					Thread.sleep(millis);
 				}
 			}
 		} catch (Exception e) {

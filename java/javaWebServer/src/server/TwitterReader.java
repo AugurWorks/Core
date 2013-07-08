@@ -23,7 +23,7 @@ import twitter4j.conf.ConfigurationBuilder;
 // The Apache HttpClient library simplifies handling HTTP requests. 
 // To use this library download the binaries with dependencies from 
 // http://hc.apache.org/ and add then to your project class path.
-public class TwitterReader implements Runnable {
+public class TwitterReader {
 	private static final String ACCESS_TOKEN = "1135747976-OyBreDVCujPbbfPLLUnV19kJ21qVTwvyxbKMnyn";
 	private static final String ACCESS_TOKEN_SECRET = "yWa2a6HOCdWRd5K7Svb6KXb9G7MCd65xIUvDT8rCYo";
 	private static final String CONSUMER_KEY = "iLQm2VraHR2MLe2mwS2mvg";
@@ -35,6 +35,7 @@ public class TwitterReader implements Runnable {
 			"yyyy/MM/dd HH:mm:ss");
 	private final Calendar cal = Calendar.getInstance();
 	private final TwitterStream twitterStream;
+	private boolean isDone = false;
 
 	private final int MAX_STATUSES;
 	private String filename;
@@ -59,8 +60,7 @@ public class TwitterReader implements Runnable {
 		twitterStream = new TwitterStreamFactory().getInstance(auth);
 	}
 	
-	@Override
-	public void run() {
+	public void go() {
 		printHeader();
 		System.out.println("Starting connect...");
 		System.out.println("File output to: " + this.filename);
@@ -115,6 +115,7 @@ public class TwitterReader implements Runnable {
 				+ "/src/server/twitter.rss";
 		File destinationFile = new File(destination);
 		this.f.renameTo(destinationFile);
+		this.isDone = true;
 	}
 
 	private synchronized void printHeader() {
@@ -160,5 +161,9 @@ public class TwitterReader implements Runnable {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public boolean isDone() {
+		return isDone;
 	}
 }
