@@ -12,7 +12,7 @@ public class ReaderManager implements Runnable {
 				TwitterReader tr = new TwitterReader(filename, max);
 				tr.go();
 				while (!tr.isDone()) {
-					int millis = 10000;
+					int millis = 100000;
 					System.out.println("TR not done yet. Sleeping for " + millis/1000 + " seconds.");
 					Thread.sleep(millis);
 				}
