@@ -32,7 +32,7 @@ public class TwitterReader {
 	private final BufferedWriter bw;
 	private final File f;
 	private final DateFormat dateFormat = new SimpleDateFormat(
-			"yyyy/MM/dd HH:mm:ss");
+			"yyyy/MM/dd HH:mm:ss.SSS");
 	private final Calendar cal = Calendar.getInstance();
 	private final TwitterStream twitterStream;
 	private boolean isDone = false;

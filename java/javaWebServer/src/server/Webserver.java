@@ -14,8 +14,7 @@ public class Webserver {
 		Thread t = new Thread(new ReaderManager());
 		t.start();
 		try {
-			serverSocket = new ServerSocket(8000); // Start, listen on
-															// port 1020
+			serverSocket = new ServerSocket(8000, 0, InetAddress.getLocalHost());
 			while (true) {
 				Socket s = serverSocket.accept(); // Wait for a client to
 													// connect
