@@ -62,7 +62,7 @@ for i in target_words:
 			for entry in list_of_scores:
 				if entry[0] not in date_to_total_score:
 					date_to_total_score[entry[0]] = 0
-				date_to_total_score[entry[0]] = date_to_total_score[entry[0]] + float(entry[3])
+				date_to_total_score[entry[0]] = date_to_total_score[entry[0]] + (float(entry[3])*float(entry[4]))
 
 for i in sorted(date_to_total_score):
 	print str(i) + "," + str(date_to_total_score[i])
