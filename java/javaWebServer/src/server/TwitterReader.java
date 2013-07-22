@@ -141,7 +141,7 @@ public class TwitterReader {
 				String s = "<item> \n" + "<title>"
 						+ status.getUser().getScreenName() + "</title>\n"
 						+ "<description>" + status.getText() + "</description>\n"
-						+ "<link>" + status.getSource() + "</link>\n"
+						+ "<link>http://www.twitter.com/" + status.getUser().getScreenName() + "/status/" + status.getId() + "</link>\n"
 						+ "<guid>" + status.getId() + "</guid>"
 						+ "<pubDate>"
 						+ dateFormat.format(status.getCreatedAt())
