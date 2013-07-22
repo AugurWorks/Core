@@ -45,5 +45,26 @@ for line in fp:
 		
 	meta_string = not meta_string
 
-for i in sentiments:
-	print str(i) + " : " + str(sentiments[i])
+fp2 = open('ftext_words.txt', 'r')
+fp2.readline()
+fp2.readline()
+target_words = []
+for line in fp2:
+	line = line.rstrip()
+	target_words.append(line)
+
+print "target words: " + str(target_words)
+date_to_total_score = dict()
+for i in target_words:
+	for j in sentiments:
+		if i in j:
+			list_of_scores = sentiments[j]
+			for entry in list_of_scores:
+				if entry[0] not in date_to_total_score:
+					date_to_total_score[entry[0]] = 0
+				date_to_total_score[entry[0]] = date_to_total_score[entry[0]] + float(entry[3])
+
+for i in sorted(date_to_total_score):
+	print str(i) + "," + str(date_to_total_score[i])
+#for i in sentiments:
+#	print str(i) + " : " + str(sentiments[i])
