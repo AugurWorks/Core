@@ -1,0 +1,10 @@
+import java.util.ArrayList;
+
+
+public class Net {
+	private ArrayList<Neuron> neurons;
+	
+	public Net() {
+		this.neurons = new ArrayList<Neuron>();
+	}
+}

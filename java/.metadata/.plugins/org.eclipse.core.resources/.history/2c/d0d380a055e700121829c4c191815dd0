@@ -1,0 +1,26 @@
+package server;
+
+import java.io.IOException;
+
+public class ReaderManager implements Runnable {
+
+	@Override
+	public void run() {
+		try {
+			String filename = System.getProperty("user.dir")
+					+ "/src/server/temp.rss";
+			Thread t = new Thread();
+			while (true) {
+				if (t.isAlive()) {
+					Thread.sleep(5000);
+				} else {
+					t = new Thread(new TwitterReader(filename, 100));
+					t.start();
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+}

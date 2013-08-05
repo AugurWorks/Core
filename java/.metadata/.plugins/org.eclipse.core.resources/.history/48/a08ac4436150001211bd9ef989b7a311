@@ -1,0 +1,6 @@
+
+public class Input {
+	private double value;
+
+	
+}
