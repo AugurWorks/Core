@@ -64,7 +64,7 @@ for i in target_words:
 					date_to_total_score[entry[0]] = 0
 				date_to_total_score[entry[0]] = date_to_total_score[entry[0]] + (float(entry[3])*float(entry[4]))
 
-for i in sorted(date_to_total_score):
+for i in sorted(date_to_total_score, reverse=True):
 	print str(i) + "," + str(date_to_total_score[i])
 #for i in sentiments:
 #	print str(i) + " : " + str(sentiments[i])
