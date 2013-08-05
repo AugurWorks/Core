@@ -501,6 +501,7 @@ public class RectNetFixed extends Net {
 		long start = System.currentTimeMillis();
 		RectNetFixed r = new RectNetFixed(depth, side);
 		double maxScore = Double.NEGATIVE_INFINITY;
+		int displayRounds = 1000;
 		double score = 0;
 		double testScore = 0;
 		double lastScore = Double.POSITIVE_INFINITY;
@@ -522,7 +523,7 @@ public class RectNetFixed extends Net {
 			}
 			score *= -1.0;
 			score = score / (1.0 * inputSets.size());
-			if (i % 100 == 0) {
+			if (i % displayRounds == 0) {
 				int diffCounter = 0;
 				int diffCounter2 = 0;
 				double diffCutoff = .1;
@@ -561,7 +562,7 @@ public class RectNetFixed extends Net {
 					System.out.println("Current Test Score=" + testScore);
 					System.out.println("Min Test Score=" + bestTestCheck);
 				}
-				System.out.println("Score change=" + (lastScore + score));
+				System.out.println("Score change per round=" + (lastScore + score)/displayRounds);
 				System.out.println("Inputs Over " + diffCutoff + "="
 						+ diffCounter + " of " + inputSets.size());
 				System.out.println("Inputs Over " + diffCutoff2 + "="
@@ -578,8 +579,8 @@ public class RectNetFixed extends Net {
 				System.out.println("Time elapsed (s): "
 						+ (System.currentTimeMillis() - start) / 1000.0);
 				System.out.println("");
+				lastScore = -1.0 * score;
 			}
-			lastScore = -1.0 * score;
 			if (score > -1.0 * cutoff) {
 				brokeAtPerfCutoff = true;
 				break;
@@ -922,13 +923,13 @@ public class RectNetFixed extends Net {
 		//Which file system - root or local
 		boolean root=false;
 		//Where the net comes from - training of loading
-		boolean train=false;
+		boolean train=true;
 		
 		String prefix, trainingFile, trainingFile2, predFile, testFile, savedFile;
 		if (root) {
 			prefix = "/root/Core/java/nets/test_files/";
 		} else {
-			prefix = "C:\\Users\\TheConnMan\\workspace\\Core\\java\\nets\\test_files\\";
+			prefix = "D:\\Users\\TheConnMan\\git\\Core\\java\\nets\\test_files\\";
 		}
 		trainingFile = prefix + "Train_1_Day.augtrain";
 		predFile = prefix + "Pred_1_Day.augpred";
