@@ -2,8 +2,28 @@
 
 import json
 import sys
+import os
 
-fp = open('response.txt','r')
+# Keyword file
+keyword_file = sys.argv[1]
+
+# Input file will be the responses from the infinite server
+input_file = sys.argv[2]
+
+# Output file will be where the sentiment is aggregated
+output_file = sys.argv[3]
+
+if os.path.isfile(keyword_file) == False:
+	print "Keyword file does not exist. Exiting now."
+	sys.exit(1)
+if os.path.isfile(input_file) == False:
+	print "Input file from infinite does not exist. Exiting now."
+	sys.exit(1)
+if os.path.isfile(output_file) == True:
+	print "Output file already exists. Exiting now to avoid data loss."
+	sys.exit(1)
+
+fp = open(input_file,'r')
 
 # Will contain key,value pairs:
 #	disambiguated_name : [(start,end,keyword,sentiment,significance),( ... ), ... ]
@@ -45,7 +65,7 @@ for line in fp:
 		
 	meta_string = not meta_string
 
-fp2 = open('ftext_words.txt', 'r')
+fp2 = open(keyword_file, 'r')
 fp2.readline()
 fp2.readline()
 target_words = []
@@ -53,7 +73,7 @@ for line in fp2:
 	line = line.rstrip()
 	target_words.append(line)
 
-print "target words: " + str(target_words)
+
 date_to_total_score = dict()
 for i in target_words:
 	for j in sentiments:
@@ -64,7 +84,8 @@ for i in target_words:
 					date_to_total_score[entry[0]] = 0
 				date_to_total_score[entry[0]] = date_to_total_score[entry[0]] + (float(entry[3])*float(entry[4]))
 
+fp3 = open(output_file, "w")
 for i in sorted(date_to_total_score, reverse=True):
-	print str(i) + "," + str(date_to_total_score[i])
-#for i in sentiments:
-#	print str(i) + " : " + str(sentiments[i])
+	fp3.write(str(i) + "," + str(date_to_total_score[i]))
+
+sys.exit(0)
