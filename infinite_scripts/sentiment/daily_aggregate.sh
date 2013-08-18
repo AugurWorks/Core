@@ -15,12 +15,26 @@ if [ -f sentiment.csv ]; then
     exit 1
 fi
 
+if [ -f sentiment_full.csv]; then
+    echo "Full sentiment file already exists. Exiting now to avoid data loss."
+    exit 1
+fi
+
 # Run the pipeline.
 ./login_daily.sh keywords.txt response.txt
-python ./batch_json_parse.py keywords.txt response.txt sentiment.csv
+python ./batch_json_parse.py keywords.txt response.txt sentiment.csv sentiment_full.csv
 
-# Show the total sentiment.
-echo "Total sentiment for the last 24 hours: " 
-echo `head -n 1 sentiment.txt | awk -F"," '{print $2}'`
+MESSAGE="email_message.txt"
+echo "Aggregate sentiment measured over the past 24 hours: " >> $MESSAGE
+echo sentiment.csv >> $MESSAGE
+echo "" >> $MESSAGE
+echo "Sentiment per keyword: " >> $MESSAGE
+echo sentiment_full.csv >> $MESSAGE
+
+python ./send_sentiment_email.py
+
+rm sentiment.csv 2> /dev/null
+rm sentiment_full.csv 2> /dev/null
+rm response.txt 2> /dev/null
 
 exit 0

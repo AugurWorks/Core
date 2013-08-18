@@ -13,6 +13,8 @@ input_file = sys.argv[2]
 # Output file will be where the sentiment is aggregated
 output_file = sys.argv[3]
 
+full_output_file = sys.argv[4]
+
 if os.path.isfile(keyword_file) == False:
 	print "Keyword file does not exist. Exiting now."
 	sys.exit(1)
@@ -22,6 +24,10 @@ if os.path.isfile(input_file) == False:
 if os.path.isfile(output_file) == True:
 	print "Output file already exists. Exiting now to avoid data loss."
 	sys.exit(1)
+if os.path.isfile(full_output_file) == True:
+	print "Full output file already exists. Exiting now to avoid data loss."
+	sys.exit(1)
+
 
 fp = open(input_file,'r')
 
@@ -75,6 +81,7 @@ for line in fp2:
 
 
 date_to_total_score = dict()
+date_to_sentiment = dict()
 for i in target_words:
 	for j in sentiments:
 		if i in j:
@@ -83,9 +90,17 @@ for i in target_words:
 				if entry[0] not in date_to_total_score:
 					date_to_total_score[entry[0]] = 0
 				date_to_total_score[entry[0]] = date_to_total_score[entry[0]] + (float(entry[3])*float(entry[4]))
+				if (entry[0],entry[2]) not in date_to_sentiment:
+					date_to_sentiment[(entry[0],entry[2])] = 0
+				date_to_sentiment[(entry[0],entry[2])] = date_to_sentiment[(entry[0],entry[2])] + (float(entry[3])*float(entry[4]))
 
 fp3 = open(output_file, "w")
 for i in sorted(date_to_total_score, reverse=True):
 	fp3.write(str(i) + "," + str(date_to_total_score[i]))
+
+fp3 = open(full_output_file, "w")
+for i in sorted(date_to_sentiment, reverse=True):
+	fp3.write(str(i) + "," + str(date_to_total_score[i]))
+
 
 sys.exit(0)
