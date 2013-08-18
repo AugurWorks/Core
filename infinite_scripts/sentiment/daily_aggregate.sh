@@ -38,5 +38,6 @@ python ./send_sentiment_email.py
 rm sentiment.csv 2> /dev/null
 rm sentiment_full.csv 2> /dev/null
 rm response.txt 2> /dev/null
+rm $MESSAGE 2> /dev/null
 
 exit 0
