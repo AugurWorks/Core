@@ -15,7 +15,7 @@ if [ -f sentiment.csv ]; then
     exit 1
 fi
 
-if [ -f sentiment_full.csv]; then
+if [ -f sentiment_full.csv ]; then
     echo "Full sentiment file already exists. Exiting now to avoid data loss."
     exit 1
 fi
@@ -26,10 +26,12 @@ python ./batch_json_parse.py keywords.txt response.txt sentiment.csv sentiment_f
 
 MESSAGE="email_message.txt"
 echo "Aggregate sentiment measured over the past 24 hours: " >> $MESSAGE
-echo sentiment.csv >> $MESSAGE
+cat sentiment.csv >> $MESSAGE
 echo "" >> $MESSAGE
 echo "Sentiment per keyword: " >> $MESSAGE
-echo sentiment_full.csv >> $MESSAGE
+cat sentiment_full.csv >> $MESSAGE
+
+cat $MESSAGE
 
 python ./send_sentiment_email.py
 

@@ -54,6 +54,7 @@ for line in fp:
 			for j in range(len(data["data"][i]["entities"])):
 				try:
 					name = str(data["data"][i]["entities"][j]["disambiguated_name"])
+					name = name.lower()
 					sentiment = float(data["data"][i]["entities"][j]["sentiment"])
 					significance = float(data["data"][i]["entities"][j]["significance"])
 					if name in info:
@@ -64,6 +65,7 @@ for line in fp:
 				except: 
 					continue
 		for disambiguated_name in info:
+			disambiguated_name = disambiguated_name.lower()
 			(sentiment,significance) = info[disambiguated_name]
 			if disambiguated_name not in sentiments:
 				sentiments[disambiguated_name] = []
@@ -84,15 +86,14 @@ date_to_total_score = dict()
 date_to_sentiment = dict()
 for i in target_words:
 	for j in sentiments:
-		if i in j:
-			list_of_scores = sentiments[j]
-			for entry in list_of_scores:
-				if entry[0] not in date_to_total_score:
-					date_to_total_score[entry[0]] = 0
-				date_to_total_score[entry[0]] = date_to_total_score[entry[0]] + (float(entry[3])*float(entry[4]))
-				if (entry[0],entry[2]) not in date_to_sentiment:
-					date_to_sentiment[(entry[0],entry[2])] = 0
-				date_to_sentiment[(entry[0],entry[2])] = date_to_sentiment[(entry[0],entry[2])] + (float(entry[3])*float(entry[4]))
+		list_of_scores = sentiments[j]
+		for entry in list_of_scores:
+			if entry[0] not in date_to_total_score:
+				date_to_total_score[entry[0]] = 0
+			date_to_total_score[entry[0]] = date_to_total_score[entry[0]] + (float(entry[3])*float(entry[4]))
+			if (entry[0],entry[2].lower()) not in date_to_sentiment:
+				date_to_sentiment[(entry[0],entry[2].lower())] = 0
+			date_to_sentiment[(entry[0],entry[2].lower())] = date_to_sentiment[(entry[0],entry[2].lower())] + (float(entry[3])*float(entry[4]))
 
 fp3 = open(output_file, "w")
 for i in sorted(date_to_total_score, reverse=True):
@@ -100,7 +101,7 @@ for i in sorted(date_to_total_score, reverse=True):
 
 fp3 = open(full_output_file, "w")
 for i in sorted(date_to_sentiment, reverse=True):
-	fp3.write(str(i) + "," + str(date_to_total_score[i]))
+	fp3.write(str(i) + "," + str(date_to_sentiment[i]) + "\n")
 
 
 sys.exit(0)
