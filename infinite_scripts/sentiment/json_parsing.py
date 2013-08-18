@@ -1,13 +1,16 @@
 #!/usr/bin/python
 
-import json
+try:
+    import json
+except ImportError:
+    import simplejson as json
 import sys
 
 start_date = sys.argv[1]
 end_date = sys.argv[2]
 keyword = sys.argv[3]
 # Get the JSON response
-json_string = open('response.txt', 'r').read()
+json_string = open('response.json', 'r').read()
 
 # Find the stuff that has sentiment
 # Note: this does not sum the total sentiment if any name is repeated

@@ -67,4 +67,4 @@ echo ""
 
 rm cookies.txt
 
-#rm response.txt
+rm response.txt

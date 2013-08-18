@@ -57,7 +57,7 @@ f = open('/root/Core/infinite_scripts/query.sql','w')
 today = datetime.datetime.now().strftime("%Y-%m-%d")
 ayearago = "2008-01-01"
 daysInMonth=[31,28,31,30,31,30,31,31,30,31,30,31]
-line = 'SELECT ticker,price,date FROM augurworks.stocks WHERE (DATE(date) BETWEEN "' + ayearago + '" AND "' + today + '") ORDER BY date DESC;'
+line = 'SELECT ticker,adjusted_close,date,open,day_change FROM augurworks.stocks WHERE (DATE(date) BETWEEN "' + ayearago + '" AND "' + today + '") ORDER BY date DESC;'
 f.write(line)
 f.close()
 
@@ -65,6 +65,8 @@ stream = os.popen('mysql -uroot -paugurworks < /root/Core/infinite_scripts/query
 
 stocks = dict()
 dates = dict()
+openPrice = dict()
+dayChange = dict()
 dateList = []
 
 stream.readline()
@@ -79,9 +81,13 @@ for line in stream:
     if words[0] in stocks.keys():
         stocks[words[0]].append(words[1])
         dates[words[0]].append(words[2])
+        openPrice[words[0]].append(words[3])
+        dayChange[words[0]].append(words[4])
     else:
         stocks[words[0]] = [words[1]]
         dates[words[0]] = [words[2]]
+        openPrice[words[0]] = [words[3]]
+        dayChange[words[0]] = [words[4]]
     if words[2] not in dateList:
         dateList.append(words[2])
 
@@ -100,6 +106,8 @@ else:
 
 cutoff = count / len(keys)
 f = open('/root/Core/infinite_scripts/something.csv','w')
+o = open('/root/Core/infinite_scripts/open.csv','w')
+d = open('/root/Core/infinite_scripts/daychange.csv','w')
 lcv = 0
 
 curDate=dates[firstCol][lcv]
@@ -116,12 +124,24 @@ while lcv < cutoff:
     day=int(curDate[8:10])
     curCPI=currentCPI(cpi, daysInMonth, year, month, day)
     line = ''
+    line2 = ''
+    line3 = ''
     for key in keys:
         line = line + str(float(stocks[key][lcv])/curCPI*todayCPI) + ','
+        line2 = line2 + str(float(openPrice[key][lcv])/curCPI*todayCPI) + ','
+        line3 = line3 + dayChange[key][lcv] + ','
     line = line[:-1]
     line = line + "\n"
     f.write(line)
+    line2 = line2[:-1]
+    line2 = line2 + "\n"
+    o.write(line2)
+    line3 = line3[:-1]
+    line3 = line3 + "\n"
+    d.write(line3)
     lcv = lcv + 1
 
 f.close()
 f2.close()
+o.close()
+d.close()
