@@ -1,8 +1,0 @@
-
-public class Net {
-	private ArrayList<Neuron> neurons;
-	
-	public Net() {
-		
-	}
-}
