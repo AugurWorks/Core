@@ -8,11 +8,11 @@ OUTPUT_FILE=$2
 # Check that the input file exists and that the output file does not exist.
 if [ ! -f $INPUT_FILE ]; then
     echo $INPUT_FILE" does not exist. Exiting now."
-    return 1
+    exit 1
 fi
 if [ -f $OUTPUT_FILE ]; then
     echo $OUTPUT_FILE" already exists. Exiting to avoid data loss."
-    return 1
+    exit 1
 fi
 
 TODAY=$(date +"%s")
@@ -76,3 +76,5 @@ echo ""
 
 # Clean up the cookies file
 rm cookies.txt
+
+exit 0
