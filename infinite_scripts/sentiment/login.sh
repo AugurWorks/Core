@@ -1,5 +1,5 @@
 #!/bin/bash
-URL="http://ec2-50-17-35-133.compute-1.amazonaws.com"
+URL="http://ec2-107-20-152-208.compute-1.amazonaws.com"
 
 rm sentiment.csv
 rm daily_sentiment.csv
@@ -40,7 +40,7 @@ do
 		
 		
 		# There should be the response to each query on one line of the response.txt file.
-		echo "$first" . "," . "$next" . "," . "$line\n" >> response.txt
+		echo "$first,$next,$line" >> response.txt
 		curl -b cookies.txt -XPOST $URL"/api/knowledge/document/query/50ecaf5ae4b0ea25955cdfb8" -d @query.tmp >> response.txt
 		echo "" >> response.txt
 		rm query.tmp
@@ -58,7 +58,7 @@ done
 #echo ""
 
 # Parse all of the responses at once.
-python ./batch_json_parse.py 
+python ./batch_json_parse.py > sentiment.csv
 
 # Log out
 curl -b cookies.txt $URL"/api/auth/logout" > /dev/null

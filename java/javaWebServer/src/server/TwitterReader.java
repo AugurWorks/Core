@@ -97,7 +97,42 @@ public class TwitterReader {
 		twitterStream.addListener(listener);
 
 		FilterQuery query = new FilterQuery();
-		String track[] = { "opec", "big data", "obama", "iran", "oil", "red sea" };
+		String track[] = { "oil price", 
+				   "crude oil",
+				   "gold price",
+				   "commodity price",
+				   "commodity index",
+				   "gold index",
+				   "energy price",
+				   "energy demand",
+				   "energy supply",
+				   "syria",
+				   "egypt",
+				   "iran",
+				   "israel",
+				   "stock market",
+				   "commodity futures",
+				   "gas pump prices",
+				   "bernanke",
+				   "federal reserve",
+				   "natural disaster",
+				   "hurricane us",
+				   "tornado us",
+				   "earth quake us",
+				   "earth quake middle east",
+				   "inflation",
+				   "national debt",
+				   "epa regulations",
+				   "natural gas",
+				   "oil refinery",
+				   "oil pipeline",
+				   "suez canal",
+				   "offshore drilling",
+				   "renewable energy",
+				   "carbon tax",
+				   "greenhouse gas",
+				   "fracking",
+				   "oil spill" };
 		query.track(track);
 		twitterStream.filter(query);
 	}
