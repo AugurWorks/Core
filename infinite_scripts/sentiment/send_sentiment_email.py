@@ -9,7 +9,9 @@ FROM = "Alfred Pennyworth"
 TO = ['stephen@augurworks.com','brian@augurworks.com','drew@augurworks.com']
 SUBJECT = 'Recent sentiment'
 
-f = open('email_message.txt')
+message_loc = sys.argv[1]
+
+f = open(message_loc)
 pred = f.read()
 
 TEXT = pred
