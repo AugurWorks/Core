@@ -2,34 +2,34 @@ package com.augurworks.decisiontree.impl;
 
 import com.augurworks.decisiontree.BinaryOperator;
 
-public enum BinaryOperatorDoubleImpl implements BinaryOperator<Double>{
+public enum BinaryOperatorDoubleImpl implements BinaryOperator<CopyableDouble>{
 	GT {
 		@Override
-		public boolean evaluate(Double leftHandSide, Double rightHandSide) {
-			double l = leftHandSide;
-			double r = rightHandSide;
+		public boolean evaluate(CopyableDouble leftHandSide, CopyableDouble rightHandSide) {
+			double l = leftHandSide.getValue();
+			double r = rightHandSide.getValue();
 			return l > r;
 		}
 	}, 
 	LT {
 		@Override
-		public boolean evaluate(Double leftHandSide, Double rightHandSide) {
-			double l = leftHandSide;
-			double r = rightHandSide;
+		public boolean evaluate(CopyableDouble leftHandSide, CopyableDouble rightHandSide) {
+			double l = leftHandSide.getValue();
+			double r = rightHandSide.getValue();
 			return l < r;
 		}
 	},
 	EQ {
 		@Override
-		public boolean evaluate(Double leftHandSide, Double rightHandSide) {
-			double l = leftHandSide;
-			double r = rightHandSide;
+		public boolean evaluate(CopyableDouble leftHandSide, CopyableDouble rightHandSide) {
+			double l = leftHandSide.getValue();
+			double r = rightHandSide.getValue();
 			return Math.abs(l - r) < 0.000001;
 		}
 	},
 	;
 	
 	@Override
-	public abstract boolean evaluate(Double leftHandSide, Double rightHandSide);
+	public abstract boolean evaluate(CopyableDouble leftHandSide, CopyableDouble rightHandSide);
 
 }

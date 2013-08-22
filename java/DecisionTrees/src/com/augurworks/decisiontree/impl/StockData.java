@@ -1,6 +1,8 @@
 package com.augurworks.decisiontree.impl;
 
-public enum StockData {
+import com.augurworks.decisiontree.CopyAble;
+
+public enum StockData implements CopyAble<StockData> {
 	/** 
 	 * (close price - open price) / close price  
 	 */
@@ -41,5 +43,10 @@ public enum StockData {
 			}
 		}
 		throw new IllegalArgumentException("Unkown stockdata type: " + enumString);
+	}
+
+	@Override
+	public StockData copy() {
+		return this;
 	}
 }

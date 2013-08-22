@@ -1,5 +1,7 @@
 package com.augurworks.decisiontree;
 
+import java.util.Set;
+
 /**
  * Row is a glorified map.
  * @author saf
@@ -14,4 +16,5 @@ public interface Row<K, V, T> {
 	public Row<K,V,T> copy();
 	public T getResult();
 	public void setResult(T result);
+	public Set<K> getColumnSet();
 }

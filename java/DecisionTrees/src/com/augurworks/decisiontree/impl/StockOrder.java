@@ -1,6 +1,8 @@
 package com.augurworks.decisiontree.impl;
 
-public enum StockOrder {
+import com.augurworks.decisiontree.CopyAble;
+
+public enum StockOrder implements CopyAble<StockOrder> {
 	BUY,
 	SELL,
 	HOLD,
@@ -14,5 +16,10 @@ public enum StockOrder {
 			}
 		}
 		throw new IllegalArgumentException("Unkown stockorder type: " + enumString);
+	}
+
+	@Override
+	public StockOrder copy() {
+		return this;
 	}
 }
