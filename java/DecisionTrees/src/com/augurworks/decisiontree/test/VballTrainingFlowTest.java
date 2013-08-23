@@ -13,11 +13,15 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.augurworks.decisiontree.BinaryOperator;
 import com.augurworks.decisiontree.Row;
 import com.augurworks.decisiontree.RowGroup;
+import com.augurworks.decisiontree.TypeOperatorLimit;
+import com.augurworks.decisiontree.impl.BinaryOperatorDoubleImpl;
 import com.augurworks.decisiontree.impl.CopyableDouble;
 import com.augurworks.decisiontree.impl.RowGroupImpl;
 import com.augurworks.decisiontree.impl.RowImpl;
+import com.augurworks.decisiontree.impl.TypeOperatorLimitImpl;
 
 public class VballTrainingFlowTest {
 	private static String FILENAME = "/home/saf/Documents/sample.csv";
@@ -36,7 +40,30 @@ public class VballTrainingFlowTest {
 		// original entropy
 		assertTrue(Math.abs(rows.getOriginalEntropy() - 0.940) < 0.001);
 		
-		System.out.println(rows.getEntropy(WeatherData.HINT, new CopyableDouble(0)));
+		TypeOperatorLimit<WeatherData, CopyableDouble> tol = 
+				new TypeOperatorLimitImpl<WeatherData, CopyableDouble>(WeatherData.HINT, 
+						new CopyableDouble(0), BinaryOperatorDoubleImpl.EQ);
+		System.out.println(rows.getEntropy(tol));
+	}
+	
+	@Test
+	public void testBiggestInfoGain() {
+		TypeOperatorLimit<WeatherData, CopyableDouble> bestTol = null;
+		double bestInfoGain = -1;
+		for (WeatherData column : rows.getColumnSet()) {
+			for (CopyableDouble value : rows.getColumnResults(column).getValues()) {
+				for (BinaryOperator<CopyableDouble> operator : BinaryOperatorDoubleImpl.values()) {
+					TypeOperatorLimit<WeatherData, CopyableDouble> tol = 
+							new TypeOperatorLimitImpl<WeatherData, CopyableDouble>(
+									column, value, operator);
+					if (rows.getInformationGain(tol) > bestInfoGain) {
+						bestInfoGain = rows.getInformationGain(tol);
+						bestTol = tol;
+					}
+				}
+			}
+		}
+		System.out.println(bestTol);
 	}
 	
 	private static RowGroup<WeatherData, CopyableDouble, VBallPlay> parseData(String filename) {

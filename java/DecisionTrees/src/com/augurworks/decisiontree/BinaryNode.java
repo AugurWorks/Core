@@ -15,6 +15,4 @@ public interface BinaryNode<T,U,V> {
 	public void setRightHandChild(BinaryNode<T,U,V> right);
 	public V evaluate(Row<T,U,V> inputs);
 	public BinaryOperator<U> getOperator();
-	public void setRightLimitor(U limit);
-	public void setInputType(T input);
 }

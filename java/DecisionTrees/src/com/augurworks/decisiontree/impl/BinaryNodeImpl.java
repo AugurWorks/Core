@@ -3,20 +3,20 @@ package com.augurworks.decisiontree.impl;
 import com.augurworks.decisiontree.BinaryNode;
 import com.augurworks.decisiontree.BinaryOperator;
 import com.augurworks.decisiontree.Row;
+import com.augurworks.decisiontree.TypeOperatorLimit;
 
 public class BinaryNodeImpl<InputType, OutputType, ReturnType> implements BinaryNode<InputType, OutputType, ReturnType> {
 	private BinaryNode<InputType, OutputType, ReturnType> leftHandChild;
 	private BinaryNode<InputType, OutputType, ReturnType> rightHandChild;
 	private final ReturnType defaultLeft;
 	private final ReturnType defaultRight;
-	private BinaryOperator<OutputType> operator;
-	private OutputType rightLimitor;
-	private InputType leftType;
+	private final TypeOperatorLimit<InputType, OutputType> typeOperatorLimit;
 	
-	public BinaryNodeImpl(BinaryOperator<OutputType> operator, ReturnType defaultLeft, ReturnType defaultRight) {
+	public BinaryNodeImpl(ReturnType defaultLeft, ReturnType defaultRight,
+			TypeOperatorLimit<InputType, OutputType> typeOperatorLimit) {
 		this.leftHandChild = null;
 		this.rightHandChild = null;
-		this.operator = operator;
+		this.typeOperatorLimit = typeOperatorLimit;
 		this.defaultLeft = defaultLeft;
 		this.defaultRight = defaultRight;
 	}
@@ -39,7 +39,8 @@ public class BinaryNodeImpl<InputType, OutputType, ReturnType> implements Binary
 
 	@Override
 	public ReturnType evaluate(Row<InputType, OutputType, ReturnType> inputs) {
-		boolean answer = operator.evaluate(inputs.get(leftType), rightLimitor);
+		boolean answer = typeOperatorLimit.getOperator()
+				.evaluate(inputs.get(typeOperatorLimit.getType()), typeOperatorLimit.getLimit());
 		if (answer) {
 			return leftHandChild == null ? defaultLeft : leftHandChild.evaluate(inputs);
 		} else {
@@ -49,22 +50,12 @@ public class BinaryNodeImpl<InputType, OutputType, ReturnType> implements Binary
 
 	@Override
 	public BinaryOperator<OutputType> getOperator() {
-		return operator;
+		return typeOperatorLimit.getOperator();
 	}	
 
 	@Override
 	public void setLeftHandChild(BinaryNode<InputType, OutputType, ReturnType> left) {
 		leftHandChild = left;
-	}
-
-	@Override
-	public void setRightLimitor(OutputType limit) {
-		rightLimitor = limit; 
-	}
-
-	@Override
-	public void setInputType(InputType input) {
-		leftType = input;
 	}
 
 }

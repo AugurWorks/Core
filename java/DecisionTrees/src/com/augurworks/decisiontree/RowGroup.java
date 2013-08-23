@@ -12,5 +12,6 @@ public interface RowGroup<K, V, T> {
 	public Set<K> getColumnSet();
 	public List<T> getResults();
 	public double getOriginalEntropy();
-	public double getEntropy(K column, V value);
+	public double getEntropy(TypeOperatorLimit<K,V> tol);
+	public double getInformationGain(TypeOperatorLimit<K,V> tol);
 }

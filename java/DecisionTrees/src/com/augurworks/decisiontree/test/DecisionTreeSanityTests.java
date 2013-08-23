@@ -9,12 +9,14 @@ import org.junit.Test;
 
 import com.augurworks.decisiontree.BinaryNode;
 import com.augurworks.decisiontree.Row;
+import com.augurworks.decisiontree.TypeOperatorLimit;
 import com.augurworks.decisiontree.impl.BinaryNodeImpl;
 import com.augurworks.decisiontree.impl.BinaryOperatorDoubleImpl;
 import com.augurworks.decisiontree.impl.CopyableDouble;
 import com.augurworks.decisiontree.impl.RowImpl;
 import com.augurworks.decisiontree.impl.StockData;
 import com.augurworks.decisiontree.impl.StockOrder;
+import com.augurworks.decisiontree.impl.TypeOperatorLimitImpl;
 
 public class DecisionTreeSanityTests {
 	
@@ -53,11 +55,13 @@ public class DecisionTreeSanityTests {
 	
 	@Test
 	public void testNodes()	{
+		TypeOperatorLimit<StockData, CopyableDouble> tol = 
+				new TypeOperatorLimitImpl<StockData, CopyableDouble>(
+						StockData.DAY_OF_MONTH, new CopyableDouble(10), 
+						BinaryOperatorDoubleImpl.GT);
 		BinaryNode<StockData, CopyableDouble, StockOrder> root = 
-				new BinaryNodeImpl<StockData, CopyableDouble, StockOrder>(BinaryOperatorDoubleImpl.GT,
-						StockOrder.BUY, StockOrder.HOLD);
-		root.setInputType(StockData.DAY_OF_MONTH);
-		root.setRightLimitor(new CopyableDouble(10));
+				new BinaryNodeImpl<StockData, CopyableDouble, StockOrder>(
+						StockOrder.BUY, StockOrder.HOLD, tol);
 		
 		Row<StockData, CopyableDouble, StockOrder> inputs = new RowImpl<StockData, CopyableDouble, StockOrder>();
 		
@@ -70,17 +74,21 @@ public class DecisionTreeSanityTests {
 	
 	@Test
 	public void testNodesWithChildren() {
+		TypeOperatorLimit<StockData, CopyableDouble> tol = 
+				new TypeOperatorLimitImpl<StockData, CopyableDouble>(
+						StockData.DAY_OF_MONTH, new CopyableDouble(10), 
+						BinaryOperatorDoubleImpl.GT);
 		BinaryNode<StockData, CopyableDouble, StockOrder> root = 
-				new BinaryNodeImpl<StockData, CopyableDouble, StockOrder>(BinaryOperatorDoubleImpl.GT,
-						StockOrder.BUY, StockOrder.HOLD);
-		root.setInputType(StockData.DAY_OF_MONTH);
-		root.setRightLimitor(new CopyableDouble(10));
+				new BinaryNodeImpl<StockData, CopyableDouble, StockOrder>(
+						StockOrder.BUY, StockOrder.HOLD, tol);
 		
+		TypeOperatorLimit<StockData, CopyableDouble> tolLeft = 
+				new TypeOperatorLimitImpl<StockData, CopyableDouble>(
+						StockData.DAY_OF_WEEK, new CopyableDouble(3), 
+						BinaryOperatorDoubleImpl.LT);
 		BinaryNode<StockData, CopyableDouble, StockOrder> leftChild = 
-				new BinaryNodeImpl<StockData, CopyableDouble, StockOrder>(BinaryOperatorDoubleImpl.LT,
-						StockOrder.BUY, StockOrder.HOLD);
-		leftChild.setInputType(StockData.DAY_OF_WEEK);
-		leftChild.setRightLimitor(new CopyableDouble(3));
+				new BinaryNodeImpl<StockData, CopyableDouble, StockOrder>(
+						StockOrder.BUY, StockOrder.HOLD, tolLeft);
 		
 		root.setLeftHandChild(leftChild);
 		

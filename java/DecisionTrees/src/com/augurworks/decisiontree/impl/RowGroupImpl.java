@@ -10,6 +10,7 @@ import java.util.Set;
 import com.augurworks.decisiontree.ColumnResult;
 import com.augurworks.decisiontree.Row;
 import com.augurworks.decisiontree.RowGroup;
+import com.augurworks.decisiontree.TypeOperatorLimit;
 
 public class RowGroupImpl<K, V, T> implements RowGroup<K, V, T> {
 	List<Row<K, V, T>> rows = new ArrayList<Row<K, V, T>>();
@@ -80,8 +81,8 @@ public class RowGroupImpl<K, V, T> implements RowGroup<K, V, T> {
 	}
 
 	@Override
-	public double getEntropy(K column, V value) {
-		ColumnResult<K,V,T> columnResults = getColumnResults(column);
+	public double getEntropy(TypeOperatorLimit<K,V> tol) {
+		ColumnResult<K,V,T> columnResults = getColumnResults(tol.getType());
 		// count of results T when K has value V
 		Map<T, Integer> countsPositive = new HashMap<T, Integer>();
 		double posSize = 0;
@@ -90,7 +91,7 @@ public class RowGroupImpl<K, V, T> implements RowGroup<K, V, T> {
 		double negSize = 0;
 		
 		for (int i = 0; i < columnResults.size(); i++) {
-			if (columnResults.getValues().get(i).equals(value)) {
+			if (tol.getOperator().evaluate(columnResults.getValues().get(i), tol.getLimit())) {
 				if (countsPositive.containsKey(columnResults.getResults().get(i))) {
 					countsPositive.put(columnResults.getResults().get(i), countsPositive.get(columnResults.getResults().get(i)) + 1);
 				} else {
@@ -137,6 +138,11 @@ public class RowGroupImpl<K, V, T> implements RowGroup<K, V, T> {
 		entropy += holder;
 		
 		return entropy;
+	}
+
+	@Override
+	public double getInformationGain(TypeOperatorLimit<K, V> tol) {
+		return getOriginalEntropy() - getEntropy(tol);
 	}
 
 }
