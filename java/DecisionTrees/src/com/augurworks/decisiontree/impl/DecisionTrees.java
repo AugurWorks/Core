@@ -21,6 +21,7 @@ import com.augurworks.decisiontree.RowGroup;
 import com.augurworks.decisiontree.TypeOperatorLimit;
 
 public class DecisionTrees {
+	private DecisionTrees() {}
 	
 	public static <K,V,T> TypeOperatorLimit<K,V> getBestInfoGainTol(
 			RowGroup<K, V, T> rowSet, BinaryOperatorSet<V> binaryOps) {
@@ -94,10 +95,10 @@ public class DecisionTrees {
 						new RowImpl<K, V, T>();
 				for (int i = 0; i < data.length - 1; i++) {
 					K name = titleNames.get(i);
-					row.put(name, vProvider.fromString(data[i]));
+					row.put(name, vProvider.fromString(data[i].trim()));
 				}
 				// result should be last
-				row.setResult(tProvider.fromString(data[data.length - 1]));
+				row.setResult(tProvider.fromString(data[data.length - 1].trim()));
 				rows.addRow(row);
 			}
 			
@@ -155,5 +156,23 @@ public class DecisionTrees {
 			}
 		}
 		return root;
+	}
+	
+	public static <K extends CopyAble<K>, V extends CopyAble<V>, T extends CopyAble<T>> int getDepth(BinaryNode<K,V,T> node) {
+		Queue<NodeInfoContainer<K,V,T>> queue = new LinkedList<NodeInfoContainer<K,V,T>>();
+		queue.add(new NodeInfoContainerImpl<K, V, T>(node, null, 0));
+		int maxDepth = -1;
+		while (queue.size() != 0) {
+			NodeInfoContainer<K,V,T> nic = queue.remove();
+			if (nic.getNode() == null) {
+				if (nic.getDepth() > maxDepth) {
+					maxDepth = nic.getDepth();
+				}
+			} else {
+				queue.add(new NodeInfoContainerImpl<K, V, T>(nic.getNode().getLeftHandChild(), null, 1+nic.getDepth()));
+				queue.add(new NodeInfoContainerImpl<K, V, T>(nic.getNode().getRightHandChild(), null, 1+nic.getDepth()));
+			}
+		}
+		return maxDepth;
 	}
 }

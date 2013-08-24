@@ -58,7 +58,7 @@ public class VballTrainingFlowTest {
 		TypeOperatorLimit<WeatherData, CopyableDouble> tol = 
 				new TypeOperatorLimitImpl<WeatherData, CopyableDouble>(WeatherData.HINT, 
 						new CopyableDouble(0), BinaryOperatorDoubleImpl.EQ);
-		System.out.println(rows.getEntropy(tol));
+		assertTrue(rows.getInformationGain(tol) > 0);
 	}
 	
 	@Test
@@ -79,6 +79,7 @@ public class VballTrainingFlowTest {
 			Row<WeatherData, CopyableDouble, VBallPlay> row = rows.getRow(i);
 			assertEquals(row.getResult(), root.evaluate(row));
 		}	
-		
+		System.out.println(root);
+		assertEquals(1, DecisionTrees.getDepth(root));
 	}
 }

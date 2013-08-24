@@ -23,6 +23,7 @@ import com.augurworks.decisiontree.impl.StockOrder;
 
 public class StockDataTest {
 	private static String FILENAME = "/home/saf/augurworks_core/java/DecisionTrees/test/stockSample.csv";
+	
 	private static RowGroup<StockData, CopyableDouble, StockOrder> rows = 
 			DecisionTrees.parseData(FILENAME, new Provider<StockData>() {
 					@Override
@@ -59,7 +60,9 @@ public class StockDataTest {
 		for (int i = 0; i < rows.size(); i++) {
 			Row<StockData, CopyableDouble, StockOrder> row = rows.getRow(i);
 			assertEquals(row.getResult(), root.evaluate(row));
-		}	
+		}
+		assertEquals(2, DecisionTrees.getDepth(root));
+		System.out.println(root);
 	}
 
 }

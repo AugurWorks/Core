@@ -8,7 +8,7 @@ package com.augurworks.decisiontree;
  * @param <U> output type
  * @param <V> return type
  */
-public interface BinaryNode<T,U,V> {
+public interface BinaryNode<T extends CopyAble<T>,U extends CopyAble<U>,V extends CopyAble<V>> {
 	public BinaryNode<T,U,V> getLeftHandChild();
 	public BinaryNode<T,U,V> getRightHandChild();
 	public void setLeftHandChild(BinaryNode<T,U,V> left);

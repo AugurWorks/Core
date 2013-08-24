@@ -1,2 +1,9 @@
 DAY_OF_WEEK, DAY_OF_MONTH, ORDER
 1, 	     2, 	   BUY
+2, 	     11,	   HOLD
+2, 	     8,		   BUY
+3, 	     10, 	   HOLD
+3, 	     6, 	   BUY
+4, 	     6, 	   SELL
+5, 	     10, 	   HOLD
+6, 	     3, 	   SELL

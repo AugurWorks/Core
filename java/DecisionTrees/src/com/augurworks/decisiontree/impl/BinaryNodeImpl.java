@@ -2,10 +2,14 @@ package com.augurworks.decisiontree.impl;
 
 import com.augurworks.decisiontree.BinaryNode;
 import com.augurworks.decisiontree.BinaryOperator;
+import com.augurworks.decisiontree.CopyAble;
 import com.augurworks.decisiontree.Row;
 import com.augurworks.decisiontree.TypeOperatorLimit;
 
-public class BinaryNodeImpl<InputType, OutputType, ReturnType> implements BinaryNode<InputType, OutputType, ReturnType> {
+public class BinaryNodeImpl<InputType extends CopyAble<InputType>, 
+			OutputType extends CopyAble<OutputType>, 
+			ReturnType extends CopyAble<ReturnType>> 
+				implements BinaryNode<InputType, OutputType, ReturnType> {
 	private BinaryNode<InputType, OutputType, ReturnType> leftHandChild;
 	private BinaryNode<InputType, OutputType, ReturnType> rightHandChild;
 	private ReturnType defaultLeft;

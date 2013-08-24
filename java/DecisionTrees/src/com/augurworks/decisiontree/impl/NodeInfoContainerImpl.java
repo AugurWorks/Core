@@ -1,10 +1,13 @@
 package com.augurworks.decisiontree.impl;
 
 import com.augurworks.decisiontree.BinaryNode;
+import com.augurworks.decisiontree.CopyAble;
 import com.augurworks.decisiontree.NodeInfoContainer;
 import com.augurworks.decisiontree.RowGroup;
 
-public class NodeInfoContainerImpl<K,V,T> implements NodeInfoContainer<K,V,T> {
+public class NodeInfoContainerImpl<K extends CopyAble<K>,
+		V extends CopyAble<V>,
+		T extends CopyAble<T>> implements NodeInfoContainer<K,V,T> {
 	private final BinaryNode<K,V,T> node;
 	private final RowGroup<K,V,T> rowGroup;
 	private final int depth;
