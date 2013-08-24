@@ -8,11 +8,13 @@ import java.util.Map;
 import java.util.Set;
 
 import com.augurworks.decisiontree.ColumnResult;
+import com.augurworks.decisiontree.CopyAble;
 import com.augurworks.decisiontree.Row;
 import com.augurworks.decisiontree.RowGroup;
 import com.augurworks.decisiontree.TypeOperatorLimit;
 
-public class RowGroupImpl<K, V, T> implements RowGroup<K, V, T> {
+public class RowGroupImpl<K extends CopyAble<K>, V extends CopyAble<V>, T extends CopyAble<T>> implements 
+		RowGroup<K, V, T>, CopyAble<RowGroup<K,V,T>> {
 	List<Row<K, V, T>> rows = new ArrayList<Row<K, V, T>>();
 
 	@Override
@@ -143,6 +145,71 @@ public class RowGroupImpl<K, V, T> implements RowGroup<K, V, T> {
 	@Override
 	public double getInformationGain(TypeOperatorLimit<K, V> tol) {
 		return getOriginalEntropy() - getEntropy(tol);
+	}
+
+	@Override
+	public RowGroup<K, V, T> withoutType(K type) {
+		RowGroup<K, V, T> newRowGroup = new RowGroupImpl<K, V, T>();
+		for (Row<K,V,T> row : rows) {
+			Row<K,V,T> newRow = row.withoutKey(type);
+			newRowGroup.addRow(newRow);
+		}
+		return newRowGroup;
+	}
+
+	@Override
+	public RowGroup<K, V, T> satisfying(TypeOperatorLimit<K,V> tol) {
+		RowGroupImpl<K,V,T> copy = new RowGroupImpl<K,V,T>();
+		for (Row<K,V,T> oldRow : rows) {
+			if (oldRow.matches(tol)) {
+				copy.addRow(oldRow.copy());
+			}
+		}
+		return copy;
+	}
+	
+	@Override
+	public RowGroup<K, V, T> notSatisfying(TypeOperatorLimit<K,V> tol) {
+		RowGroupImpl<K,V,T> copy = new RowGroupImpl<K,V,T>();
+		for (Row<K,V,T> oldRow : rows) {
+			if (!oldRow.matches(tol)) {
+				copy.addRow(oldRow.copy());
+			}
+		}
+		return copy;
+	}
+
+	@Override
+	public RowGroup<K, V, T> copy() {
+		RowGroupImpl<K,V,T> copy = new RowGroupImpl<K,V,T>();
+		for (Row<K,V,T> oldRow : rows) {
+			copy.addRow(oldRow.copy());
+		}
+		return copy;
+	}
+
+	@Override
+	public T getDomininantResult() {
+		if (rows.size() == 0) {
+			return null;
+		}
+		Map<T,Integer> map = new HashMap<T,Integer>();
+		for (Row<K,V,T> oldRow : rows) {
+			if (map.containsKey(oldRow.getResult())) {
+				map.put(oldRow.getResult(), map.get(oldRow.getResult()) + 1);
+			} else {
+				map.put(oldRow.getResult(), 1);
+			}
+		}
+		T dominant = null;
+		int num = -1;
+		for (T result : map.keySet()) {
+			if (map.get(result).intValue() > num) {
+				num = map.get(result).intValue();
+				dominant = result;
+			}
+		}
+		return dominant;
 	}
 
 }

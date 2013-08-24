@@ -13,6 +13,9 @@ public interface BinaryNode<T,U,V> {
 	public BinaryNode<T,U,V> getRightHandChild();
 	public void setLeftHandChild(BinaryNode<T,U,V> left);
 	public void setRightHandChild(BinaryNode<T,U,V> right);
+	public void setTypeOperatorLimit(TypeOperatorLimit<T,U> tol);
+	public void setDefaultLeft(V newDefLeft);
+	public void setDefaultRight(V newDefRight);
 	public V evaluate(Row<T,U,V> inputs);
 	public BinaryOperator<U> getOperator();
 }

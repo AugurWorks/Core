@@ -6,6 +6,7 @@ import java.util.Set;
 
 import com.augurworks.decisiontree.CopyAble;
 import com.augurworks.decisiontree.Row;
+import com.augurworks.decisiontree.TypeOperatorLimit;
 
 public class RowImpl<InputTypes extends CopyAble<InputTypes>, OutputTypes extends CopyAble<OutputTypes>, ChoiceTypes extends CopyAble<ChoiceTypes>> 
 		implements Row<InputTypes, OutputTypes, ChoiceTypes> {
@@ -87,6 +88,22 @@ public class RowImpl<InputTypes extends CopyAble<InputTypes>, OutputTypes extend
 	@Override
 	public Set<InputTypes> getColumnSet() {
 		return map.keySet();
+	} 
+	
+	@Override
+	public Row<InputTypes, OutputTypes, ChoiceTypes> withoutKey(InputTypes type) {
+		RowImpl<InputTypes, OutputTypes, ChoiceTypes> copy = new RowImpl<InputTypes, OutputTypes, ChoiceTypes>();
+		for (InputTypes key : map.keySet()) {
+			copy.put(key.copy(), map.get(key).copy());
+		}
+		copy.map.remove(type);
+		copy.setResult(result.copy());
+		return copy;
+	}
+
+	@Override
+	public boolean matches(TypeOperatorLimit<InputTypes, OutputTypes> tol) {
+		return tol.getOperator().evaluate(get(tol.getType()), tol.getLimit());
 	}
 
 }

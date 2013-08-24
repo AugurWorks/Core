@@ -9,16 +9,22 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 import org.junit.Test;
 
+import com.augurworks.decisiontree.BinaryNode;
 import com.augurworks.decisiontree.BinaryOperator;
+import com.augurworks.decisiontree.NodeInfoContainer;
 import com.augurworks.decisiontree.Row;
 import com.augurworks.decisiontree.RowGroup;
 import com.augurworks.decisiontree.TypeOperatorLimit;
+import com.augurworks.decisiontree.impl.BinaryNodeImpl;
 import com.augurworks.decisiontree.impl.BinaryOperatorDoubleImpl;
 import com.augurworks.decisiontree.impl.CopyableDouble;
+import com.augurworks.decisiontree.impl.NodeInfoContainerImpl;
 import com.augurworks.decisiontree.impl.RowGroupImpl;
 import com.augurworks.decisiontree.impl.RowImpl;
 import com.augurworks.decisiontree.impl.TypeOperatorLimitImpl;
@@ -47,23 +53,74 @@ public class VballTrainingFlowTest {
 	}
 	
 	@Test
-	public void testBiggestInfoGain() {
+	public void workflowTest() {
+		Queue<NodeInfoContainer<WeatherData, CopyableDouble, VBallPlay>> queue = 
+				new LinkedList<NodeInfoContainer<WeatherData, CopyableDouble, VBallPlay>>();
+		BinaryNode<WeatherData, CopyableDouble, VBallPlay> root = new BinaryNodeImpl<WeatherData, CopyableDouble, VBallPlay>(
+				VBallPlay.YES, VBallPlay.NO, null);
+		queue.add(new NodeInfoContainerImpl<WeatherData, CopyableDouble, VBallPlay>(root, rows, 0));
+		int depthLimit = 3;
+		while (queue.size() != 0) {
+			NodeInfoContainer<WeatherData, CopyableDouble, VBallPlay> nic = queue.remove();
+			BinaryNode<WeatherData, CopyableDouble, VBallPlay> node = nic.getNode();
+			RowGroup<WeatherData, CopyableDouble, VBallPlay> rowSet = nic.getRowGroup();
+			TypeOperatorLimit<WeatherData, CopyableDouble> tol = getBestInfoGainTol(rowSet);
+			node.setTypeOperatorLimit(tol);
+			System.out.println(tol);
+			
+			RowGroup<WeatherData, CopyableDouble, VBallPlay> newRowSetLeft = rowSet.satisfying(tol);
+			RowGroup<WeatherData, CopyableDouble, VBallPlay> newRowSetRight = rowSet.notSatisfying(tol);
+			int newDepth = nic.getDepth() + 1;
+			
+			if (newRowSetLeft.getOriginalEntropy() == 0 || nic.getDepth() == depthLimit) {
+				// figure out what the left side should return
+				System.out.println("Left entropy: " + newRowSetLeft.getOriginalEntropy());
+				node.setDefaultLeft(newRowSetLeft.getDomininantResult());
+			} else {
+				BinaryNode<WeatherData, CopyableDouble, VBallPlay> newLeft = new BinaryNodeImpl<WeatherData, CopyableDouble, VBallPlay>(
+						VBallPlay.YES, VBallPlay.NO, null);
+				node.setLeftHandChild(newLeft);
+				queue.add(new NodeInfoContainerImpl<WeatherData, CopyableDouble, VBallPlay>(newLeft, newRowSetLeft, newDepth));
+			}
+			
+			if (newRowSetRight.getOriginalEntropy() == 0 || nic.getDepth() == depthLimit) {
+				// figure out what the right side should return
+				System.out.println("Right entropy: " + newRowSetRight.getOriginalEntropy());
+				node.setDefaultRight(newRowSetRight.getDomininantResult());
+			} else {
+				BinaryNode<WeatherData, CopyableDouble, VBallPlay> newRight = new BinaryNodeImpl<WeatherData, CopyableDouble, VBallPlay>(
+						VBallPlay.YES, VBallPlay.NO, null);
+				node.setRightHandChild(newRight);
+				queue.add(new NodeInfoContainerImpl<WeatherData, CopyableDouble, VBallPlay>(newRight, newRowSetRight, newDepth));
+			}
+		}
+		System.out.println(root);
+		
+		for (int i = 0; i < rows.size(); i++) {
+			Row<WeatherData, CopyableDouble, VBallPlay> row = rows.getRow(i);
+			assertEquals(row.getResult(), root.evaluate(row));
+		}	
+		
+	}
+	
+	private TypeOperatorLimit<WeatherData, CopyableDouble> getBestInfoGainTol(
+			RowGroup<WeatherData, CopyableDouble, VBallPlay> rowSet) {
 		TypeOperatorLimit<WeatherData, CopyableDouble> bestTol = null;
 		double bestInfoGain = -1;
-		for (WeatherData column : rows.getColumnSet()) {
-			for (CopyableDouble value : rows.getColumnResults(column).getValues()) {
+		for (WeatherData column : rowSet.getColumnSet()) {
+			for (CopyableDouble value : rowSet.getColumnResults(column).getValues()) {
 				for (BinaryOperator<CopyableDouble> operator : BinaryOperatorDoubleImpl.values()) {
 					TypeOperatorLimit<WeatherData, CopyableDouble> tol = 
 							new TypeOperatorLimitImpl<WeatherData, CopyableDouble>(
 									column, value, operator);
-					if (rows.getInformationGain(tol) > bestInfoGain) {
-						bestInfoGain = rows.getInformationGain(tol);
+					if (rowSet.getInformationGain(tol) > bestInfoGain) {
+						bestInfoGain = rowSet.getInformationGain(tol);
 						bestTol = tol;
 					}
 				}
 			}
 		}
-		System.out.println(bestTol);
+		return bestTol;
 	}
 	
 	private static RowGroup<WeatherData, CopyableDouble, VBallPlay> parseData(String filename) {
