@@ -1,0 +1,5 @@
+Basic implementation of an asynchronous job runner.
+
+Run Main with arguments <job directory> <number worker threads>.
+
+Put a file in the job directory with "empty-todo" in the name. The job runner will pick up that job, execute it, and replace "empty-todo" with "empty-complete".
