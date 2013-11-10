@@ -34,6 +34,13 @@ public enum StockData implements CopyAble<StockData> {
 	 * ...
 	 */
 	MONTH_OF_YEAR,
+	
+	TICKER,
+	PRICE,
+	DATE,
+	DAY_CHANGE,
+	VOLUME,
+	ADJUSTED_CLOSE,
 	;
 	
 	public static StockData fromString(String enumString) {

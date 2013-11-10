@@ -22,7 +22,8 @@ import com.augurworks.decisiontree.impl.StockData;
 import com.augurworks.decisiontree.impl.StockOrder;
 
 public class StockDataTest {
-	private static String FILENAME = "/home/saf/augurworks_core/java/DecisionTrees/test/stockSample.csv";
+//	private static String FILENAME = "/home/saf/code/aw_core/java/DecisionTrees/test/stockSample.csv";
+	private static String FILENAME = "/home/saf/code/aw_core/infinite_scripts/answer.csv";
 	
 	private static RowGroup<StockData, CopyableDouble, StockOrder> rows = 
 			DecisionTrees.parseData(FILENAME, new Provider<StockData>() {
@@ -56,13 +57,21 @@ public class StockDataTest {
 					}
 					return output;
 				}				
-			}, 3);
+			}, 0);
+		double correct = 0;
+		double total = 0;
 		for (int i = 0; i < rows.size(); i++) {
 			Row<StockData, CopyableDouble, StockOrder> row = rows.getRow(i);
-			assertEquals(row.getResult(), root.evaluate(row));
+			if (row.getResult().equals(root.evaluate(row))) {
+				correct++;
+			}
+			total++;
+//			assertEquals(row.getResult(), root.evaluate(row));
 		}
-		assertEquals(2, DecisionTrees.getDepth(root));
+//		assertEquals(2, DecisionTrees.getDepth(root));
 		System.out.println(root);
+		System.out.println(correct / total * 100);
+		System.out.println(DecisionTrees.getDepth(root));
 	}
 
 }
