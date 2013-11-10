@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="/home/saf/packages/guava-15.0.jar"/>
+	<classpathentry kind="lib" path="/home/saf/packages/commons-io-2.4/commons-io-2.4.jar" sourcepath="/home/saf/packages/commons-io-2.4/commons-io-2.4-sources.jar"/>
+	<classpathentry kind="lib" path="/home/saf/packages/commons-io-2.4/commons-io-2.4-javadoc.jar"/>
+	<classpathentry kind="lib" path="/home/saf/packages/commons-io-2.4/commons-io-2.4-sources.jar"/>
+	<classpathentry kind="lib" path="/home/saf/packages/commons-io-2.4/commons-io-2.4-tests.jar"/>
+	<classpathentry kind="lib" path="/home/saf/packages/commons-io-2.4/commons-io-2.4-test-sources.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/DecisionTrees"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
