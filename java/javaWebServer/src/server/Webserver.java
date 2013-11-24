@@ -14,16 +14,17 @@ public class Webserver {
 		Thread t = new Thread(new ReaderManager());
 		t.start();
 		try {
-			serverSocket = new ServerSocket(8000, 0, InetAddress.getLocalHost());
+			InetAddress bindAddress = InetAddress.getByName(ServerPrefs.getBindAddress());
+			int port = ServerPrefs.getPort();
+			System.out.println("Server starting. Will listen on " + bindAddress + ", port " + port);
+			serverSocket = new ServerSocket(port, 0, bindAddress);
 			while (true) {
-				Socket s = serverSocket.accept(); // Wait for a client to
-													// connect
+				Socket s = serverSocket.accept(); // Wait for a client to connect
 				new ClientHandler(s); // Handle the client in a separate thread
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-
 		}
 	}
 }

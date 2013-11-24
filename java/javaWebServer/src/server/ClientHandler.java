@@ -26,7 +26,6 @@ class ClientHandler extends Thread {
 	// Read the HTTP request, respond, and close the connection
 	public void run() {
 		try {
-
 			// Open connections to the socket
 			BufferedReader in = new BufferedReader(new InputStreamReader(
 					socket.getInputStream()));
