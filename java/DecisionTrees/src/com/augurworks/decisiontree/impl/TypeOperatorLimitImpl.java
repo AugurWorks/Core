@@ -4,6 +4,7 @@ import com.augurworks.decisiontree.BinaryOperator;
 import com.augurworks.decisiontree.TypeOperatorLimit;
 
 public class TypeOperatorLimitImpl<K,V> implements TypeOperatorLimit<K,V> {
+	private static final long serialVersionUID = 1L;
 	private K type;
 	private V limit;
 	private BinaryOperator<V> operator;
@@ -71,6 +72,11 @@ public class TypeOperatorLimitImpl<K,V> implements TypeOperatorLimit<K,V> {
 		} else if (!type.equals(other.type))
 			return false;
 		return true;
+	}
+
+	@Override
+	public TypeOperatorLimit<K, V> copy() {
+		return new TypeOperatorLimitImpl<K, V>(type, limit, operator);
 	}
 
 }

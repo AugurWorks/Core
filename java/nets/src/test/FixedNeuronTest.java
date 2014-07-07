@@ -13,7 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import alfred.FixedNeuron;
-import alfred.Input;
+import alfred.InputImpl;
 
 /**
  * A testing suite for the FixedNeuron class.
@@ -127,7 +127,7 @@ public class FixedNeuronTest {
 	public void testAddInput() {
 		// adding Input objects
 		for (int i = 0; i < SIZE + 1; i++) {
-			f.addInput(new Input(), random.nextDouble());
+			f.addInput(new InputImpl(), random.nextDouble());
 		}
 		// adding FixedNeuron objects
 		f = new FixedNeuron(SIZE);
@@ -209,7 +209,7 @@ public class FixedNeuronTest {
 
 		// now try with actual inputs
 		for (int i = 0; i < 4; i++) {
-			Input input = new Input();
+			InputImpl input = new InputImpl();
 			input.setValue(i / 10.0);
 			f.addInput(input, 1);
 		}

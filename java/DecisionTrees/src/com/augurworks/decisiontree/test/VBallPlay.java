@@ -1,8 +1,8 @@
 package com.augurworks.decisiontree.test;
 
-import com.augurworks.decisiontree.CopyAble;
+import com.augurworks.decisiontree.Copyable;
 
-public enum VBallPlay implements CopyAble<VBallPlay> {
+public enum VBallPlay implements Copyable<VBallPlay> {
 	YES,
 	NO,
 	;

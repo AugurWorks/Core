@@ -13,7 +13,7 @@ import java.util.Queue;
 import com.augurworks.decisiontree.BinaryNode;
 import com.augurworks.decisiontree.BinaryOperator;
 import com.augurworks.decisiontree.BinaryOperatorSet;
-import com.augurworks.decisiontree.CopyAble;
+import com.augurworks.decisiontree.Copyable;
 import com.augurworks.decisiontree.NodeInfoContainer;
 import com.augurworks.decisiontree.Provider;
 import com.augurworks.decisiontree.Row;
@@ -43,7 +43,7 @@ public class DecisionTrees {
 		return bestTol;
 	}
 	
-	public static <K extends CopyAble<K>,V extends CopyAble<V>,T extends CopyAble<T>> 
+	public static <K extends Copyable<K>,V extends Copyable<V>,T extends Copyable<T>> 
 		RowGroup<K,V,T> parseData(
 			String filename, Provider<K> kProvider, Provider<V> vProvider, Provider<T> tProvider) {
 		File f = new File(filename);
@@ -54,7 +54,7 @@ public class DecisionTrees {
 		return readCsv(f, kProvider, vProvider, tProvider);
 	}
 	
-	public static <K extends CopyAble<K>,V extends CopyAble<V>, T extends CopyAble<T>> RowGroup<K, V, T> readCsv(File f,
+	public static <K extends Copyable<K>,V extends Copyable<V>, T extends Copyable<T>> RowGroup<K, V, T> readCsv(File f,
 			Provider<K> kProvider, Provider<V> vProvider, Provider<T> tProvider) {
 		if (!f.exists()) {
 			throw new IllegalArgumentException("File " + f + " does not exist");
@@ -119,7 +119,7 @@ public class DecisionTrees {
 		return rows;
 	}
 	
-	public static <K extends CopyAble<K>, V extends CopyAble<V>, T extends CopyAble<T>> BinaryNode<K,V,T> train(
+	public static <K extends Copyable<K>, V extends Copyable<V>, T extends Copyable<T>> BinaryNode<K,V,T> train(
 			BinaryNode<K,V,T> root, RowGroup<K,V,T> rows, BinaryOperatorSet<V> opSet, int depthLimit) {
 		Queue<NodeInfoContainer<K, V, T>> queue = 
 				new LinkedList<NodeInfoContainer<K, V, T>>();
@@ -158,7 +158,7 @@ public class DecisionTrees {
 		return root;
 	}
 	
-	public static <K extends CopyAble<K>, V extends CopyAble<V>, T extends CopyAble<T>> int getDepth(BinaryNode<K,V,T> node) {
+	public static <K extends Copyable<K>, V extends Copyable<V>, T extends Copyable<T>> int getDepth(BinaryNode<K,V,T> node) {
 		Queue<NodeInfoContainer<K,V,T>> queue = new LinkedList<NodeInfoContainer<K,V,T>>();
 		queue.add(new NodeInfoContainerImpl<K, V, T>(node, null, 0));
 		int maxDepth = -1;

@@ -1,8 +1,8 @@
 package com.augurworks.decisiontree.test;
 
-import com.augurworks.decisiontree.CopyAble;
+import com.augurworks.decisiontree.Copyable;
 
-public enum WeatherData implements CopyAble<WeatherData> {
+public enum WeatherData implements Copyable<WeatherData> {
 	OUTLOOK,
 	TEMPERATURE,
 	HUMIDITY,

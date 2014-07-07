@@ -1,0 +1,15 @@
+outlook,temperature,humidity,windy,hint,play
+good,2,5,9,0,no
+good,2,5,10,0,no
+average,2,5,9,1,yes
+bad,1,5,9,1,yes
+bad,0,4,9,1,yes
+bad,0,4,10,0,no
+average,0,4,10,1,yes
+good,1,5,9,0,no
+good,0,4,9,1,yes
+bad,1,4,9,1,yes
+good,1,4,10,1,yes
+average,1,5,10,1,yes
+average,2,4,9,1,yes
+bad,1,5,10,0,no

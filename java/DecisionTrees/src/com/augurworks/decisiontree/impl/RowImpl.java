@@ -4,12 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import com.augurworks.decisiontree.CopyAble;
+import com.augurworks.decisiontree.Copyable;
 import com.augurworks.decisiontree.Row;
 import com.augurworks.decisiontree.TypeOperatorLimit;
 
-public class RowImpl<InputTypes extends CopyAble<InputTypes>, OutputTypes extends CopyAble<OutputTypes>, ChoiceTypes extends CopyAble<ChoiceTypes>> 
+public class RowImpl<InputTypes extends Copyable<InputTypes>, OutputTypes extends Copyable<OutputTypes>, ChoiceTypes extends Copyable<ChoiceTypes>> 
 		implements Row<InputTypes, OutputTypes, ChoiceTypes> {
+	private static final long serialVersionUID = 1L;
 	private Map<InputTypes, OutputTypes> map = new HashMap<InputTypes, OutputTypes>();
 	private ChoiceTypes result;
 

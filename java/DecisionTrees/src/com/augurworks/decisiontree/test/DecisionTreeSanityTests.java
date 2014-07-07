@@ -1,6 +1,9 @@
 package com.augurworks.decisiontree.test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -10,6 +13,7 @@ import com.augurworks.decisiontree.TypeOperatorLimit;
 import com.augurworks.decisiontree.impl.BinaryNodeImpl;
 import com.augurworks.decisiontree.impl.BinaryOperatorDoubleImpl;
 import com.augurworks.decisiontree.impl.CopyableDouble;
+import com.augurworks.decisiontree.impl.CopyableString;
 import com.augurworks.decisiontree.impl.RowImpl;
 import com.augurworks.decisiontree.impl.StockData;
 import com.augurworks.decisiontree.impl.StockOrder;
@@ -127,7 +131,34 @@ public class DecisionTreeSanityTests {
 		assertEquals(new CopyableDouble(11), copy.get(StockData.DAY_OF_MONTH));
 		assertEquals(new CopyableDouble(2), copy.get(StockData.DAY_OF_WEEK));
 		assertEquals(copy.getResult(), StockOrder.UNKNOWN);
+	}
+	
+	@Test
+	public void testCopyString() {
+		Row<CopyableString, CopyableDouble, StockOrder> inputs = new RowImpl<CopyableString, CopyableDouble, StockOrder>();
+		inputs.put(CopyableString.from("DAY_OF_MONTH"), new CopyableDouble(11));
+		inputs.put(CopyableString.from("DAY_OF_WEEK"), new CopyableDouble(2));
+		assertNull(inputs.getResult());
+		inputs.setResult(StockOrder.UNKNOWN);
+		assertEquals(new CopyableDouble(11), inputs.get(CopyableString.from("DAY_OF_MONTH")));
+		assertEquals(new CopyableDouble(2), inputs.get(CopyableString.from("DAY_OF_WEEK")));
+		assertEquals(inputs.getResult(), StockOrder.UNKNOWN);
 		
+		Row<CopyableString, CopyableDouble, StockOrder> copy = inputs.copy();
+		assertEquals(new CopyableDouble(11), copy.get(CopyableString.from("DAY_OF_MONTH")));
+		assertEquals(new CopyableDouble(2), copy.get(CopyableString.from("DAY_OF_WEEK")));
+		assertEquals(copy.getResult(), StockOrder.UNKNOWN);
 		
+		inputs.put(CopyableString.from("DAY_OF_MONTH"), new CopyableDouble(9));
+		inputs.put(CopyableString.from("DAY_OF_WEEK"), new CopyableDouble(214));
+		inputs.setResult(StockOrder.BUY);
+		
+		assertEquals(new CopyableDouble(9), inputs.get(CopyableString.from("DAY_OF_MONTH")));
+		assertEquals(new CopyableDouble(214), inputs.get(CopyableString.from("DAY_OF_WEEK")));
+		assertEquals(inputs.getResult(), StockOrder.BUY);
+		
+		assertEquals(new CopyableDouble(11), copy.get(CopyableString.from("DAY_OF_MONTH")));
+		assertEquals(new CopyableDouble(2), copy.get(CopyableString.from("DAY_OF_WEEK")));
+		assertEquals(copy.getResult(), StockOrder.UNKNOWN);
 	}
 }

@@ -9,10 +9,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import alfred.Input;
+import alfred.InputImpl;
 
 public class InputTest {
-	private Input inp;
+	private InputImpl inp;
 	private Random random = new Random();
 	private static double EPSILON = 0.000001;
 
@@ -21,7 +21,7 @@ public class InputTest {
 	 */
 	@Before
 	public void setUp() {
-		inp = new Input();
+		inp = new InputImpl();
 	}
 
 	/**
@@ -38,13 +38,13 @@ public class InputTest {
 	@Test
 	public void testInput() {
 		inp = null;
-		inp = new Input();
+		inp = new InputImpl();
 		assertNotNull(inp);
 		assertEquals("value should initialize to 0", inp.getValue(), 0, EPSILON);
 
 		inp = null;
 		double w = random.nextDouble();
-		inp = new Input(w);
+		inp = new InputImpl(w);
 		assertNotNull(inp);
 		assertEquals("value should initialize to " + w, inp.getValue(), w,
 				EPSILON);

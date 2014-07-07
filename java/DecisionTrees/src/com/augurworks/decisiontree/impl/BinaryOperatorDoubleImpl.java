@@ -3,7 +3,7 @@ package com.augurworks.decisiontree.impl;
 import com.augurworks.decisiontree.BinaryOperator;
 
 public enum BinaryOperatorDoubleImpl implements BinaryOperator<CopyableDouble>{
-	GT {
+	GT(">") {
 		@Override
 		public boolean evaluate(CopyableDouble leftHandSide, CopyableDouble rightHandSide) {
 			double l = leftHandSide.getValue();
@@ -11,7 +11,7 @@ public enum BinaryOperatorDoubleImpl implements BinaryOperator<CopyableDouble>{
 			return l > r;
 		}
 	}, 
-	LT {
+	LT("<") {
 		@Override
 		public boolean evaluate(CopyableDouble leftHandSide, CopyableDouble rightHandSide) {
 			double l = leftHandSide.getValue();
@@ -19,7 +19,7 @@ public enum BinaryOperatorDoubleImpl implements BinaryOperator<CopyableDouble>{
 			return l < r;
 		}
 	},
-	EQ {
+	EQ("=") {
 		@Override
 		public boolean evaluate(CopyableDouble leftHandSide, CopyableDouble rightHandSide) {
 			double l = leftHandSide.getValue();
@@ -29,7 +29,16 @@ public enum BinaryOperatorDoubleImpl implements BinaryOperator<CopyableDouble>{
 	},
 	;
 	
+	private String prettyPrint;
+	private BinaryOperatorDoubleImpl(String pretty) {
+		this.prettyPrint = pretty;
+	}
+	
 	@Override
 	public abstract boolean evaluate(CopyableDouble leftHandSide, CopyableDouble rightHandSide);
 
+	@Override 
+	public String toString() {
+		return prettyPrint;
+	}
 }

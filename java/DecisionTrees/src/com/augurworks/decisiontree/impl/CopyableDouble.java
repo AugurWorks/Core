@@ -1,8 +1,9 @@
 package com.augurworks.decisiontree.impl;
 
-import com.augurworks.decisiontree.CopyAble;
+import com.augurworks.decisiontree.Copyable;
 
-public class CopyableDouble implements CopyAble<CopyableDouble> {
+public class CopyableDouble implements Copyable<CopyableDouble> {
+	private static final long serialVersionUID = 1L;
 	private double value;
 	
 	public CopyableDouble(double value) {
