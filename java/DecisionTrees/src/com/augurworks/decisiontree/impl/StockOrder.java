@@ -1,8 +1,8 @@
 package com.augurworks.decisiontree.impl;
 
-import com.augurworks.decisiontree.CopyAble;
+import com.augurworks.decisiontree.Copyable;
 
-public enum StockOrder implements CopyAble<StockOrder> {
+public enum StockOrder implements Copyable<StockOrder> {
 	BUY,
 	SELL,
 	HOLD,

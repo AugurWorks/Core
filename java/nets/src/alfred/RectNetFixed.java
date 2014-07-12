@@ -19,7 +19,7 @@ import java.util.ArrayList;
 public class RectNetFixed extends Net {
 
 	// Inputs to network
-	protected Input[] inputs;
+	protected InputImpl[] inputs;
 	// Every neuron with the same i is in the
 	// same "layer". Indexed as [col][row].
 	protected FixedNeuron[][] neurons;
@@ -196,14 +196,14 @@ public class RectNetFixed extends Net {
 	 */
 	private void init() {
 		// Initialize arrays to blank neurons and inputs.
-		this.inputs = new Input[y];
+		this.inputs = new InputImpl[y];
 		this.neurons = new FixedNeuron[x][y];
 		this.output = new FixedNeuron(this.y);
 		// Name the neurons for possible debug. This is not a critical
 		// step.
 		output.setName("output");
 		for (int j = 0; j < this.y; j++) {
-			this.inputs[j] = new Input();
+			this.inputs[j] = new InputImpl();
 			// initialize the first row
 			this.neurons[0][j] = new FixedNeuron(1);
 			this.neurons[0][j].setName("(" + 0 + "," + j + ")");
@@ -420,7 +420,7 @@ public class RectNetFixed extends Net {
 		boolean valid = Net.validateAUGt(fileName);
 		if (!valid) {
 			System.err.println("File not valid format.");
-			throw new RuntimeException("File not valid");
+			throw new IllegalArgumentException("File not valid");
 		}
 		// Now we need to pull information out of the augtrain file.
 		Charset charset = Charset.forName("US-ASCII");
@@ -481,7 +481,7 @@ public class RectNetFixed extends Net {
 			}
 		} catch (IOException x) {
 			System.err.format("IOException: %s%n", x);
-			throw new RuntimeException("IOException in parsing file");
+			throw new IllegalArgumentException("IOException in parsing file");
 		}
 		// Information about the training file.
 		if (verbose) {

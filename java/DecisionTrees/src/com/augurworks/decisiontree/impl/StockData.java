@@ -1,8 +1,8 @@
 package com.augurworks.decisiontree.impl;
 
-import com.augurworks.decisiontree.CopyAble;
+import com.augurworks.decisiontree.Copyable;
 
-public enum StockData implements CopyAble<StockData> {
+public enum StockData implements Copyable<StockData> {
 	/** 
 	 * (close price - open price) / close price  
 	 */

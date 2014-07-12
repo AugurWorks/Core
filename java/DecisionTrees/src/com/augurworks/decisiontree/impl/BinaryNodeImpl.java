@@ -2,14 +2,15 @@ package com.augurworks.decisiontree.impl;
 
 import com.augurworks.decisiontree.BinaryNode;
 import com.augurworks.decisiontree.BinaryOperator;
-import com.augurworks.decisiontree.CopyAble;
+import com.augurworks.decisiontree.Copyable;
 import com.augurworks.decisiontree.Row;
 import com.augurworks.decisiontree.TypeOperatorLimit;
 
-public class BinaryNodeImpl<InputType extends CopyAble<InputType>, 
-			OutputType extends CopyAble<OutputType>, 
-			ReturnType extends CopyAble<ReturnType>> 
+public class BinaryNodeImpl<InputType extends Copyable<InputType>, 
+			OutputType extends Copyable<OutputType>, 
+			ReturnType extends Copyable<ReturnType>> 
 				implements BinaryNode<InputType, OutputType, ReturnType> {
+	private static final long serialVersionUID = 1L;
 	private BinaryNode<InputType, OutputType, ReturnType> leftHandChild;
 	private BinaryNode<InputType, OutputType, ReturnType> rightHandChild;
 	private ReturnType defaultLeft;
@@ -140,6 +141,48 @@ public class BinaryNodeImpl<InputType extends CopyAble<InputType>,
 	public void setTypeOperatorLimit(
 			TypeOperatorLimit<InputType, OutputType> tol) {
 		typeOperatorLimit = tol;
+	}
+
+	@Override
+	public BinaryNode<InputType, OutputType, ReturnType> copy() {
+		BinaryNodeImpl<InputType, OutputType, ReturnType> copy = new BinaryNodeImpl<InputType, OutputType, ReturnType>(
+				null, null, null);
+		if (typeOperatorLimit != null) {
+			copy.setTypeOperatorLimit(typeOperatorLimit);
+		}
+		if (defaultLeft != null) {
+			copy.setDefaultLeft(defaultLeft);
+		}
+		if (defaultRight != null) {
+			copy.setDefaultRight(defaultRight);
+		}
+		if (leftHandChild != null) {
+			copy.setLeftHandChild(leftHandChild.copy());
+		}
+		if (rightHandChild != null) {
+			copy.setRightHandChild(rightHandChild.copy());
+		}
+		return copy;
+	}
+
+	@Override
+	public OutputType getLimit() {
+		return typeOperatorLimit.getLimit();
+	}
+
+	@Override
+	public InputType getOperatorType() {
+		return typeOperatorLimit.getType();
+	}
+
+	@Override
+	public ReturnType getDefaultLeft() {
+		return defaultLeft;
+	}
+
+	@Override
+	public ReturnType getDefaultRight() {
+		return defaultRight;
 	}
 
 }

@@ -1,5 +1,7 @@
 package com.augurworks.decisiontree;
 
+import java.io.Serializable;
+
 /**
  * Node of the decision tree.
  * @author saf
@@ -8,7 +10,7 @@ package com.augurworks.decisiontree;
  * @param <U> output type
  * @param <V> return type
  */
-public interface BinaryNode<T extends CopyAble<T>,U extends CopyAble<U>,V extends CopyAble<V>> {
+public interface BinaryNode<T extends Copyable<T>,U extends Copyable<U>,V extends Copyable<V>> extends Serializable {
 	public BinaryNode<T,U,V> getLeftHandChild();
 	public BinaryNode<T,U,V> getRightHandChild();
 	public void setLeftHandChild(BinaryNode<T,U,V> left);
@@ -18,4 +20,9 @@ public interface BinaryNode<T extends CopyAble<T>,U extends CopyAble<U>,V extend
 	public void setDefaultRight(V newDefRight);
 	public V evaluate(Row<T,U,V> inputs);
 	public BinaryOperator<U> getOperator();
+	public BinaryNode<T, U, V> copy();
+	public U getLimit();
+	public T getOperatorType();
+	public V getDefaultLeft();
+	public V getDefaultRight();
 }

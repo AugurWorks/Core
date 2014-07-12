@@ -1,8 +1,8 @@
 package com.augurworks.decisiontree;
 
-public interface NodeInfoContainer<K extends CopyAble<K>,
-		V extends CopyAble<V>,
-		T extends CopyAble<T>> {
+public interface NodeInfoContainer<K extends Copyable<K>,
+		V extends Copyable<V>,
+		T extends Copyable<T>> {
 	public BinaryNode<K,V,T> getNode();
 	public RowGroup<K,V,T> getRowGroup();
 	public int getDepth();

@@ -20,10 +20,11 @@ import com.augurworks.decisiontree.impl.BinaryNodeImpl;
 import com.augurworks.decisiontree.impl.BinaryOperatorDoubleImpl;
 import com.augurworks.decisiontree.impl.CopyableDouble;
 import com.augurworks.decisiontree.impl.DecisionTrees;
+import com.augurworks.decisiontree.impl.RowImpl;
 import com.augurworks.decisiontree.impl.TypeOperatorLimitImpl;
 
 public class VballTrainingFlowTest {
-	private static String FILENAME = "/home/saf/augurworks_core/java/DecisionTrees/test/sample.csv";
+	private static String FILENAME = "/home/saf/code/aw_core/java/DecisionTrees/test/sample.csv";
 	private static RowGroup<WeatherData, CopyableDouble, VBallPlay> rows = 
 			DecisionTrees.parseData(FILENAME, new Provider<WeatherData>() {
 					@Override
@@ -81,5 +82,12 @@ public class VballTrainingFlowTest {
 		}	
 		System.out.println(root);
 		assertEquals(1, DecisionTrees.getDepth(root));
+		RowImpl<WeatherData, CopyableDouble, VBallPlay> inputs = new RowImpl<WeatherData, CopyableDouble, VBallPlay>();
+		inputs.put(WeatherData.OUTLOOK, CopyableDouble.valueOf("0"));
+		inputs.put(WeatherData.HUMIDITY, CopyableDouble.valueOf("0"));
+		inputs.put(WeatherData.TEMPERATURE, CopyableDouble.valueOf("0"));
+		inputs.put(WeatherData.WINDY, CopyableDouble.valueOf("0"));
+		inputs.put(WeatherData.HINT, CopyableDouble.valueOf("2"));
+		System.out.println(root.evaluate(inputs));
 	}
 }

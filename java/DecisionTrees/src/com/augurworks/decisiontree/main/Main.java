@@ -15,6 +15,7 @@ import com.augurworks.decisiontree.impl.CopyableDouble;
 import com.augurworks.decisiontree.impl.DecisionTrees;
 import com.augurworks.decisiontree.impl.StockData;
 import com.augurworks.decisiontree.impl.StockOrder;
+import com.augurworks.decisiontree.impl.TreeWithStats;
 
 public class Main {
 	public static RowGroup<StockData, CopyableDouble, StockOrder> parseFile(String filepath) {

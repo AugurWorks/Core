@@ -6,6 +6,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.apache.commons.io.FilenameUtils;
+
 public abstract class Net {
 	/**
 	 * Returns the output of this Net.
@@ -13,6 +15,34 @@ public abstract class Net {
 	 * @return output of this Net.
 	 */
 	public abstract double getOutput();
+	
+	public enum NetType {
+		TRAIN("augtrain"),
+		SAVE("augsave"),
+		PREDICTION("augpred"),
+		;
+		
+		private final String suffix;
+		
+		private NetType(String suffix) {
+			this.suffix = suffix;
+		}
+		
+		public String getSuffix() {
+			return suffix;
+		}
+		
+		public static NetType fromFile(String inputFile) {
+			String extension = FilenameUtils.getExtension(inputFile);
+			for (NetType netType : values()) {
+				if (extension.equals(netType.getSuffix())) {
+					return netType;
+				}
+			}
+			throw new IllegalArgumentException("Extension " + extension + 
+					" not recognized for input file " + inputFile + ".");
+		}
+	}
 
 	/**
 	 * Validates that an augtrain file is correctly structured.
@@ -46,17 +76,6 @@ public abstract class Net {
 						n = Integer.valueOf(size[0]);
 						if (!(Integer.valueOf(size[1]) > 0))
 							throw new RuntimeException();
-						if (!(Double.valueOf(size[2]) > 0))
-							throw new RuntimeException();
-						if (!(Double.valueOf(size[3]) != null))
-							throw new RuntimeException();
-						if (!(Double.valueOf(size[4]) > 0))
-							throw new RuntimeException();
-						if (!(Double.valueOf(size[5]) > 0))
-							throw new RuntimeException();
-						if (!(size.length == 6)) {
-							throw new RuntimeException();
-						}
 						break;
 					case 2:
 						if (!lineSplit[0].equals("train"))

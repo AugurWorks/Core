@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.File;
 import java.util.Random;
 
 import org.junit.After;
@@ -25,7 +26,8 @@ public class RectNetFixedTest {
 	public void setUp() throws Exception {
 		net = new RectNetFixed(DEPTH, NUMINPUTS);
 		prefix = System.getProperty("user.dir");
-		prefix = prefix + "\\nets\\src\\test\\test_train_files\\";
+		prefix = prefix + File.separator + "nets" + File.separator + "src" + File.separator +
+				"test" + File.separator + "test_train_files" + File.separator;
 	}
 
 	@After

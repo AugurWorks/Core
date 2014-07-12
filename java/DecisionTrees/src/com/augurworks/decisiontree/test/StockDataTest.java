@@ -1,7 +1,5 @@
 package com.augurworks.decisiontree.test;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;

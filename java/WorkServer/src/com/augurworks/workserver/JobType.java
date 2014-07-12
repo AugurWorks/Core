@@ -5,7 +5,7 @@ import java.util.concurrent.Callable;
 
 import org.apache.commons.io.FileUtils;
 
-import com.augurworks.decisiontree.main.TreeWithStats;
+import com.augurworks.decisiontree.impl.TreeWithStats;
 
 public enum JobType {
 	DECISION_TREE {

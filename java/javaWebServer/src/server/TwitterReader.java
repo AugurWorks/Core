@@ -8,6 +8,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+
 import twitter4j.FilterQuery;
 import twitter4j.StallWarning;
 import twitter4j.Status;
@@ -169,14 +171,18 @@ public class TwitterReader {
 			e.printStackTrace();
 		}
 	}
+	
+	private static String escape(String unclean) {
+		return StringEscapeUtils.escapeXml(unclean);
+	}
 
 	private synchronized void printItem(Status status) {
 		try {
 			if (status.getUser().getLang().equals("en")) {
 				String s = "<item> \n" + "<title>"
-						+ status.getUser().getScreenName() + "</title>\n"
-						+ "<description>" + status.getText() + "</description>\n"
-						+ "<link>http://www.twitter.com/" + status.getUser().getScreenName() + "/status/" + status.getId() + "</link>\n"
+						+ escape(status.getUser().getScreenName()) + "</title>\n"
+						+ "<description>" + escape(status.getText()) + "</description>\n"
+						+ "<link>http://www.twitter.com/" + escape(status.getUser().getScreenName()) + "/status/" + status.getId() + "</link>\n"
 						+ "<guid>" + status.getId() + "</guid>"
 						+ "<pubDate>"
 						+ dateFormat.format(status.getCreatedAt())

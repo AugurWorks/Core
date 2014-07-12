@@ -8,13 +8,14 @@ import java.util.Map;
 import java.util.Set;
 
 import com.augurworks.decisiontree.ColumnResult;
-import com.augurworks.decisiontree.CopyAble;
+import com.augurworks.decisiontree.Copyable;
 import com.augurworks.decisiontree.Row;
 import com.augurworks.decisiontree.RowGroup;
 import com.augurworks.decisiontree.TypeOperatorLimit;
 
-public class RowGroupImpl<K extends CopyAble<K>, V extends CopyAble<V>, T extends CopyAble<T>> implements 
-		RowGroup<K, V, T>, CopyAble<RowGroup<K,V,T>> {
+public class RowGroupImpl<K extends Copyable<K>, V extends Copyable<V>, T extends Copyable<T>> implements 
+		RowGroup<K, V, T>, Copyable<RowGroup<K,V,T>> {
+	private static final long serialVersionUID = 1L;
 	List<Row<K, V, T>> rows = new ArrayList<Row<K, V, T>>();
 
 	@Override
@@ -210,6 +211,11 @@ public class RowGroupImpl<K extends CopyAble<K>, V extends CopyAble<V>, T extend
 			}
 		}
 		return dominant;
+	}
+
+	@Override
+	public String toString() {
+		return "RowGroupImpl [rows=" + rows + "]";
 	}
 
 }

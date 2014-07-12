@@ -1,8 +1,8 @@
 package alfred;
 
-public class FixedNeuron implements Inp {
+public class FixedNeuron implements Input {
 	private double[] weights;
-	private Inp[] inputs;
+	private Input[] inputs;
 	private String name;
 	private int numInputsFilled;
 	private int numInputs;
@@ -17,7 +17,7 @@ public class FixedNeuron implements Inp {
 	 */
 	public FixedNeuron(int numInputs) {
 		this.weights = new double[numInputs];
-		this.inputs = new Inp[numInputs];
+		this.inputs = new Input[numInputs];
 		this.name = "";
 		this.numInputsFilled = 0;
 		this.numInputs = numInputs;
@@ -51,7 +51,7 @@ public class FixedNeuron implements Inp {
 	 * @param w
 	 *            Weight to set
 	 */
-	public void addInput(Inp n, double w) {
+	public void addInput(Input n, double w) {
 		assert (numInputsFilled < this.numInputs);
 		assert (this.numInputsFilled >= 0);
 		if (numInputsFilled >= this.numInputs) {
@@ -77,7 +77,7 @@ public class FixedNeuron implements Inp {
 		assert (index < this.numInputs);
 		if (index < 0 || index >= this.numInputs) {
 			System.err.println("Index out of accepted range.");
-			throw new RuntimeException("Index out of range");
+			throw new IllegalArgumentException("Index out of range");
 		}
 		this.weights[index] = this.weights[index] + w;
 	}
@@ -96,7 +96,7 @@ public class FixedNeuron implements Inp {
 		assert (index < this.numInputs);
 		if (index < 0 || index >= this.numInputs) {
 			System.err.println("Index out of accepted range.");
-			throw new RuntimeException("Index out of range");
+			throw new IllegalArgumentException("Index out of range");
 		}
 		this.weights[index] = w;
 	}
@@ -194,7 +194,7 @@ public class FixedNeuron implements Inp {
 		assert (index < this.numInputs);
 		if (index < 0 || index >= this.numInputs) {
 			System.err.println("Index out of accepted range.");
-			throw new RuntimeException("Index out of accepted range.");
+			throw new IllegalArgumentException("Index out of accepted range.");
 		}
 		return this.weights[index];
 	}

@@ -1,10 +1,11 @@
 package com.augurworks.decisiontree;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
 
-public interface RowGroup<K, V, T> extends CopyAble<RowGroup<K,V,T>> {
+public interface RowGroup<K, V, T> extends Copyable<RowGroup<K,V,T>>, Serializable {
 	public void addRow(Row<K, V, T> row);
 	public int size();
 	public Row<K, V, T> getRow(int index);
