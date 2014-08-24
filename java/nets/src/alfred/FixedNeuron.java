@@ -1,12 +1,16 @@
 package alfred;
 
+import java.math.BigDecimal;
+
+import org.apache.commons.lang3.Validate;
+
 public class FixedNeuron implements Input {
-	private double[] weights;
+	private BigDecimal[] weights;
 	private Input[] inputs;
 	private String name;
 	private int numInputsFilled;
 	private int numInputs;
-	private double lastOutput;
+	private BigDecimal lastOutput;
 	private int lastCode;
 
 	/**
@@ -16,7 +20,7 @@ public class FixedNeuron implements Input {
 	 *            number of inputs that this neuron will have
 	 */
 	public FixedNeuron(int numInputs) {
-		this.weights = new double[numInputs];
+		this.weights = new BigDecimal[numInputs];
 		this.inputs = new Input[numInputs];
 		this.name = "";
 		this.numInputsFilled = 0;
@@ -51,9 +55,9 @@ public class FixedNeuron implements Input {
 	 * @param w
 	 *            Weight to set
 	 */
-	public void addInput(Input n, double w) {
-		assert (numInputsFilled < this.numInputs);
-		assert (this.numInputsFilled >= 0);
+	public void addInput(Input n, BigDecimal w) {
+		Validate.isTrue(numInputsFilled < this.numInputs);
+		Validate.isTrue(this.numInputsFilled >= 0);
 		if (numInputsFilled >= this.numInputs) {
 			System.err.println("Too many inputs added to neuron");
 			return;
@@ -72,14 +76,14 @@ public class FixedNeuron implements Input {
 	 * @param w
 	 *            Amount to change weight by.
 	 */
-	public void changeWeight(int index, double w) {
-		assert (index >= 0);
-		assert (index < this.numInputs);
+	public void changeWeight(int index, BigDecimal w) {
+		Validate.isTrue(index >= 0);
+		Validate.isTrue(index < this.numInputs);
 		if (index < 0 || index >= this.numInputs) {
 			System.err.println("Index out of accepted range.");
 			throw new IllegalArgumentException("Index out of range");
 		}
-		this.weights[index] = this.weights[index] + w;
+		this.weights[index] = this.weights[index].add(w);
 	}
 
 	/**
@@ -91,9 +95,9 @@ public class FixedNeuron implements Input {
 	 * @param w
 	 *            new weight value
 	 */
-	public void setWeight(int index, double w) {
-		assert (index >= 0);
-		assert (index < this.numInputs);
+	public void setWeight(int index, BigDecimal w) {
+		Validate.isTrue(index >= 0);
+		Validate.isTrue(index < this.numInputs);
 		if (index < 0 || index >= this.numInputs) {
 			System.err.println("Index out of accepted range.");
 			throw new IllegalArgumentException("Index out of range");
@@ -109,8 +113,11 @@ public class FixedNeuron implements Input {
 	 *            X
 	 * @return sigmoid(x)
 	 */
-	private double sigmoid(double input) {
-		return 1.0 / (1.0 + Math.exp(-3.0 * input));
+	private BigDecimal sigmoid(BigDecimal input) {
+		//	1.0 / (1.0 + Math.exp(-3.0 * input));
+		return BigDecimal.ONE.divide(
+				BigDecimal.ONE.add(
+						BigDecimals.exp(BigDecimal.valueOf(-3).multiply(input))));
 	}
 
 	/**
@@ -123,14 +130,14 @@ public class FixedNeuron implements Input {
 	 *            necessary.
 	 * @return the output from this neuron.
 	 */
-	public double getOutput(int code) {
+	public BigDecimal getOutput(int code) {
 		if (code == lastCode) {
 			return lastOutput;
 		}
 		lastCode = code;
-		double sum = 0;
+		BigDecimal sum = BigDecimal.ZERO;
 		for (int i = 0; i < this.numInputs; i++) {
-			sum += this.weights[i] * this.inputs[i].getOutput(code);
+			sum = sum.add(this.weights[i].multiply(this.inputs[i].getOutput(code)));
 		}
 		sum = sigmoid(sum);
 		this.lastOutput = sum;
@@ -142,10 +149,10 @@ public class FixedNeuron implements Input {
 	 * 
 	 * @return the output from this neuron
 	 */
-	public double getOutput() {
-		double sum = 0;
+	public BigDecimal getOutput() {
+		BigDecimal sum = BigDecimal.ZERO;
 		for (int i = 0; i < this.numInputs; i++) {
-			sum += this.weights[i] * this.inputs[i].getOutput();
+			sum = sum.add(this.weights[i].multiply(this.inputs[i].getOutput()));
 		}
 		sum = sigmoid(sum);
 		this.lastOutput = sum;
@@ -157,7 +164,7 @@ public class FixedNeuron implements Input {
 	 * 
 	 * @return the last output that this neuron computed.
 	 */
-	public double getLastOutput() {
+	public BigDecimal getLastOutput() {
 		return this.lastOutput;
 	}
 
@@ -170,11 +177,11 @@ public class FixedNeuron implements Input {
 	 *            the input array of prior row's outputs.
 	 * @return the output of this neuron
 	 */
-	public double getOutput(double[] ins) {
-		assert (ins.length == this.numInputs);
-		double sum = 0;
+	public BigDecimal getOutput(BigDecimal[] ins) {
+		Validate.isTrue(ins.length == this.numInputs);
+		BigDecimal sum = BigDecimal.ZERO;
 		for (int i = 0; i < this.numInputs; i++) {
-			sum += this.weights[i] * ins[i];
+			sum = sum.add(this.weights[i].multiply(ins[i]));
 		}
 		sum = sigmoid(sum);
 		this.lastOutput = sum;
@@ -189,9 +196,9 @@ public class FixedNeuron implements Input {
 	 *            index of Neuron to return weight to.
 	 * @return weight to the given neuron
 	 */
-	public double getWeight(int index) {
-		assert (index >= 0);
-		assert (index < this.numInputs);
+	public BigDecimal getWeight(int index) {
+		Validate.isTrue(index >= 0);
+		Validate.isTrue(index < this.numInputs);
 		if (index < 0 || index >= this.numInputs) {
 			System.err.println("Index out of accepted range.");
 			throw new IllegalArgumentException("Index out of accepted range.");

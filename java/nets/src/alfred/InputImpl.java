@@ -1,5 +1,7 @@
 package alfred;
 
+import java.math.BigDecimal;
+
 /**
  * Represents and input to the Net. Has a constant output that can be set.
  * 
@@ -8,13 +10,13 @@ package alfred;
  */
 public class InputImpl implements Input {
 	// The constant output of this Input.
-	private double value;
+	private BigDecimal value;
 
 	/**
 	 * Instantiates an Input with default value of 0.
 	 */
 	public InputImpl() {
-		this.value = 0;
+		this.value = BigDecimal.ZERO;
 	}
 
 	/**
@@ -24,7 +26,7 @@ public class InputImpl implements Input {
 	 *            initial value of this Input.
 	 */
 	public InputImpl(double v) {
-		this.value = v;
+		this.value = BigDecimal.valueOf(v);
 	}
 
 	/**
@@ -32,7 +34,7 @@ public class InputImpl implements Input {
 	 * 
 	 * @return the value of this Input.
 	 */
-	public double getValue() {
+	public BigDecimal getValue() {
 		return this.value;
 	}
 
@@ -43,7 +45,7 @@ public class InputImpl implements Input {
 	 *            unused.
 	 * @return the value of this input
 	 */
-	public double getOutput(int code) {
+	public BigDecimal getOutput(int code) {
 		return this.value;
 	}
 
@@ -52,7 +54,7 @@ public class InputImpl implements Input {
 	 * 
 	 * @return the value of this input.
 	 */
-	public double getOutput() {
+	public BigDecimal getOutput() {
 		return this.value;
 	}
 
@@ -62,7 +64,7 @@ public class InputImpl implements Input {
 	 * @param v
 	 *            value to set this Input to.
 	 */
-	public void setValue(double v) {
+	public void setValue(BigDecimal v) {
 		this.value = v;
 	}
 }

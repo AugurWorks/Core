@@ -4,11 +4,14 @@ import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+
+import org.apache.commons.lang3.Validate;
 
 /**
  * Simple rectangular neural network.
@@ -94,15 +97,15 @@ public class RectNetFixed extends Net {
 	 *            row number of neuron to right of connection
 	 * @return weight from right neuron to left neuron.
 	 */
-	public double getWeight(int leftCol, int leftRow, int rightCol, int rightRow) {
-		assert (leftCol >= 0);
-		assert (leftRow >= 0);
-		assert (rightCol >= 0);
-		assert (rightRow >= 0);
-		assert (leftCol < this.y);
-		assert (rightCol < this.y);
-		assert (leftRow < this.x);
-		assert (rightRow < this.x);
+	public BigDecimal getWeight(int leftCol, int leftRow, int rightCol, int rightRow) {
+		Validate.isTrue(leftCol >= 0);
+		Validate.isTrue(leftRow >= 0);
+		Validate.isTrue(rightCol >= 0);
+		Validate.isTrue(rightRow >= 0);
+		Validate.isTrue(leftCol < this.y);
+		Validate.isTrue(rightCol < this.y);
+		Validate.isTrue(leftRow < this.x);
+		Validate.isTrue(rightRow < this.x);
 		return this.neurons[rightCol][rightRow].getWeight(leftRow);
 	}
 
@@ -133,9 +136,9 @@ public class RectNetFixed extends Net {
 	 *            neuron.
 	 * @return the weight from the output neuron to the neuron in leftRow
 	 */
-	public double getOutputNeuronWeight(int leftRow) {
-		assert (leftRow >= 0);
-		assert (leftRow < this.y);
+	public BigDecimal getOutputNeuronWeight(int leftRow) {
+		Validate.isTrue(leftRow >= 0);
+		Validate.isTrue(leftRow < this.y);
 		return this.output.getWeight(leftRow);
 	}
 
@@ -149,9 +152,9 @@ public class RectNetFixed extends Net {
 	 * @param w
 	 *            the new weight from the output neuron to the neuron at leftRow
 	 */
-	public void setOutputNeuronWeight(int leftRow, double w) {
-		assert (leftRow >= 0);
-		assert (leftRow < this.y);
+	public void setOutputNeuronWeight(int leftRow, BigDecimal w) {
+		Validate.isTrue(leftRow >= 0);
+		Validate.isTrue(leftRow < this.y);
 		this.output.setWeight(leftRow, w);
 	}
 
@@ -171,18 +174,18 @@ public class RectNetFixed extends Net {
 	 *            weight to set on connection.
 	 */
 	public void setWeight(int leftCol, int leftRow, int rightCol, int rightRow,
-			double w) {
-		assert (leftCol >= 0);
-		assert (leftRow >= 0);
+			BigDecimal w) {
+		Validate.isTrue(leftCol >= 0);
+		Validate.isTrue(leftRow >= 0);
 		// right column should be >= 1 because the weights from first row to
 		// inputs should never be changed
-		assert (rightCol >= 1);
-		assert (rightCol - leftCol == 1);
-		assert (rightRow >= 0);
-		assert (leftCol < this.y);
-		assert (rightCol < this.y);
-		assert (leftRow < this.x);
-		assert (rightRow < this.x);
+		Validate.isTrue(rightCol >= 1);
+		Validate.isTrue(rightCol - leftCol == 1);
+		Validate.isTrue(rightRow >= 0);
+		Validate.isTrue(leftCol < this.y);
+		Validate.isTrue(rightCol < this.y);
+		Validate.isTrue(leftRow < this.x);
+		Validate.isTrue(rightRow < this.x);
 		this.neurons[rightCol][rightRow].setWeight(leftRow, w);
 	}
 
@@ -214,7 +217,7 @@ public class RectNetFixed extends Net {
 		}
 		// Make connections between neurons and inputs.
 		for (int j = 0; j < this.y; j++) {
-			this.neurons[0][j].addInput(this.inputs[j], 1.0);
+			this.neurons[0][j].addInput(this.inputs[j], BigDecimal.ONE);
 		}
 		// Make connections between neurons and neurons.
 		for (int leftCol = 0; leftCol < this.x - 1; leftCol++) {
@@ -238,8 +241,8 @@ public class RectNetFixed extends Net {
 	 * @return a double that can be used to initialize weights between network
 	 *         connections.
 	 */
-	private double initNum() {
-		return (Math.random() - .5) * 1.0;
+	private BigDecimal initNum() {
+		return BigDecimal.valueOf((Math.random() - .5) * 1.0);
 	}
 
 	/**
@@ -249,7 +252,7 @@ public class RectNetFixed extends Net {
 	 * @param inpts
 	 *            array of double to set as network inputs.
 	 */
-	public void setInputs(double[] inpts) {
+	public void setInputs(BigDecimal[] inpts) {
 		assert (inpts.length == this.y);
 		for (int j = 0; j < this.y; j++) {
 			this.inputs[j].setValue(inpts[j]);
@@ -260,9 +263,9 @@ public class RectNetFixed extends Net {
 	 * Returns the output value from this network run.
 	 */
 	@Override
-	public double getOutput() {
-		double[] outs = new double[this.y];
-		double[] ins = new double[this.y];
+	public BigDecimal getOutput() {
+		BigDecimal[] outs = new BigDecimal[this.y];
+		BigDecimal[] ins = new BigDecimal[this.y];
 		for (int j = 0; j < this.y; j++) {
 			// require recursion (depth = 0) here.
 			ins[j] = this.neurons[0][j].getOutput();
@@ -274,9 +277,9 @@ public class RectNetFixed extends Net {
 				outs[j] = this.neurons[i][j].getOutput(ins);
 			}
 			ins = outs;
-			outs = new double[this.y];
+			outs = new BigDecimal[this.y];
 		}
-		double d = this.output.getOutput(ins);
+		BigDecimal d = this.output.getOutput(ins);
 		return d;
 	}
 
@@ -293,21 +296,21 @@ public class RectNetFixed extends Net {
 	 * @param iterations
 	 *            number of times to train the network.
 	 */
-	public void train(double[] inpts, double desired, int iterations,
-			double learningConstant) {
-		assert (iterations > 0);
+	public void train(BigDecimal[] inpts, BigDecimal desired, int iterations,
+			BigDecimal learningConstant) {
+		Validate.isTrue(iterations > 0);
 		for (int lcv = 0; lcv < iterations; lcv++) {
 			// Set the inputs
 			this.setInputs(inpts);
 			// Compute the last node error
-			double deltaF = this.outputError(desired);
+			BigDecimal deltaF = this.outputError(desired);
 			if (verbose) {
 				System.out.println("DeltaF: " + deltaF);
 			}
 			// For each interior node, compute the weighted error
 			// deltas are of the form
 			// delta[col][row]
-			double[][] deltas = new double[this.x + 1][this.y];
+			BigDecimal[][] deltas = new BigDecimal[this.x + 1][this.y];
 			// spoof the rightmost deltas
 			for (int j = 0; j < y; j++) {
 				deltas[this.x][j] = deltaF;
@@ -319,15 +322,16 @@ public class RectNetFixed extends Net {
 			for (leftCol = this.x - 1; leftCol >= 0; leftCol--) {
 				rightCol = leftCol + 1;
 				for (leftRow = 0; leftRow < this.y; leftRow++) {
-					double lastOutput = this.neurons[leftCol][leftRow]
+					BigDecimal lastOutput = this.neurons[leftCol][leftRow]
 							.getLastOutput();
 					// since we're using alpha = 3 in the neurons
-					double delta = 3 * lastOutput * (1 - lastOutput);
-					double summedRightWeightDelta = 0;
+					// 3 * lastOutput * (1 - lastOutput);
+					BigDecimal delta = BigDecimal.valueOf(3).multiply(lastOutput).multiply(BigDecimal.ONE.subtract(lastOutput));
+					BigDecimal summedRightWeightDelta = BigDecimal.ZERO;
 					for (rightRow = 0; rightRow < this.y; rightRow++) {
 						if (rightCol == this.x) {
-							summedRightWeightDelta += this.output
-									.getWeight(leftRow) * deltaF;
+							summedRightWeightDelta = summedRightWeightDelta.add(this.output
+									.getWeight(leftRow).multiply(deltaF));
 							// without the break, we were adding too many of the
 							// contributions of the output node when computing
 							// the deltas value for the layer immediately left
@@ -335,12 +339,11 @@ public class RectNetFixed extends Net {
 							break;
 						} else {
 							// summing w * delta
-							summedRightWeightDelta += getWeight(leftCol,
-									leftRow, rightCol, rightRow)
-									* deltas[rightCol][rightRow];
+							summedRightWeightDelta = summedRightWeightDelta.add(getWeight(leftCol,
+									leftRow, rightCol, rightRow).multiply(deltas[rightCol][rightRow]));
 						}
 					}
-					deltas[leftCol][leftRow] = delta * summedRightWeightDelta;
+					deltas[leftCol][leftRow] = delta.multiply(summedRightWeightDelta);
 					if (verbose) {
 						System.out.println("leftCol: " + leftCol
 								+ ", leftRow: " + leftRow + ", lo*(1-lo): "
@@ -360,8 +363,7 @@ public class RectNetFixed extends Net {
 				// w' = w + r*i*delta
 				// r is the learning constant
 				// i is the output from the leftward neuron
-				double dw = learningConstant
-						* this.neurons[this.x - 1][j].getLastOutput() * deltaF;
+				BigDecimal dw = learningConstant.multiply(this.neurons[this.x - 1][j].getLastOutput()).multiply(deltaF);
 				this.output.changeWeight(j, dw);
 			}
 			// now we do the same for the internal nodes
@@ -372,10 +374,8 @@ public class RectNetFixed extends Net {
 						// w' = w + r*i*delta
 						// r is the learning constant
 						// i is the output from the leftward neuron
-						double dw = learningConstant
-								* this.neurons[leftCol][leftRow]
-										.getLastOutput()
-								* deltas[rightCol][rightRow];
+						BigDecimal dw = learningConstant.multiply(this.neurons[leftCol][leftRow]
+										.getLastOutput()).multiply(deltas[rightCol][rightRow]);
 						this.neurons[rightCol][rightRow].changeWeight(leftRow,
 								dw);
 						if (verbose) {
@@ -398,12 +398,14 @@ public class RectNetFixed extends Net {
 	 *            the desired output.
 	 * @return error using equation (output*(1-output)*(desired-output))
 	 */
-	protected double outputError(double desired) {
+	protected BigDecimal outputError(BigDecimal desired) {
 		this.getOutput();
 		// since we're using alpha = 3 in the neurons
-		return 3 * this.output.getLastOutput()
-				* (1 - this.output.getLastOutput())
-				* (desired - this.output.getLastOutput());
+		// 3 * last * ( 1 - last) * (desired - last)
+		BigDecimal last = this.output.getLastOutput();
+		BigDecimal oneMinusLast = BigDecimal.ONE.subtract(last);
+		BigDecimal desiredMinusLast = desired.subtract(last);
+		return BigDecimal.valueOf(3).multiply(last).multiply(oneMinusLast).multiply(desiredMinusLast);
 	}
 
 	/**
@@ -432,11 +434,11 @@ public class RectNetFixed extends Net {
 		int depth = 0;
 		int rowIter = 0;
 		int fileIter = 0;
-		double learningConstant = 0;
+		BigDecimal learningConstant = BigDecimal.ZERO;
 		int minTrainingRounds = 0;
-		double cutoff = 0;
-		ArrayList<double[]> inputSets = new ArrayList<double[]>();
-		ArrayList<Double> targets = new ArrayList<Double>();
+		BigDecimal cutoff = BigDecimal.ZERO;
+		ArrayList<BigDecimal[]> inputSets = new ArrayList<BigDecimal[]>();
+		ArrayList<BigDecimal> targets = new ArrayList<BigDecimal>();
 		try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
 			while ((line = reader.readLine()) != null) {
 				try {
@@ -453,22 +455,22 @@ public class RectNetFixed extends Net {
 						size = lineSplit[1].split(",");
 						rowIter = Integer.valueOf(size[0]);
 						fileIter = Integer.valueOf(size[1]);
-						learningConstant = Double.valueOf(size[2]);
+						learningConstant = BigDecimal.valueOf(Double.valueOf(size[2]));
 						minTrainingRounds = Integer.valueOf(size[3]);
-						cutoff = Double.valueOf(size[4]);
+						cutoff = BigDecimal.valueOf(Double.valueOf(size[4]));
 						break;
 					case 3:
 						// Titles
 						break;
 					default:
 						// expected
-						double target = Double.valueOf(lineSplit[0]);
+						BigDecimal target = BigDecimal.valueOf(Double.valueOf(lineSplit[0]));
 						targets.add(target);
 						// inputs
-						double[] input = new double[side];
+						BigDecimal[] input = new BigDecimal[side];
 						size = lineSplit[1].split(",");
 						for (int i = 0; i < side; i++) {
-							input[i] = Double.valueOf(size[i]);
+							input[i] = BigDecimal.valueOf(Double.valueOf(size[i]));
 						}
 						inputSets.add(input);
 						break;
@@ -500,13 +502,13 @@ public class RectNetFixed extends Net {
 		// Actually do the training part
 		long start = System.currentTimeMillis();
 		RectNetFixed r = new RectNetFixed(depth, side);
-		double maxScore = Double.NEGATIVE_INFINITY;
+		BigDecimal maxScore = BigDecimal.valueOf(Double.NEGATIVE_INFINITY);
 		int displayRounds = 1000;
-		double score = 0;
-		double testScore = 0;
-		double lastScore = Double.POSITIVE_INFINITY;
-		double bestCheck = Double.POSITIVE_INFINITY;
-		double bestTestCheck = Double.POSITIVE_INFINITY;
+		BigDecimal score = BigDecimal.ZERO;
+		BigDecimal testScore = BigDecimal.ZERO;
+		BigDecimal lastScore = BigDecimal.valueOf(Double.POSITIVE_INFINITY);
+		BigDecimal bestCheck = BigDecimal.valueOf(Double.POSITIVE_INFINITY);
+		BigDecimal bestTestCheck = BigDecimal.valueOf(Double.POSITIVE_INFINITY);
 		int i = 0;
 		boolean brokeAtLocalMax = false;
 		boolean brokeAtPerfCutoff = false;
@@ -516,21 +518,26 @@ public class RectNetFixed extends Net {
 				r.train(inputSets.get(lcv), targets.get(lcv), rowIter,
 						learningConstant);
 			}
-			score = 0;
+			score = BigDecimal.ZERO;
 			for (int lcv = 0; lcv < inputSets.size(); lcv++) {
 				r.setInputs(inputSets.get(lcv));
-				score += Math.pow((targets.get(lcv) - r.getOutput()), 2);
+				// Math.pow((targets.get(lcv) - r.getOutput()), 2)
+				BigDecimal difference = targets.get(lcv).subtract(r.getOutput());
+				score = score.add(difference.multiply(difference));
 			}
-			score *= -1.0;
-			score = score / (1.0 * inputSets.size());
+			score = score.multiply(BigDecimal.valueOf(-1.0));
+			score = score.divide(BigDecimal.ONE.multiply(BigDecimal.valueOf(inputSets.size())));
 			if (i % displayRounds == 0) {
 				int diffCounter = 0;
 				int diffCounter2 = 0;
-				double diffCutoff = .1;
-				double diffCutoff2 = .05;
-				if (bestCheck > -1.0 * score) {
+				BigDecimal diffCutoff = BigDecimal.valueOf(.1);
+				BigDecimal diffCutoff2 = BigDecimal.valueOf(.05);
+				// if (bestCheck > -1 * score) 
+				//   ==> if (bestCheck - (-1 * score) > 0) 
+				//     ==> if ( min(bestCheck - (-1 * score), 0) == 0) 
+				if (BigDecimal.ZERO.min(bestCheck.subtract(BigDecimal.valueOf(-1).multiply(score))).equals(BigDecimal.ZERO)) {
 					RectNetFixed.saveNet(saveFile, r);
-					bestCheck = -1.0 * score;
+					bestCheck = BigDecimal.valueOf(-1.0).multiply(score);
 				}
 				if (testing) {
 					int idx = saveFile.replaceAll("\\\\", "/").lastIndexOf(
@@ -540,7 +547,10 @@ public class RectNetFixed extends Net {
 					testScore = RectNetFixed.testNet(
 							saveFile.substring(0, idx + 1)
 									+ "OneThird.augtrain", r, verbose);
-					if (testScore < bestTestCheck) {
+					// if (testScore < bestTestCheck)
+					//   ==> if (testScore - bestTestCheck < 0)
+					//     ==> if ( max(testScore - bestTestCheck, 0) != 0
+					if (!BigDecimal.ZERO.max(testScore.subtract(bestTestCheck)).equals(BigDecimal.ZERO)) {
 						RectNetFixed.saveNet(saveFile.substring(0, idx2)
 								+ "Test.augsave", r);
 						bestTestCheck = testScore;
@@ -548,44 +558,56 @@ public class RectNetFixed extends Net {
 				}
 				for (int lcv = 0; lcv < inputSets.size(); lcv++) {
 					r.setInputs(inputSets.get(lcv));
-					if (Math.abs(targets.get(lcv) - r.getOutput()) > diffCutoff) {
+					// if (Math.abs(targets.get(lcv) - r.getOutput()) > diffCutoff)
+					//   ==> if (Math.abs(targets.get(lcv) - r.getOutput()) - diffCutoff > 0)
+					//     ==> if (min(Math.abs(targets.get(lcv) - r.getOutput()) - diffCutoff, 0) == 0)
+					if (BigDecimal.ZERO.min(targets.get(lcv).subtract(r.getOutput()).abs().subtract(diffCutoff)).equals(BigDecimal.ZERO)) {
 						diffCounter++;
 					}
-					if (Math.abs(targets.get(lcv) - r.getOutput()) > diffCutoff2) {
+					// if (Math.abs(targets.get(lcv) - r.getOutput()) > diffCutoff2)
+					//   ==> if (Math.abs(targets.get(lcv) - r.getOutput()) - diffCutoff2 > 0)
+					//     ==> if (min(Math.abs(targets.get(lcv) - r.getOutput()) - diffCutoff2, 0) == 0)
+					if (BigDecimal.ZERO.min(targets.get(lcv).subtract(r.getOutput()).abs().subtract(diffCutoff2)).equals(BigDecimal.ZERO)) {
 						diffCounter2++;
 					}
 				}
 				System.out.println(i + " rounds trained.");
-				System.out.println("Current score: " + -1.0 * score);
-				System.out.println("Min Score=" + -1.0 * maxScore);
+				System.out.println("Current score: " + -1.0 * score.doubleValue());
+				System.out.println("Min Score=" + -1.0 * maxScore.doubleValue());
 				if (testing) {
 					System.out.println("Current Test Score=" + testScore);
 					System.out.println("Min Test Score=" + bestTestCheck);
 				}
-				System.out.println("Score change per round=" + (lastScore + score)/displayRounds);
+				System.out.println("Score change per round=" + (lastScore.doubleValue() + score.doubleValue())/displayRounds);
 				System.out.println("Inputs Over " + diffCutoff + "="
 						+ diffCounter + " of " + inputSets.size());
 				System.out.println("Inputs Over " + diffCutoff2 + "="
 						+ diffCounter2 + " of " + inputSets.size());
-				double diff = 0;
+				BigDecimal diff = BigDecimal.ZERO;
 				for (int lcv = 0; lcv < inputSets.size(); lcv++) {
 					r.setInputs(inputSets.get(lcv));
-					diff += r.getOutput() - targets.get(lcv);
+					diff = diff.add(r.getOutput().subtract(targets.get(lcv)));
 				}
 				System.out
-						.println("AvgDiff=" + diff / (1.0 * inputSets.size()));
+						.println("AvgDiff=" + diff.doubleValue() / (1.0 * inputSets.size()));
 				System.out.println("Current learning constant: "
 						+ learningConstant);
 				System.out.println("Time elapsed (s): "
 						+ (System.currentTimeMillis() - start) / 1000.0);
 				System.out.println("");
-				lastScore = -1.0 * score;
+				lastScore = BigDecimal.valueOf(-1.0).multiply(score);
 			}
-			if (score > -1.0 * cutoff) {
+			// if (score > -1 * cutoff)
+			//   ==> if (score - (-1 * cutoff) > 0)
+			//     ==> if (min(score - (-1 * cutoff), 0) == 0)
+			if (BigDecimal.ZERO.min(score.subtract(BigDecimal.valueOf(-1.0).multiply(cutoff))).equals(BigDecimal.ZERO)) {
 				brokeAtPerfCutoff = true;
 				break;
 			}
-			if (score > maxScore) {
+			// if (score > maxScore)
+			//   ==> if (score - maxScore > 0)
+			//     ==> if (min(score - maxScore, 0) == 0)
+			if (BigDecimal.ZERO.min(score.subtract(maxScore)).equals(BigDecimal.ZERO)) {
 				maxScore = score;
 			} else if (i < minTrainingRounds) {
 				continue;
@@ -604,7 +626,7 @@ public class RectNetFixed extends Net {
 				System.out.println("Training round limit reached.");
 			}
 			System.out.println("Rounds trained: " + i);
-			System.out.println("Final score of " + -1.0 * score
+			System.out.println("Final score of " + -1.0 * score.doubleValue()
 					/ (1.0 * inputSets.size()));
 			System.out.println("Time elapsed (ms): "
 					+ ((System.currentTimeMillis() - start)));
@@ -720,7 +742,7 @@ public class RectNetFixed extends Net {
 						String outputs[] = lineSplit[1].split(",");
 						for (int edgeNum = 0; edgeNum < outputs.length; edgeNum++) {
 							net.output.setWeight(edgeNum,
-									Double.parseDouble(outputs[edgeNum]));
+									BigDecimal.valueOf(Double.parseDouble(outputs[edgeNum])));
 						}
 						break;
 					default:
@@ -729,7 +751,7 @@ public class RectNetFixed extends Net {
 						edges = lineSplit[1].split(",");
 						for (int edgeNum = 0; edgeNum < edges.length; edgeNum++) {
 							net.neurons[curCol][curRow].setWeight(edgeNum,
-									Double.parseDouble(edges[edgeNum]));
+									BigDecimal.valueOf(Double.parseDouble(edges[edgeNum])));
 						}
 						break;
 					}
@@ -749,7 +771,7 @@ public class RectNetFixed extends Net {
 	 * @param fileName
 	 * @param r
 	 */
-	public static double testNet(String fileName, RectNetFixed r,
+	public static BigDecimal testNet(String fileName, RectNetFixed r,
 			boolean verbose) {
 		boolean valid = Net.validateAUGTest(fileName, r.y);
 		if (!valid) {
@@ -764,9 +786,9 @@ public class RectNetFixed extends Net {
 		String[] lineSplit;
 		int side = r.y;
 		String[] size;
-		ArrayList<double[]> inputSets = new ArrayList<double[]>();
-		ArrayList<Double> targets = new ArrayList<Double>();
-		double[] maxMinNums = new double[4];
+		ArrayList<BigDecimal[]> inputSets = new ArrayList<BigDecimal[]>();
+		ArrayList<BigDecimal> targets = new ArrayList<BigDecimal>();
+		BigDecimal[] maxMinNums = new BigDecimal[4];
 		try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
 			while ((line = reader.readLine()) != null) {
 				try {
@@ -775,7 +797,7 @@ public class RectNetFixed extends Net {
 					case 1:
 						String[] temp = lineSplit[1].split(",");
 						for (int j = 0; j < 4; j++) {
-							maxMinNums[j] = Double.valueOf(temp[j + 2]);
+							maxMinNums[j] = BigDecimal.valueOf(Double.valueOf(temp[j + 2]));
 						}
 						break;
 					case 2:
@@ -786,13 +808,13 @@ public class RectNetFixed extends Net {
 						break;
 					default:
 						// expected
-						double target = Double.valueOf(lineSplit[0]);
+						BigDecimal target = BigDecimal.valueOf(Double.valueOf(lineSplit[0]));
 						targets.add(target);
 						// inputs
-						double[] input = new double[side];
+						BigDecimal[] input = new BigDecimal[side];
 						size = lineSplit[1].split(",");
 						for (int i = 0; i < side; i++) {
-							input[i] = Double.valueOf(size[i]);
+							input[i] = BigDecimal.valueOf(Double.valueOf(size[i]));
 						}
 						inputSets.add(input);
 						break;
@@ -807,22 +829,24 @@ public class RectNetFixed extends Net {
 			System.err.format("IOException: %s%n", x);
 			System.exit(1);
 		}
-		double score = 0;
+		BigDecimal score = BigDecimal.ZERO;
 		for (int lcv = 0; lcv < inputSets.size(); lcv++) {
 			r.setInputs(inputSets.get(lcv));
-			score += Math.pow((targets.get(lcv) - r.getOutput()), 2);
+			// score += Math.pow((targets.get(lcv) - r.getOutput()), 2);
+			BigDecimal diff = targets.get(lcv).multiply(r.getOutput());
+			score = score.add(diff.multiply(diff));
 			// System.out.println(r.getOutput());
 		}
 		if (verbose) {
-			System.out.println("Final score of " + score
+			System.out.println("Final score of " + score.doubleValue()
 					/ (1.0 * inputSets.size()));
 			// Results
 
 			System.out.println("-------------------------");
 			System.out.println("Test Results: ");
 			System.out.println("Actual, Prediction");
-			score = 0;
-			double score2 = 0;
+			score = BigDecimal.ZERO;
+			BigDecimal score2 = BigDecimal.ZERO;
 			for (int lcv = 0; lcv < inputSets.size(); lcv++) {
 				r.setInputs(inputSets.get(lcv));
 
@@ -831,23 +855,24 @@ public class RectNetFixed extends Net {
 				 * System.out.println("\tTarget: " + targets.get(lcv));
 				 * System.out.println("\tActual: " + r.getOutput());
 				 **/
-				double tempTarget = (targets.get(lcv) - maxMinNums[3])
-						* (maxMinNums[0] - maxMinNums[1])
-						/ (maxMinNums[2] - maxMinNums[3]) + maxMinNums[1];
-				double tempOutput = (r.getOutput() - maxMinNums[3])
-						* (maxMinNums[0] - maxMinNums[1])
-						/ (maxMinNums[2] - maxMinNums[3]) + maxMinNums[1];
+				BigDecimal tempTarget = (targets.get(lcv).subtract(maxMinNums[3])).multiply(
+						(maxMinNums[0].subtract(maxMinNums[1]))).divide(
+						(maxMinNums[2].subtract(maxMinNums[3]))).add(maxMinNums[1]);
+				BigDecimal tempOutput = (r.getOutput().subtract(maxMinNums[3])).multiply(
+						(maxMinNums[0].subtract(maxMinNums[1]))).divide(
+						(maxMinNums[2].subtract(maxMinNums[3]))).add(maxMinNums[1]);
 				System.out.println(tempTarget + "," + tempOutput);
-				score += Math.abs(tempTarget - tempOutput);
-				score2 += Math.pow(tempTarget - tempOutput, 2);
+				score = score.add(tempTarget.subtract(tempOutput).abs());
+				BigDecimal diff = tempTarget.subtract(tempOutput);
+				score2 = score2.add(diff.multiply(diff));
 			}
-			score /= (1.0 * inputSets.size());
-			score2 /= (1.0 * inputSets.size());
+			score = score.divide(BigDecimal.ONE.multiply(BigDecimal.valueOf(inputSets.size())));
+			score2 = score2.divide(BigDecimal.ONE.multiply(BigDecimal.valueOf(inputSets.size())));
 			System.out.println("-------------------------");
 			System.out.println("Average error=" + score);
 			System.out.println("Average squared error=" + score2);
 		}
-		return score / (1.0 * inputSets.size());
+		return score.divide(BigDecimal.ONE.multiply(BigDecimal.valueOf(inputSets.size())));
 	}
 
 	/**
@@ -857,7 +882,7 @@ public class RectNetFixed extends Net {
 	 * @param verbose
 	 * @return
 	 */
-	public static double predictTomorrow(RectNetFixed r, String trainingFile, String predFile,
+	public static BigDecimal predictTomorrow(RectNetFixed r, String trainingFile, String predFile,
 			boolean verbose, String saveFile) {
 		/*
 		 * boolean valid = Net.validateAUGPred(predFile, r.y); if (!valid) {
@@ -869,19 +894,19 @@ public class RectNetFixed extends Net {
 		String line = null;
 		int lineNumber = 1;
 		String[] lineSplit;
-		double maxNum = 1, minNum = 1, mx = 1, mn = 1, today = 0;
-		ArrayList<double[]> inputSets = new ArrayList<double[]>();
+		BigDecimal maxNum = BigDecimal.ONE, minNum = BigDecimal.ONE, mx = BigDecimal.ONE, mn = BigDecimal.ONE, today = BigDecimal.ZERO;
+		ArrayList<BigDecimal[]> inputSets = new ArrayList<BigDecimal[]>();
 		try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
 			while ((line = reader.readLine()) != null) {
 				try {
 					lineSplit = line.split(",");
 					switch (lineNumber) {
 					case 1:
-						mx = Double.valueOf(lineSplit[0]);
-						mn = Double.valueOf(lineSplit[1]);
-						maxNum = Double.valueOf(lineSplit[2]);
-						minNum = Double.valueOf(lineSplit[3]);
-						today = Double.valueOf(lineSplit[4]);
+						mx = BigDecimal.valueOf(Double.valueOf(lineSplit[0]));
+						mn = BigDecimal.valueOf(Double.valueOf(lineSplit[1]));
+						maxNum = BigDecimal.valueOf(Double.valueOf(lineSplit[2]));
+						minNum = BigDecimal.valueOf(Double.valueOf(lineSplit[3]));
+						today = BigDecimal.valueOf(Double.valueOf(lineSplit[4]));
 						break;
 					case 3:
 						boolean valid = Net.validateAUGPred(predFile,
@@ -890,9 +915,9 @@ public class RectNetFixed extends Net {
 							System.err.println("File not valid format.");
 							System.exit(1);
 						}
-						double[] input = new double[lineSplit.length];
+						BigDecimal[] input = new BigDecimal[lineSplit.length];
 						for (int i = 0; i < lineSplit.length; i++) {
-							input[i] = Double.valueOf(lineSplit[i]);
+							input[i] = BigDecimal.valueOf(Double.valueOf(lineSplit[i]));
 						}
 						inputSets.add(input);
 						break;
@@ -910,8 +935,10 @@ public class RectNetFixed extends Net {
 			System.exit(1);
 		}
 		r.setInputs(inputSets.get(0));
-		double scaledValue = (r.getOutput() - minNum) / (maxNum - minNum)
-				* (mx - mn) + mn;
+		BigDecimal first = r.getOutput().subtract(minNum);
+		BigDecimal second = maxNum.subtract(minNum);
+		BigDecimal third = mx.subtract(mn);
+		BigDecimal scaledValue = first.divide(second).multiply(third).add(mn);
 		System.out.println("Today's price is $" + today);
 		System.out.println("Tomorrow's price/change predicted to be $" + scaledValue);
 		return scaledValue;

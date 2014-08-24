@@ -1,6 +1,9 @@
 package alfred;
 
+import java.math.BigDecimal;
 import java.util.concurrent.Callable;
+
+import org.apache.commons.lang3.Validate;
 
 public class PatternParallelNode extends RectNetFixed implements
 		Callable<WeightDelta> {
@@ -43,19 +46,19 @@ public class PatternParallelNode extends RectNetFixed implements
 
 	public void train(double[] inpts, double desired, int iterations,
 			double learningConstant, WeightDelta wd) {
-		assert (iterations > 0);
+		Validate.isTrue(iterations > 0);
 		for (int lcv = 0; lcv < iterations; lcv++) {
 			// Set the inputs
 			this.setInputs(inpts);
 			// Compute the last node error
-			double deltaF = this.outputError(desired);
+			BigDecimal deltaF = this.outputError(desired);
 			if (verbose) {
 				System.out.println("DeltaF: " + deltaF);
 			}
 			// For each interior node, compute the weighted error
 			// deltas are of the form
 			// delta[col][row]
-			double[][] deltas = new double[this.x + 1][this.y];
+			BigDecimal[][] deltas = new BigDecimal[this.x + 1][this.y];
 			// spoof the rightmost deltas
 			for (int j = 0; j < y; j++) {
 				deltas[this.x][j] = deltaF;
@@ -67,15 +70,16 @@ public class PatternParallelNode extends RectNetFixed implements
 			for (leftCol = this.x - 1; leftCol >= 0; leftCol--) {
 				rightCol = leftCol + 1;
 				for (leftRow = 0; leftRow < this.y; leftRow++) {
-					double lastOutput = this.neurons[leftCol][leftRow]
+					BigDecimal lastOutput = this.neurons[leftCol][leftRow]
 							.getLastOutput();
 					// since we're using alpha = 3 in the neurons
-					double delta = 3 * lastOutput * (1 - lastOutput);
-					double summedRightWeightDelta = 0;
+					// 3 * lastOutput * (1 - lastOutput);
+					BigDecimal delta = BigDecimal.valueOf(3).multiply(lastOutput).multiply(BigDecimal.ONE.subtract(lastOutput));
+					BigDecimal summedRightWeightDelta = 0;
 					for (rightRow = 0; rightRow < this.y; rightRow++) {
 						if (rightCol == this.x) {
-							summedRightWeightDelta += this.output
-									.getWeight(leftRow) * deltaF;
+							summedRightWeightDelta = summedRightWeightDelta.add(this.output
+									.getWeight(leftRow).multiply(deltaF));
 							// without the break, we were adding too many of the
 							// contributions of the output node when computing
 							// the deltas value for the layer immediately left
@@ -83,9 +87,9 @@ public class PatternParallelNode extends RectNetFixed implements
 							break;
 						} else {
 							// summing w * delta
-							summedRightWeightDelta += getWeight(leftCol,
-									leftRow, rightCol, rightRow)
-									* deltas[rightCol][rightRow];
+							summedRightWeightDelta = summedRightWeightDelta.add(getWeight(leftCol,
+									leftRow, rightCol, rightRow)).multiply(
+									deltas[rightCol][rightRow]);
 						}
 					}
 					deltas[leftCol][leftRow] = delta * summedRightWeightDelta;
