@@ -31,6 +31,8 @@ import com.google.common.base.Throwables;
 public class RectNetFixed extends Net {
 	
 	private static final Logger log = Logger.getLogger(RectNetFixed.class);
+	private static final double NEGATIVE_INFINITY = -1000000;
+	private static final double INFINITY = 1000000;
 	// Inputs to network
 	protected InputImpl[] inputs;
 	// Every neuron with the same i is in the
@@ -113,10 +115,10 @@ public class RectNetFixed extends Net {
 		Validate.isTrue(leftRow >= 0);
 		Validate.isTrue(rightCol >= 0);
 		Validate.isTrue(rightRow >= 0);
-		Validate.isTrue(leftCol < this.y);
-		Validate.isTrue(rightCol < this.y);
-		Validate.isTrue(leftRow < this.x);
-		Validate.isTrue(rightRow < this.x);
+		Validate.isTrue(leftCol < this.x);
+		Validate.isTrue(rightCol < this.x);
+		Validate.isTrue(leftRow < this.y);
+		Validate.isTrue(rightRow < this.y);
 		return this.neurons[rightCol][rightRow].getWeight(leftRow);
 	}
 
@@ -326,7 +328,7 @@ public class RectNetFixed extends Net {
 	public void train(BigDecimal[] inpts, BigDecimal desired, int iterations,
 			BigDecimal learningConstant) {
 		Validate.isTrue(iterations > 0);
-		Validate.isTrue(inpts.length == this.x);
+		Validate.isTrue(inpts.length == this.y);
 		for (int lcv = 0; lcv < iterations; lcv++) {
 			doIteration(inpts, desired, learningConstant);
 		}
@@ -341,6 +343,7 @@ public class RectNetFixed extends Net {
 			BigDecimal trainedEstimate = net.getOutput();
 			sb.append(trainedEstimate.doubleValue()).append(" ");
 			sb.append(net.getDataSpec().getTargets().get(i).subtract(trainedEstimate).abs().doubleValue());
+			sb.append("\n");
 		}
 		try {
 			FileUtils.writeStringToFile(new File(filename), sb.toString());
@@ -425,8 +428,7 @@ public class RectNetFixed extends Net {
 				BigDecimal summedRightWeightDelta = BigDecimal.ZERO;
 				for (rightRow = 0; rightRow < this.y; rightRow++) {
 					if (rightCol == this.x) {
-						summedRightWeightDelta = summedRightWeightDelta.add(this.output
-								.getWeight(leftRow).multiply(deltaF));
+						summedRightWeightDelta = summedRightWeightDelta.add(this.output.getWeight(leftRow).multiply(deltaF));
 						// without the break, we were adding too many of the
 						// contributions of the output node when computing
 						// the deltas value for the layer immediately left
@@ -481,9 +483,9 @@ public class RectNetFixed extends Net {
 		
 		public TestStats() {
 			this.testScore = BigDecimal.ZERO;
-			this.lastScore = BigDecimal.valueOf(Double.POSITIVE_INFINITY);
-			this.bestCheck = BigDecimal.valueOf(Double.POSITIVE_INFINITY);
-			this.bestTestCheck = BigDecimal.valueOf(Double.POSITIVE_INFINITY);
+			this.lastScore = BigDecimal.valueOf(INFINITY);
+			this.bestCheck = BigDecimal.valueOf(INFINITY);
+			this.bestTestCheck = BigDecimal.valueOf(INFINITY);
 		}
 	}
 	
@@ -498,7 +500,7 @@ public class RectNetFixed extends Net {
 			this.startTime = start;
 			this.brokeAtLocalMax = false;
 			this.brokeAtPerfCutoff = false;
-			this.maxScore = BigDecimal.valueOf(Double.NEGATIVE_INFINITY);
+			this.maxScore = BigDecimal.valueOf(NEGATIVE_INFINITY);
 			this.displayRounds = 1000;
 		}
 	}
@@ -513,10 +515,12 @@ public class RectNetFixed extends Net {
 	 * @return The trained neural network
 	 */
 	public static RectNetFixed trainFile(String fileName, boolean verbose, String saveFile, boolean testing) {
+		log.info("Parsing file " + fileName + " for training.");
 		NetTrainSpecification netSpec = parseFile(fileName, verbose);
 		RectNetFixed net = new RectNetFixed(netSpec.getDepth(), netSpec.getSide());
 		net.setData(netSpec.getNetData());
 		// Actually do the training part
+		log.info("Net for " + fileName + " parsed, starting training.");
 		TrainingStats trainingStats = new TrainingStats(System.currentTimeMillis());
 		TestStats testStats = new TestStats();
 
@@ -547,7 +551,7 @@ public class RectNetFixed extends Net {
 			//   ==> if (score - (-1 * cutoff) > 0)
 			//     ==> if (min(score - (-1 * cutoff), 0) == 0)
 			if (BigDecimal.ZERO.min(
-					score.subtract(BigDecimal.valueOf(-1.0).multiply(netSpec.getCutoff())))
+					score.subtract(BigDecimal.valueOf(-1.0).multiply(netSpec.getPerformanceCutoff())))
 						.equals(BigDecimal.ZERO)) {
 				trainingStats.brokeAtPerfCutoff = true;
 				break;
@@ -565,7 +569,7 @@ public class RectNetFixed extends Net {
 			}
 			
 			// FIXME: wtf is this doing?
-			if (fileIteration % trainingStats.displayRounds == 0) {
+			if (fileIteration % trainingStats.displayRounds == 0 && testing) {
 				updateAndLogDisplayRound(verbose, saveFile, testing, netSpec, net,
 						trainingStats, fileIteration,
 						score, testStats, inputSets, targets);
@@ -675,9 +679,9 @@ public class RectNetFixed extends Net {
 			for (int lcv = 0; lcv < inputSets.size(); lcv++) {
 				net.setInputs(inputSets.get(lcv));
 				StringBuilder sb = new StringBuilder();
-				sb.append("Input " + lcv);
-				sb.append("Target: " + targets.get(lcv));
-				sb.append("Actual: " + net.getOutput());
+				sb.append("Input " + lcv).append(" ");
+				sb.append("Target: " + targets.get(lcv)).append(" ");
+				sb.append("Actual: " + net.getOutput().doubleValue());
 				log.debug(sb.toString());
 			}
 			log.debug("-------------------------");
@@ -757,11 +761,11 @@ public class RectNetFixed extends Net {
 		int minTrainingRounds = Integer.valueOf(trainingInfoLineSplit[3]);
 		BigDecimal cutoff = BigDecimal.valueOf(Double.valueOf(trainingInfoLineSplit[4]));
 		
-		netTrainingSpec.cutoff(cutoff);
 		netTrainingSpec.minTrainingRounds(minTrainingRounds);
 		netTrainingSpec.learningConstant(learningConstant);
 		netTrainingSpec.rowIterations(rowIter);
 		netTrainingSpec.fileIterations(fileIter);
+		netTrainingSpec.performanceCutoff(cutoff);
 	}
 
 	private static void parseSizeLine(
@@ -804,7 +808,7 @@ public class RectNetFixed extends Net {
 					line = rightCol + " ";
 					for (int leftRow = 0; leftRow < net.getY(); leftRow++) {
 						line += net.neurons[rightCol][rightRow]
-								.getWeight(leftRow) + ",";
+								.getWeight(leftRow).doubleValue() + ",";
 					}
 					out.println(line.substring(0, line.length() - 1));
 				}
@@ -1099,4 +1103,11 @@ public class RectNetFixed extends Net {
 		}
 		System.exit(0);
 	}
+
+	@Override
+	public String toString() {
+		return "RectNetFixed [x=" + x + ", y=" + y + ", verbose=" + verbose
+				+ "]";
+	}
+
 }

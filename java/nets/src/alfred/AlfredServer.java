@@ -6,10 +6,16 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Logger;
 
 
 public class AlfredServer {
+	
+	private static final Logger log = Logger.getLogger(AlfredServer.class);
+	
 	public static void main(String[] args) {
+		BasicConfigurator.configure();
 		AlfredServerArgs serverArgs = validateArguments(args);
 		if (serverArgs == null) {
 			return;
@@ -23,14 +29,17 @@ public class AlfredServer {
 			fileAlterationObserver.initialize();
 			fileAlterationMonitor.start();
 		} catch (Exception e) {
-			System.err.println("Unable to initialize file observer. Server will exit now.");
+			log.error("Unable to initialize file observer. Server will exit now.");
 			return;
 		}
 		Scanner commands = new Scanner(System.in);
-		System.out.println("Alfred Server started.");
+		log.info(String.format("Alfred Server started on %s with %s threads.",  serverArgs.fileToWatch, serverArgs.numThreads));
 		boolean shutdownRequested = false;
 		while (!shutdownRequested) {
 			String nextLine = commands.nextLine();
+			if (nextLine.trim().isEmpty()) {
+				continue;
+			}
 			Command command = Command.fromString(nextLine);
 			if (command == null) {
 				commands();
@@ -48,7 +57,7 @@ public class AlfredServer {
         } catch (Exception e) {
             // closing things. ignore errors.
         }
-		System.out.println("Alfred Server stopped.");
+		log.info("Alfred Server stopped.");
 		System.exit(0);
 	}
 	
@@ -57,7 +66,7 @@ public class AlfredServer {
 		case SHUTDOWN:
 			String[] split = line.split(" ");
 			if (split.length < 2) {
-				System.err.println("Could not parse time to wait for shutdown. Will shutdown now.");
+				log.error("Could not parse time to wait for shutdown. Will shutdown now.");
 			} else {
 				String minutesToWaitString = split[1];
 				try {
@@ -65,17 +74,17 @@ public class AlfredServer {
 					alfredListener.shutdownAndAwaitTermination(minutesToWait, TimeUnit.MINUTES);
 					return;
 				} catch (NumberFormatException e) {
-					System.err.println("Could not parse time to wait for shutdown. Will shutdown now.");
+					log.error("Could not parse time to wait for shutdown. Will shutdown now.");
 				}
 			}
 		case SHUTDOWN_NOW:
 			alfredListener.shutdownNow();
 			return;
 		case STATUS:
-			System.out.println("Server Status:");
-			System.out.println("  Jobs in progress : " + alfredListener.getJobsInProgress());
-			System.out.println("  Jobs submitted   : " + alfredListener.getJobsSubmitted());
-			System.out.println("  Jobs completed   : " + alfredListener.getJobsCompleted());
+			log.info("Server Status:");
+			log.info("  Jobs in progress : " + alfredListener.getJobsInProgress());
+			log.info("  Jobs submitted   : " + alfredListener.getJobsSubmitted());
+			log.info("  Jobs completed   : " + alfredListener.getJobsCompleted());
 			return;
 		default: 
 			return;
@@ -100,12 +109,12 @@ public class AlfredServer {
 		String directory = args[0];
 		File f = new File(directory);
 		if (f.exists() && !f.isDirectory()) {
-			System.err.println("File " + directory + " already exists.");
+			log.error("File " + directory + " already exists.");
 			throw new IllegalArgumentException("File " + directory + " already exists.");
 		} else if (!f.exists()) { 
 			boolean success = f.mkdirs();
 			if (!success) {
-				System.err.println("Directory " + directory + " cannot be created.");
+				log.error("Directory " + directory + " cannot be created.");
 				throw new IllegalArgumentException("Directory " + directory + " cannot be created.");
 			}
 		}
@@ -113,14 +122,14 @@ public class AlfredServer {
 		try {
 			numThreads = Integer.parseInt(args[1]);
 		} catch (NumberFormatException e) {
-			System.err.println("Could not parse " + args[1] + " as an integer.");
+			log.error("Could not parse " + args[1] + " as an integer.");
 			throw new IllegalArgumentException("Could not parse " + args[1] + " as an integer.");
 		}
 		return new AlfredServerArgs(f, numThreads);
 	}
 	
 	private static void usage() {
-		System.out.println("Usage: AlfredServer <directory to poll> <number of threads for server>");
+		log.info("Usage: AlfredServer <directory to poll> <number of threads for server>");
 	}
 	
 	private enum Command {
@@ -157,9 +166,9 @@ public class AlfredServer {
 	}
 	
 	private static void commands() {
-		System.out.println("Commands are:");
+		log.info("Commands are:");
 		for (Command command : Command.values()) {
-			System.out.println("  " + command.name() + ": " + command.getHelpText());
+			log.info("  " + command.name() + ": " + command.getHelpText());
 		}
 	}
 }

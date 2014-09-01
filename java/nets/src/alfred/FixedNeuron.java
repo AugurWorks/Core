@@ -117,7 +117,10 @@ public class FixedNeuron implements Input {
 		//	1.0 / (1.0 + Math.exp(-3.0 * input));
 		return BigDecimal.ONE.divide(
 				BigDecimal.ONE.add(
-						BigDecimals.exp(BigDecimal.valueOf(-3).multiply(input))));
+						BigDecimals.exp(BigDecimal.valueOf(-3).multiply(input,
+																		BigDecimals.MATH_CONTEXT)),
+						BigDecimals.MATH_CONTEXT), 
+				BigDecimals.MATH_CONTEXT);
 	}
 
 	/**
