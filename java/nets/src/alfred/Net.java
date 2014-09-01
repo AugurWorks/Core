@@ -21,6 +21,7 @@ public abstract class Net {
 		TRAIN("augtrain"),
 		SAVE("augsave"),
 		PREDICTION("augpred"),
+		AUGOUT("augout"),
 		;
 		
 		private final String suffix;
@@ -104,15 +105,15 @@ public abstract class Net {
 							throw new RuntimeException();
 						break;
 					default:
-						if (!(Double.valueOf(lineSplit[0]) != null))
+						if (!(Double.valueOf(lineSplit[1]) != null))
 							throw new RuntimeException();
-						size = lineSplit[1].split(",");
+						size = lineSplit[2].split(",");
 						for (String s : size) {
 							if (Double.valueOf(s).equals(null)) {
 								throw new RuntimeException();
 							}
 						}
-						if (!(size.length == n))
+						if (size.length != n)
 							throw new RuntimeException();
 						break;
 					}

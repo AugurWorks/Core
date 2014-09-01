@@ -60,7 +60,7 @@ public class FixedNeuron implements Input {
 		Validate.isTrue(this.numInputsFilled >= 0);
 		if (numInputsFilled >= this.numInputs) {
 			System.err.println("Too many inputs added to neuron");
-			return;
+			throw new IllegalStateException("Too many inputs added to neuron");
 		}
 		this.inputs[numInputsFilled] = n;
 		this.weights[numInputsFilled] = w;
