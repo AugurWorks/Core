@@ -1,6 +1,7 @@
 package alfred;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -20,7 +21,6 @@ import org.apache.log4j.Logger;
 import alfred.NetTrainSpecification.Builder;
 
 import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
 
 /**
  * Simple rectangular neural network.
@@ -29,6 +29,7 @@ import com.google.common.collect.Lists;
  * 
  */
 public class RectNetFixed extends Net {
+	
 	private static final Logger log = Logger.getLogger(RectNetFixed.class);
 	// Inputs to network
 	protected InputImpl[] inputs;
@@ -44,6 +45,7 @@ public class RectNetFixed extends Net {
 	protected FixedNeuron output;
 	// Prints debug output when true.
 	protected boolean verbose = false;
+	private NetDataSpecification netData = null;
 
 	/**
 	 * Constructs a new RectNet with 10 inputs and 5 layers of network.
@@ -134,6 +136,14 @@ public class RectNetFixed extends Net {
 	 */
 	public int getY() {
 		return y;
+	}
+	
+	public void setData(NetDataSpecification dataSpec) {
+		this.netData = dataSpec;
+	}
+	
+	public NetDataSpecification getDataSpec() {
+		return this.netData;
 	}
 
 	/**
@@ -321,6 +331,23 @@ public class RectNetFixed extends Net {
 			doIteration(inpts, desired, learningConstant);
 		}
 	}
+	
+	public static void writeAugoutFile(String filename, RectNetFixed net) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < net.getDataSpec().getDates().size(); i++) {
+			sb.append(net.getDataSpec().getDates().get(i)).append(" ");
+			sb.append(net.getDataSpec().getTargets().get(i).doubleValue()).append(" ");
+			net.setInputs(net.getDataSpec().getInputSets().get(i));
+			BigDecimal trainedEstimate = net.getOutput();
+			sb.append(trainedEstimate.doubleValue()).append(" ");
+			sb.append(net.getDataSpec().getTargets().get(i).subtract(trainedEstimate).abs().doubleValue());
+		}
+		try {
+			FileUtils.writeStringToFile(new File(filename), sb.toString());
+		} catch (Throwable t) {
+			log.error("Unable to write to file " + filename, t);
+		}
+	}
 
 	private void doIteration(BigDecimal[] inpts, BigDecimal desired, BigDecimal learningConstant) {
 		// Set the inputs
@@ -359,10 +386,8 @@ public class RectNetFixed extends Net {
 					this.neurons[rightCol][rightRow].changeWeight(leftRow,
 							dw);
 					if (verbose) {
-						System.out.println(leftCol + "," + leftRow + "->"
-								+ rightCol + "," + rightRow);
-						System.out.println(this.neurons[rightCol][rightRow]
-								.getWeight(leftRow));
+						log.debug(leftCol + "," + leftRow + "->" + rightCol + "," + rightRow);
+						log.debug(this.neurons[rightCol][rightRow].getWeight(leftRow));
 					}
 				}
 			}
@@ -490,7 +515,7 @@ public class RectNetFixed extends Net {
 	public static RectNetFixed trainFile(String fileName, boolean verbose, String saveFile, boolean testing) {
 		NetTrainSpecification netSpec = parseFile(fileName, verbose);
 		RectNetFixed net = new RectNetFixed(netSpec.getDepth(), netSpec.getSide());
-		
+		net.setData(netSpec.getNetData());
 		// Actually do the training part
 		TrainingStats trainingStats = new TrainingStats(System.currentTimeMillis());
 		TestStats testStats = new TestStats();
@@ -498,8 +523,8 @@ public class RectNetFixed extends Net {
 		int fileIteration = 0;
 		BigDecimal score = null;
 		
-		List<BigDecimal[]> inputSets = netSpec.getInputSets();
-		List<BigDecimal> targets = netSpec.getTargets();
+		List<BigDecimal[]> inputSets = netSpec.getNetData().getInputSets();
+		List<BigDecimal> targets = netSpec.getNetData().getTargets();
 		for (fileIteration = 0; fileIteration < netSpec.getNumberFileIterations(); fileIteration++) {
 			
 			// train all data rows for numberRowIterations times.
@@ -694,7 +719,7 @@ public class RectNetFixed extends Net {
 			log.info("File path: " + fileName);
 			log.info("Number Inputs: " + netTrainingSpec.getSide());
 			log.info("Net depth: " + netTrainingSpec.getDepth());
-			log.info("Number training sets: " + netTrainingSpec.getTargets().size());
+			log.info("Number training sets: " + netTrainingSpec.getNetData().getTargets().size());
 			log.info("Row iterations: " + netTrainingSpec.getNumberRowIterations());
 			log.info("File iterations: " + netTrainingSpec.getNumberFileIterations());
 			log.info("Learning constant: " + netTrainingSpec.getLearningConstant());
@@ -709,14 +734,15 @@ public class RectNetFixed extends Net {
 			Iterator<String> fileLineIterator) {
 		String dataLine = fileLineIterator.next();
 		String[] dataLineSplit = dataLine.split(" ");
-		BigDecimal target = BigDecimal.valueOf(Double.valueOf(dataLineSplit[0]));
+		String date = dataLineSplit[0];
+		BigDecimal target = BigDecimal.valueOf(Double.valueOf(dataLineSplit[1]));
 		// inputs
 		BigDecimal[] input = new BigDecimal[netTrainingSpec.getSide()];
-		dataLineSplit = dataLineSplit[1].split(",");
+		dataLineSplit = dataLineSplit[2].split(",");
 		for (int i = 0; i < netTrainingSpec.getSide(); i++) {
 			input[i] = BigDecimal.valueOf(Double.valueOf(dataLineSplit[i]));
 		}
-		netTrainingSpec.addInputAndTarget(input, target);
+		netTrainingSpec.addInputAndTarget(input, target, date);
 	}
 
 	private static void parseTrainingInfoLine(
@@ -761,8 +787,7 @@ public class RectNetFixed extends Net {
 	public static void saveNet(String fileName, RectNetFixed net) {
 		try {
 			if (!(fileName.toLowerCase().endsWith(".augsave"))) {
-				System.err
-						.println("Output file name to save to should end in .augsave");
+				log.error("Output file name to save to should end in .augsave");
 				return;
 			}
 			PrintWriter out = new PrintWriter(new FileWriter(fileName));
@@ -786,8 +811,8 @@ public class RectNetFixed extends Net {
 			}
 			out.close();
 		} catch (IOException e) {
-			System.err.println("Error occured opening file to saveNet");
-			throw new RuntimeException("Could not open file");
+			log.error("Error occured opening file to saveNet");
+			throw new IllegalArgumentException("Could not open file");
 		}
 	}
 
@@ -935,7 +960,6 @@ public class RectNetFixed extends Net {
 			// score += Math.pow((targets.get(lcv) - r.getOutput()), 2);
 			BigDecimal diff = targets.get(lcv).multiply(r.getOutput());
 			score = score.add(diff.multiply(diff));
-			// System.out.println(r.getOutput());
 		}
 		if (verbose) {
 			System.out.println("Final score of " + score.doubleValue()
@@ -950,11 +974,6 @@ public class RectNetFixed extends Net {
 			for (int lcv = 0; lcv < inputSets.size(); lcv++) {
 				r.setInputs(inputSets.get(lcv));
 
-				/**
-				 * System.out.println("Input " + lcv);
-				 * System.out.println("\tTarget: " + targets.get(lcv));
-				 * System.out.println("\tActual: " + r.getOutput());
-				 **/
 				BigDecimal tempTarget = (targets.get(lcv).subtract(maxMinNums[3])).multiply(
 						(maxMinNums[0].subtract(maxMinNums[1]))).divide(
 						(maxMinNums[2].subtract(maxMinNums[3]))).add(maxMinNums[1]);

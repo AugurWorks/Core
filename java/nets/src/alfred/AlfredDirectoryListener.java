@@ -67,7 +67,9 @@ public class AlfredDirectoryListener extends FileAlterationListenerAdaptor {
 				try {
 					semaphore.acquire();
 					jobsInProgress.incrementAndGet();
-					RectNetFixed.trainFile(fileName, false, fileName + "." + NetType.SAVE, false);
+					RectNetFixed net = RectNetFixed.trainFile(fileName, false, fileName + "." + NetType.SAVE, false);
+					RectNetFixed.saveNet(fileName + "." + NetType.SAVE, net);
+					RectNetFixed.writeAugoutFile(fileName + "." + NetType.AUGOUT, net);
 				} finally {
 					semaphore.release();
 					jobsInProgress.decrementAndGet();

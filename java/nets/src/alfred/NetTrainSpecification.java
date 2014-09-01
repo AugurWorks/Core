@@ -1,16 +1,10 @@
 package alfred;
 
 import java.math.BigDecimal;
-import java.util.List;
-
-import org.apache.commons.lang3.Validate;
-
-import com.google.common.collect.Lists;
 
 public class NetTrainSpecification {
 
-	private final List<BigDecimal> targets;
-	private final List<BigDecimal[]> inputSets;
+	private final NetDataSpecification netData;
 	private final BigDecimal cutoff;
 	private final int depth;
 	private final int side;
@@ -20,13 +14,11 @@ public class NetTrainSpecification {
 	private final int minTrainingRounds;
 	private final BigDecimal performanceCutoff;
 
-	public NetTrainSpecification(List<BigDecimal> targets,
-			List<BigDecimal[]> inputSets, BigDecimal cutoff, int depth, int side,
+	public NetTrainSpecification(NetDataSpecification netData, BigDecimal cutoff, int depth, int side,
 			int numberRowIterations, int numberFileIterations,
 			BigDecimal learningConstant, int minTrainingRounds,
 			BigDecimal performanceCutoff) {
-		this.targets = targets;
-		this.inputSets = inputSets;
+		this.netData = netData;
 		this.cutoff = cutoff;
 		this.depth = depth;
 		this.side = side;
@@ -38,8 +30,7 @@ public class NetTrainSpecification {
 	}
 	
 	public static class Builder {
-		private List<BigDecimal> targets = Lists.newArrayList();
-		private List<BigDecimal[]> inputSets = Lists.newArrayList();
+		private NetDataSpecification.Builder dataBuilder = new NetDataSpecification.Builder();
 		private BigDecimal cutoff;
 		private int depth;
 		private int numberRowIterations;
@@ -48,16 +39,6 @@ public class NetTrainSpecification {
 		private int minTrainingRounds;
 		private BigDecimal performanceCutoff;
 		private int side;
-		
-		public Builder targets(List<BigDecimal> targets) {
-			this.targets = targets;
-			return this;
-		}
-		
-		public Builder inputSets(List<BigDecimal[]> inputSets) {
-			this.inputSets = inputSets;
-			return this;
-		}
 		
 		public Builder cutoff(BigDecimal cutoff) {
 			this.cutoff = cutoff;
@@ -89,9 +70,8 @@ public class NetTrainSpecification {
 			return this;
 		}
 		
-		public Builder addInputAndTarget(BigDecimal[] inputs, BigDecimal target) {
-			this.inputSets.add(inputs);
-			this.targets.add(target);
+		public Builder addInputAndTarget(BigDecimal[] inputs, BigDecimal target, String date) {
+			this.dataBuilder.addDataRow(date, target, inputs);
 			return this;
 		}
 		
@@ -110,18 +90,13 @@ public class NetTrainSpecification {
 		}
 		
 		public NetTrainSpecification build() {
-			Validate.isTrue(inputSets.size() == targets.size());
-			return new NetTrainSpecification(targets, inputSets, cutoff, depth, side, numberRowIterations, 
+			return new NetTrainSpecification(dataBuilder.build(), cutoff, depth, side, numberRowIterations, 
 					numberFileIterations, learningConstant, minTrainingRounds, performanceCutoff);
 		}
 	}
 
-	public List<BigDecimal> getTargets() {
-		return targets;
-	}
-
-	public List<BigDecimal[]> getInputSets() {
-		return inputSets;
+	public NetDataSpecification getNetData() {
+		return netData;
 	}
 
 	public BigDecimal getCutoff() {
