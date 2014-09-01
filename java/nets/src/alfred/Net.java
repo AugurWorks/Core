@@ -112,7 +112,7 @@ public abstract class Net {
 								throw new RuntimeException();
 							}
 						}
-						if (!(size.length == n))
+						if (size.length != n && size.length != n + 1)
 							throw new RuntimeException();
 						break;
 					}

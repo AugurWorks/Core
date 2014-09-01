@@ -24,7 +24,7 @@ public class BigDecimals {
 			oldVal = retVal;
 			retVal = retVal.add(value.pow(n, mc).divide(factorial(n), mc), mc);
 			n++;
-		} while (!(retVal.equals(oldVal)));
+		} while (!retVal.equals(oldVal));
 		return retVal.round(new MathContext(precision));
 	}
 

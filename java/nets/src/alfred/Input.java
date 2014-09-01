@@ -13,14 +13,13 @@ public interface Input {
 	/**
 	 * Returns the output of this Inp.
 	 * 
-	 * @param code
-	 *            Used in implementations for caching prior outputs.
+	 * @param code Used in implementations for caching prior outputs.
 	 * @return Output of this Inp
 	 */
 	public BigDecimal getOutput(int code);
 
 	/**
-	 * Returns the output of this Inp. Requires recursion.
+	 * Returns the output of this Inp.
 	 * 
 	 * @return output of this Inp
 	 */

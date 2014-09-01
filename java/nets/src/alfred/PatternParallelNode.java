@@ -51,7 +51,7 @@ public class PatternParallelNode extends RectNetFixed implements
 			// Set the inputs
 			this.setInputs(inpts);
 			// Compute the last node error
-			BigDecimal deltaF = this.outputError(desired);
+			BigDecimal deltaF = this.getOutputError(desired);
 			if (verbose) {
 				System.out.println("DeltaF: " + deltaF);
 			}
