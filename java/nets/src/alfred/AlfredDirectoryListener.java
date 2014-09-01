@@ -9,10 +9,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
+import org.apache.log4j.Logger;
 
 import alfred.Net.NetType;
 
 public class AlfredDirectoryListener extends FileAlterationListenerAdaptor {
+	private static final Logger log = Logger.getLogger(AlfredDirectoryListener.class);
 	private final ExecutorService exec;
 	private AtomicInteger jobsSubmitted = new AtomicInteger();
 	private AtomicInteger jobsCompleted = new AtomicInteger();
@@ -45,14 +47,14 @@ public class AlfredDirectoryListener extends FileAlterationListenerAdaptor {
 		try {
 			exec.awaitTermination(timeout, unit);
 		} catch (InterruptedException e) {
-			System.err.println("Interrupted while terminating. Will shutdown now.");
+			log.error("Interrupted while terminating. Will shutdown now.");
 			throw new IllegalStateException("Interrupted while terminating. Will shutdown now.");
 		}
 	}
 
 	@Override
 	public void onFileCreate(File changedFile) {
-		System.out.println("File created! " + changedFile);
+		log.info("File created " + changedFile);
 		NetType netType = Net.NetType.fromFile(changedFile.getName());
 		if (netType == NetType.TRAIN) {
 			exec.submit(getTrainCallable(changedFile.getAbsolutePath()));
@@ -67,9 +69,17 @@ public class AlfredDirectoryListener extends FileAlterationListenerAdaptor {
 				try {
 					semaphore.acquire();
 					jobsInProgress.incrementAndGet();
-					RectNetFixed net = RectNetFixed.trainFile(fileName, false, fileName + "." + NetType.SAVE, false);
-					RectNetFixed.saveNet(fileName + "." + NetType.SAVE, net);
-					RectNetFixed.writeAugoutFile(fileName + "." + NetType.AUGOUT, net);
+					log.info("Starting training for file " + fileName);
+					RectNetFixed net = RectNetFixed.trainFile(fileName, true, fileName + "." + NetType.SAVE.getSuffix().toLowerCase(), false);
+					log.info("Training complete for file " + net);
+					log.info("Saving net for file " + fileName);
+					RectNetFixed.saveNet(fileName + "." + NetType.SAVE.getSuffix().toLowerCase(), net);
+					log.info("Net saved for file " + fileName);
+					log.info("Writing augout file for " + fileName);
+					RectNetFixed.writeAugoutFile(fileName + "." + NetType.AUGOUT.getSuffix().toLowerCase(), net);
+					log.info("Augout written for " + fileName);
+				} catch (Throwable t) {
+					log.error("Exception caught during evaluation of " + fileName, t);
 				} finally {
 					semaphore.release();
 					jobsInProgress.decrementAndGet();

@@ -2,10 +2,12 @@ package alfred;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.math.RoundingMode;
 
 public class BigDecimals {
 	
 	public static final int DEFAULT_PRECISION = 40;
+	public static final MathContext MATH_CONTEXT = new MathContext(DEFAULT_PRECISION, RoundingMode.HALF_UP);
 	
 	private BigDecimals() {
 		// utility class
