@@ -545,7 +545,7 @@ public class RectNetFixed extends Net {
 				score = score.add(difference.multiply(difference));
 			}
 			score = score.multiply(BigDecimal.valueOf(-1.0));
-			score = score.divide(BigDecimal.valueOf(inputSets.size()));
+			score = score.divide(BigDecimal.valueOf(inputSets.size()), BigDecimals.MATH_CONTEXT);
 			
 			// if (score > -1 * cutoff)
 			//   ==> if (score - (-1 * cutoff) > 0)
@@ -980,22 +980,22 @@ public class RectNetFixed extends Net {
 
 				BigDecimal tempTarget = (targets.get(lcv).subtract(maxMinNums[3])).multiply(
 						(maxMinNums[0].subtract(maxMinNums[1]))).divide(
-						(maxMinNums[2].subtract(maxMinNums[3]))).add(maxMinNums[1]);
+						(maxMinNums[2].subtract(maxMinNums[3])), BigDecimals.MATH_CONTEXT).add(maxMinNums[1]);
 				BigDecimal tempOutput = (r.getOutput().subtract(maxMinNums[3])).multiply(
 						(maxMinNums[0].subtract(maxMinNums[1]))).divide(
-						(maxMinNums[2].subtract(maxMinNums[3]))).add(maxMinNums[1]);
+						(maxMinNums[2].subtract(maxMinNums[3])), BigDecimals.MATH_CONTEXT).add(maxMinNums[1]);
 				System.out.println(tempTarget + "," + tempOutput);
 				score = score.add(tempTarget.subtract(tempOutput).abs());
 				BigDecimal diff = tempTarget.subtract(tempOutput);
 				score2 = score2.add(diff.multiply(diff));
 			}
-			score = score.divide(BigDecimal.ONE.multiply(BigDecimal.valueOf(inputSets.size())));
-			score2 = score2.divide(BigDecimal.ONE.multiply(BigDecimal.valueOf(inputSets.size())));
+			score = score.divide(BigDecimal.valueOf(inputSets.size()), BigDecimals.MATH_CONTEXT);
+			score2 = score2.divide(BigDecimal.valueOf(inputSets.size()), BigDecimals.MATH_CONTEXT);
 			System.out.println("-------------------------");
 			System.out.println("Average error=" + score);
 			System.out.println("Average squared error=" + score2);
 		}
-		return score.divide(BigDecimal.ONE.multiply(BigDecimal.valueOf(inputSets.size())));
+		return score.divide(BigDecimal.valueOf(inputSets.size()), BigDecimals.MATH_CONTEXT);
 	}
 
 	/**
@@ -1061,7 +1061,7 @@ public class RectNetFixed extends Net {
 		BigDecimal first = r.getOutput().subtract(minNum);
 		BigDecimal second = maxNum.subtract(minNum);
 		BigDecimal third = mx.subtract(mn);
-		BigDecimal scaledValue = first.divide(second).multiply(third).add(mn);
+		BigDecimal scaledValue = first.divide(second, BigDecimals.MATH_CONTEXT).multiply(third).add(mn);
 		System.out.println("Today's price is $" + today);
 		System.out.println("Tomorrow's price/change predicted to be $" + scaledValue);
 		return scaledValue;
