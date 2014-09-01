@@ -51,6 +51,10 @@ public class AlfredDirectoryListener extends FileAlterationListenerAdaptor {
 			throw new IllegalStateException("Interrupted while terminating. Will shutdown now.");
 		}
 	}
+	
+	public boolean isShutdown() {
+		return exec.isTerminated();
+	}
 
 	@Override
 	public void onFileCreate(File changedFile) {
