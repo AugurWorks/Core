@@ -7,17 +7,17 @@ import org.apache.commons.lang3.Validate;
 
 public class PatternParallelNode extends RectNetFixed implements
 		Callable<WeightDelta> {
-	private double[][] trainingData;
-	private double[] desired;
+	private BigDecimal[][] trainingData;
+	private BigDecimal[] desired;
 	private int iterations;
-	private double learningConstant;
+	private BigDecimal learningConstant;
 
 	/**
 	 * Should be handed: 1) Training set 2) Number of rounds 3) Current net to
 	 * copy
 	 */
-	public PatternParallelNode(RectNetFixed r, double[][] inpts,
-			double[] desired, int iterations, double learningConstant) {
+	public PatternParallelNode(RectNetFixed r, BigDecimal[][] inpts,
+			BigDecimal[] desired, int iterations, BigDecimal learningConstant) {
 		super(r.getX(), r.getY());
 		init(r);
 		this.trainingData = inpts;
@@ -32,20 +32,20 @@ public class PatternParallelNode extends RectNetFixed implements
 			int rightCol = leftCol + 1;
 			for (int leftRow = 0; leftRow < this.y; leftRow++) {
 				for (int rightRow = 0; rightRow < this.y; rightRow++) {
-					double w = r
+					BigDecimal w = r
 							.getWeight(leftCol, leftRow, rightCol, rightRow);
 					this.setWeight(leftCol, leftRow, rightCol, rightRow, w);
 				}
 			}
 		}
 		for (int j = 0; j < this.y; j++) {
-			double w = r.getOutputNeuronWeight(j);
+			BigDecimal w = r.getOutputNeuronWeight(j);
 			this.setOutputNeuronWeight(j, w);
 		}
 	}
 
-	public void train(double[] inpts, double desired, int iterations,
-			double learningConstant, WeightDelta wd) {
+	public void train(BigDecimal[] inpts, BigDecimal desired, int iterations,
+			BigDecimal learningConstant, WeightDelta wd) {
 		Validate.isTrue(iterations > 0);
 		for (int lcv = 0; lcv < iterations; lcv++) {
 			// Set the inputs
@@ -75,7 +75,7 @@ public class PatternParallelNode extends RectNetFixed implements
 					// since we're using alpha = 3 in the neurons
 					// 3 * lastOutput * (1 - lastOutput);
 					BigDecimal delta = BigDecimal.valueOf(3).multiply(lastOutput).multiply(BigDecimal.ONE.subtract(lastOutput));
-					BigDecimal summedRightWeightDelta = 0;
+					BigDecimal summedRightWeightDelta = BigDecimal.ZERO;
 					for (rightRow = 0; rightRow < this.y; rightRow++) {
 						if (rightCol == this.x) {
 							summedRightWeightDelta = summedRightWeightDelta.add(this.output
@@ -92,7 +92,7 @@ public class PatternParallelNode extends RectNetFixed implements
 									deltas[rightCol][rightRow]);
 						}
 					}
-					deltas[leftCol][leftRow] = delta * summedRightWeightDelta;
+					deltas[leftCol][leftRow] = delta.multiply(summedRightWeightDelta);
 					if (verbose) {
 						System.out.println("leftCol: " + leftCol
 								+ ", leftRow: " + leftRow + ", lo*(1-lo): "
@@ -112,8 +112,8 @@ public class PatternParallelNode extends RectNetFixed implements
 				// w' = w + r*i*delta
 				// r is the learning constant
 				// i is the output from the leftward neuron
-				double dw = learningConstant
-						* this.neurons[this.x - 1][j].getLastOutput() * deltaF;
+				BigDecimal dw = learningConstant.multiply(
+						this.neurons[this.x - 1][j].getLastOutput()).multiply(deltaF);
 				this.output.changeWeight(j, dw);
 				wd.changeOutputDelta(dw, j);
 			}
@@ -125,10 +125,10 @@ public class PatternParallelNode extends RectNetFixed implements
 						// w' = w + r*i*delta
 						// r is the learning constant
 						// i is the output from the leftward neuron
-						double dw = learningConstant
-								* this.neurons[leftCol][leftRow]
-										.getLastOutput()
-								* deltas[rightCol][rightRow];
+						BigDecimal dw = learningConstant.multiply(
+								this.neurons[leftCol][leftRow]
+										.getLastOutput()).multiply(
+								deltas[rightCol][rightRow]);
 						this.neurons[rightCol][rightRow].changeWeight(leftRow,
 								dw);
 						wd.changeInnerDelta(dw, rightCol, rightRow, leftRow);
@@ -144,8 +144,8 @@ public class PatternParallelNode extends RectNetFixed implements
 		}
 	}
 
-	public void train(double[][] inpts, double[] desired, int iterations,
-			double learningConstant, WeightDelta wd) {
+	public void train(BigDecimal[][] inpts, BigDecimal[] desired, int iterations,
+			BigDecimal learningConstant, WeightDelta wd) {
 		for (int i = 0; i < inpts.length; i++) {
 			train(inpts[i], desired[i], iterations, learningConstant, wd);
 			//System.out.println("inpts: " + inpts[i][0] + ", " + inpts[i][1]);

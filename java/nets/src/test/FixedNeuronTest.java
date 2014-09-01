@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.math.BigDecimal;
 import java.util.Random;
 
 import org.junit.After;
@@ -90,19 +91,19 @@ public class FixedNeuronTest {
 	 */
 	@Test
 	public void testGetSetWeight() {
-		double weight = f.getWeight(randomLegalIndex());
-		assertEquals("Initial weights should be 0", weight, 0, EPSILON);
+		BigDecimal weight = f.getWeight(randomLegalIndex());
+		assertEquals("Initial weights should be 0", weight.doubleValue(), 0, EPSILON);
 
 		int idx = randomLegalIndex();
-		double val = random.nextDouble();
+		BigDecimal val = BigDecimal.valueOf(random.nextDouble());
 		f.setWeight(idx, val);
 		weight = f.getWeight(idx);
-		assertEquals("Would should have changed", weight, val, EPSILON);
+		assertEquals("Would should have changed", weight.doubleValue(), val.doubleValue(), EPSILON);
 
 		// illegal locations
 		try {
 			idx = -1;
-			f.setWeight(idx, 0);
+			f.setWeight(idx, BigDecimal.ZERO);
 			fail("Should not be able to set weight of negative index");
 		} catch (Exception e) {
 			// should go here
@@ -110,7 +111,7 @@ public class FixedNeuronTest {
 		}
 		try {
 			idx = SIZE;
-			f.setWeight(idx, 0);
+			f.setWeight(idx, BigDecimal.ZERO);
 			fail("Should not be able to set weight of too large index");
 		} catch (Exception e) {
 			// should go here
@@ -127,12 +128,12 @@ public class FixedNeuronTest {
 	public void testAddInput() {
 		// adding Input objects
 		for (int i = 0; i < SIZE + 1; i++) {
-			f.addInput(new InputImpl(), random.nextDouble());
+			f.addInput(new InputImpl(), BigDecimal.valueOf(random.nextDouble()));
 		}
 		// adding FixedNeuron objects
 		f = new FixedNeuron(SIZE);
 		for (int i = 0; i < SIZE + 1; i++) {
-			f.addInput(new FixedNeuron(SIZE), random.nextDouble());
+			f.addInput(new FixedNeuron(SIZE), BigDecimal.valueOf(random.nextDouble()));
 		}
 	}
 
@@ -142,38 +143,38 @@ public class FixedNeuronTest {
 	@Test
 	public void testChangeWeight() {
 		// initial
-		double w = f.getWeight(randomLegalIndex());
-		assertEquals("Initial weight should be zero", w, 0, EPSILON);
+		BigDecimal w = f.getWeight(randomLegalIndex());
+		assertEquals("Initial weight should be zero", w.doubleValue(), 0, EPSILON);
 
 		// simple change weight and confirm
-		double newWeight = random.nextDouble();
+		BigDecimal newWeight = BigDecimal.valueOf(random.nextDouble());
 		int idx = randomLegalIndex();
 		f.changeWeight(idx, newWeight);
-		assertEquals("Weight should have changed", f.getWeight(idx), newWeight,
+		assertEquals("Weight should have changed", f.getWeight(idx).doubleValue(), newWeight.doubleValue(),
 				EPSILON);
 
 		// now add inputs and try again
-		double weightDelta = random.nextDouble();
+		BigDecimal weightDelta = BigDecimal.valueOf(random.nextDouble());
 		idx = randomLegalIndex();
-		double initialWeight = random.nextDouble();
+		BigDecimal initialWeight = BigDecimal.valueOf(random.nextDouble());
 		for (int i = 0; i < SIZE; i++) {
 			f.addInput(new FixedNeuron(SIZE), initialWeight);
 		}
 		f.changeWeight(idx, weightDelta);
-		assertEquals("Weight should have changed", f.getWeight(idx),
-				initialWeight + weightDelta, EPSILON);
+		assertEquals("Weight should have changed", f.getWeight(idx).doubleValue(),
+				initialWeight.add(weightDelta).doubleValue(), EPSILON);
 
 		// now try illegal indices
 		try {
 			// too small
-			f.changeWeight(-1, random.nextDouble());
+			f.changeWeight(-1, BigDecimal.valueOf(random.nextDouble()));
 			fail("Should not be able to change weight from -1");
 		} catch (Exception e) {
 			assertTrue(true);
 		}
 		try {
 			// too big
-			f.changeWeight(SIZE + 1, random.nextDouble());
+			f.changeWeight(SIZE + 1, BigDecimal.valueOf(random.nextDouble()));
 			fail("Should not be able to change weight from index outside range");
 		} catch (Exception e) {
 			assertTrue(true);
@@ -200,65 +201,65 @@ public class FixedNeuronTest {
 	@Test
 	public void testGetOutput() {
 		f = new FixedNeuron(4);
-		assertEquals("Initial lastOutput should be zero", f.getLastOutput(), 0,
+		assertEquals("Initial lastOutput should be zero", f.getLastOutput().doubleValue(), 0,
 				EPSILON);
 
 		int code = 0;
 		// for initial settings, 0 should be lastCode, lastOutput should be 0.
-		assertEquals("Initial output is zero", f.getOutput(code), 0, EPSILON);
+		assertEquals("Initial output is zero", f.getOutput(code).doubleValue(), 0, EPSILON);
 
 		// now try with actual inputs
 		for (int i = 0; i < 4; i++) {
 			InputImpl input = new InputImpl();
-			input.setValue(i / 10.0);
-			f.addInput(input, 1);
+			input.setValue(BigDecimal.valueOf(i / 10.0));
+			f.addInput(input, BigDecimal.ONE);
 		}
-		double output = f.getOutput(0);
-		assertEquals("Last code should still be 0", output, 0, EPSILON);
-		assertEquals("Lastoutput should be same as output", output,
-				f.getLastOutput(), EPSILON);
+		BigDecimal output = f.getOutput(0);
+		assertEquals("Last code should still be 0", output.doubleValue(), 0, EPSILON);
+		assertEquals("Lastoutput should be same as output", output.doubleValue(),
+				f.getLastOutput().doubleValue(), EPSILON);
 
 		output = f.getOutput(1);
-		double desired = sigmoid(0 * 1 + .1 * 1 + .2 * 1 + .3 * 1);
-		assertEquals("Output of neuron was incorrect", output, desired, EPSILON);
-		assertEquals("Lastoutput should be same as output", desired,
-				f.getLastOutput(), EPSILON);
+		BigDecimal desired = BigDecimal.valueOf(sigmoid(0 * 1 + .1 * 1 + .2 * 1 + .3 * 1));
+		assertEquals("Output of neuron was incorrect", output.doubleValue(), desired.doubleValue(), EPSILON);
+		assertEquals("Lastoutput should be same as output", desired.doubleValue(),
+				f.getLastOutput().doubleValue(), EPSILON);
 
 		// change the weights
 		for (int i = 0; i < 4; i++) {
-			f.changeWeight(i, 0.5);
+			f.changeWeight(i, BigDecimal.valueOf(0.5));
 		}
 		output = f.getOutput(1);
-		assertEquals("Should get same result because code is the same", output,
-				desired, EPSILON);
-		assertEquals("Lastoutput should be same as output", output,
-				f.getLastOutput(), EPSILON);
+		assertEquals("Should get same result because code is the same", output.doubleValue(),
+				desired.doubleValue(), EPSILON);
+		assertEquals("Lastoutput should be same as output", output.doubleValue(),
+				f.getLastOutput().doubleValue(), EPSILON);
 
-		desired = sigmoid(0.0 * 1.5 + 0.1 * 1.5 + 0.2 * 1.5 + 0.3 * 1.5);
-		assertEquals("Output of neuron was incorrect", f.getOutput(2), desired,
+		desired = BigDecimal.valueOf(sigmoid(0.0 * 1.5 + 0.1 * 1.5 + 0.2 * 1.5 + 0.3 * 1.5));
+		assertEquals("Output of neuron was incorrect", f.getOutput(2).doubleValue(), desired.doubleValue(),
 				EPSILON);
-		assertEquals("Lastoutput should be same as output", desired,
-				f.getLastOutput(), EPSILON);
+		assertEquals("Lastoutput should be same as output", desired.doubleValue(),
+				f.getLastOutput().doubleValue(), EPSILON);
 
 		// now try with the getOutput(double[] ins) method
-		double[] ins = { 0, 0.1, 0.2, 0.3 };
+		BigDecimal[] ins = new BigDecimal[]{ BigDecimal.ZERO, BigDecimal.valueOf(0.1), BigDecimal.valueOf(0.2), BigDecimal.valueOf(0.3) };
 		output = f.getOutput(ins);
-		desired = sigmoid(0.0 * 1.5 + 0.1 * 1.5 + 0.2 * 1.5 + 0.3 * 1.5);
-		assertEquals("Output of neuron was incorrect", output, desired, EPSILON);
-		assertEquals("Lastoutput should be same as output", desired,
-				f.getLastOutput(), EPSILON);
+		desired = BigDecimal.valueOf(sigmoid(0.0 * 1.5 + 0.1 * 1.5 + 0.2 * 1.5 + 0.3 * 1.5));
+		assertEquals("Output of neuron was incorrect", output.doubleValue(), desired.doubleValue(), EPSILON);
+		assertEquals("Lastoutput should be same as output", desired.doubleValue(),
+				f.getLastOutput().doubleValue(), EPSILON);
 
 		// change the weights
 		for (int i = 0; i < 4; i++) {
-			f.changeWeight(i, -0.5);
+			f.changeWeight(i, BigDecimal.valueOf(-0.5));
 		}
-		assertEquals("Lastoutput should be same as output", desired,
-				f.getLastOutput(), EPSILON);
-		desired = sigmoid(0 * 1 + .1 * 1 + .2 * 1 + .3 * 1);
+		assertEquals("Lastoutput should be same as output", desired.doubleValue(),
+				f.getLastOutput().doubleValue(), EPSILON);
+		desired = BigDecimal.valueOf(sigmoid(0 * 1 + .1 * 1 + .2 * 1 + .3 * 1));
 		output = f.getOutput(ins);
-		assertEquals("Output of neuron was incorrect", output, desired, EPSILON);
-		assertEquals("Lastoutput should be same as output", desired,
-				f.getLastOutput(), EPSILON);
+		assertEquals("Output of neuron was incorrect", output.doubleValue(), desired.doubleValue(), EPSILON);
+		assertEquals("Lastoutput should be same as output", desired.doubleValue(),
+				f.getLastOutput().doubleValue(), EPSILON);
 
 	}
 }
