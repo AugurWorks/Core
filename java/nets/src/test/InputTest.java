@@ -3,6 +3,7 @@ package test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.math.BigDecimal;
 import java.util.Random;
 
 import org.junit.After;
@@ -40,13 +41,13 @@ public class InputTest {
 		inp = null;
 		inp = new InputImpl();
 		assertNotNull(inp);
-		assertEquals("value should initialize to 0", inp.getValue(), 0, EPSILON);
+		assertEquals("value should initialize to 0", inp.getValue().doubleValue(), 0, EPSILON);
 
 		inp = null;
 		double w = random.nextDouble();
 		inp = new InputImpl(w);
 		assertNotNull(inp);
-		assertEquals("value should initialize to " + w, inp.getValue(), w,
+		assertEquals("value should initialize to " + w, inp.getValue().doubleValue(), w,
 				EPSILON);
 	}
 
@@ -55,15 +56,15 @@ public class InputTest {
 	 */
 	@Test
 	public void testGetValue() {
-		assertEquals("Default value should be 0", inp.getValue(), 0, EPSILON);
-		assertEquals("Default output should be 0", inp.getOutput(0), 0, EPSILON);
+		assertEquals("Default value should be 0", inp.getValue().doubleValue(), 0, EPSILON);
+		assertEquals("Default output should be 0", inp.getOutput(0).doubleValue(), 0, EPSILON);
 
-		double expected = random.nextDouble();
+		BigDecimal expected = BigDecimal.valueOf(random.nextDouble());
 		inp.setValue(expected);
 
-		assertEquals("value should have changed", inp.getValue(), expected,
+		assertEquals("value should have changed", inp.getValue().doubleValue(), expected.doubleValue(),
 				EPSILON);
-		assertEquals("output should have changed", inp.getOutput(0), expected,
+		assertEquals("output should have changed", inp.getOutput(0).doubleValue(), expected.doubleValue(),
 				EPSILON);
 	}
 }

@@ -2,6 +2,7 @@ package alfred;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -64,11 +65,11 @@ public class PatternParallelRectNet extends RectNetFixed {
 		int depth = 0;
 		int rowIter = 0;
 		int fileIter = 0;
-		double learningConstant = 0;
+		BigDecimal learningConstant = BigDecimal.ZERO;
 		int minTrainingRounds = 0;
-		double cutoff = 0;
-		ArrayList<double[]> inputSets = new ArrayList<double[]>();
-		ArrayList<Double> targets = new ArrayList<Double>();
+		BigDecimal cutoff = BigDecimal.ZERO;
+		ArrayList<BigDecimal[]> inputSets = new ArrayList<BigDecimal[]>();
+		ArrayList<BigDecimal> targets = new ArrayList<BigDecimal>();
 		try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
 			while ((line = reader.readLine()) != null) {
 				try {
@@ -85,22 +86,22 @@ public class PatternParallelRectNet extends RectNetFixed {
 						size = lineSplit[1].split(",");
 						rowIter = Integer.valueOf(size[0]);
 						fileIter = Integer.valueOf(size[1]);
-						learningConstant = Double.valueOf(size[2]);
+						learningConstant = BigDecimal.valueOf(Double.valueOf(size[2]));
 						minTrainingRounds = Integer.valueOf(size[3]);
-						cutoff = Double.valueOf(size[4]);
+						cutoff = BigDecimal.valueOf(Double.valueOf(size[4]));
 						break;
 					case 3:
 						// Titles
 						break;
 					default:
 						// expected
-						double target = Double.valueOf(lineSplit[0]);
+						BigDecimal target = BigDecimal.valueOf(Double.valueOf(lineSplit[0]));
 						targets.add(target);
 						// inputs
-						double[] input = new double[side];
+						BigDecimal[] input = new BigDecimal[side];
 						size = lineSplit[1].split(",");
 						for (int i = 0; i < side; i++) {
-							input[i] = Double.valueOf(size[i]);
+							input[i] = BigDecimal.valueOf(Double.valueOf(size[i]));
 						}
 						inputSets.add(input);
 						break;
@@ -135,12 +136,12 @@ public class PatternParallelRectNet extends RectNetFixed {
 		long start = System.currentTimeMillis();
 		// Create the Parallel Net
 		PatternParallelRectNet r = new PatternParallelRectNet(depth, side);
-		double maxScore = Double.NEGATIVE_INFINITY;
-		double score = 0;
-		double testScore = 0;
-		double lastScore = Double.POSITIVE_INFINITY;
-		double bestCheck = Double.POSITIVE_INFINITY;
-		double bestTestCheck = Double.POSITIVE_INFINITY;
+		BigDecimal maxScore = BigDecimal.valueOf(Double.NEGATIVE_INFINITY);
+		BigDecimal score = BigDecimal.ZERO;
+		BigDecimal testScore = BigDecimal.ZERO;
+		BigDecimal lastScore = BigDecimal.valueOf(Double.POSITIVE_INFINITY);
+		BigDecimal bestCheck = BigDecimal.valueOf(Double.POSITIVE_INFINITY);
+		BigDecimal bestTestCheck = BigDecimal.valueOf(Double.POSITIVE_INFINITY);
 		int i = 0;
 		boolean brokeAtPerfCutoff = false;
 
@@ -161,8 +162,8 @@ public class PatternParallelRectNet extends RectNetFixed {
 					// TODO pick a fraction
 					int subsetSize = inputSets.size() / nodes;
 					subsetSize = 200; // FIXME
-					double[][] inpts = new double[subsetSize][inputSets.get(0).length];
-					double[] desired = new double[subsetSize];
+					BigDecimal[][] inpts = new BigDecimal[subsetSize][inputSets.get(0).length];
+					BigDecimal[] desired = new BigDecimal[subsetSize];
 					for (int location = 0; location < subsetSize; location++) {
 						int index = list.get(location);
 						inpts[location] = inputSets.get(index);
@@ -182,7 +183,7 @@ public class PatternParallelRectNet extends RectNetFixed {
 						// w' = w + r*i*delta
 						// r is the learning constant
 						// i is the output from the leftward neuron
-						double dw = wd.getOutputDelta(j) / (1.0 * nodes);
+						BigDecimal dw = wd.getOutputDelta(j).divide(BigDecimal.valueOf(nodes));
 						r.output.changeWeight(j, dw);
 					}
 					// now we do the same for the internal nodes
@@ -193,27 +194,29 @@ public class PatternParallelRectNet extends RectNetFixed {
 								// w' = w + r*i*delta
 								// r is the learning constant
 								// i is the output from the leftward neuron
-								double dw = wd.getInnerDelta(rightCol,
-										rightRow, leftRow) / (1.0 * nodes);
+								BigDecimal dw = wd.getInnerDelta(rightCol,
+										rightRow, leftRow).divide(BigDecimal.valueOf(nodes));
 								r.neurons[rightCol][rightRow].changeWeight(
 										leftRow, dw);
 							}
 						}
 					}
 				}
-				score = 0;
+				score = BigDecimal.ZERO;
 				for (int lcv = 0; lcv < inputSets.size(); lcv++) {
 					r.setInputs(inputSets.get(lcv));
-					score += Math.pow((targets.get(lcv) - r.getOutput()), 2);
+					BigDecimal diff = targets.get(lcv).subtract(r.getOutput());
+					score = score.add(diff.multiply(diff));
 				}
-				score *= -1.0;
-				score = score / (1.0 * inputSets.size());
+				score = score.multiply(BigDecimal.valueOf(-1.0));
+				score = score.divide(BigDecimal.valueOf(inputSets.size()));
 				if (i % 100 == 0) {
 					int diffCounter = 0;
 					int diffCounter2 = 0;
-					double diffCutoff = .1;
-					double diffCutoff2 = .05;
-					if (bestCheck > -1.0 * score) {
+					BigDecimal diffCutoff = BigDecimal.valueOf(.1);
+					BigDecimal diffCutoff2 = BigDecimal.valueOf(.05);
+					// bestCheck > -1.0 * score
+					if (bestCheck.max(BigDecimal.valueOf(-1.0).multiply(score)).equals(bestCheck)) {
 						RectNetFixed.saveNet(saveFile, r);
 						if (testing) {
 							int idx = saveFile.replaceAll("\\\\", "/").lastIndexOf(
@@ -223,41 +226,43 @@ public class PatternParallelRectNet extends RectNetFixed {
 							testScore = RectNetFixed.testNet(
 									saveFile.substring(0, idx + 1)
 											+ "OneThird.augtrain", r, verbose);
-							if (testScore < bestTestCheck) {
+							if (testScore.min(bestTestCheck).equals(testScore)) {
 								RectNetFixed.saveNet(saveFile.substring(0, idx2)
 										+ "Test.augsave", r);
 								bestTestCheck = testScore;
 							}
 						}
-						bestCheck = -1.0 * score;
+						bestCheck = BigDecimal.valueOf(-1.0).multiply(score);
 					}
 					for (int lcv = 0; lcv < inputSets.size(); lcv++) {
 						r.setInputs(inputSets.get(lcv));
-						if (Math.abs(targets.get(lcv) - r.getOutput()) > diffCutoff) {
+						// Math.abs(targets.get(lcv) - r.getOutput()) > diffCutoff
+						if (targets.get(lcv).subtract(r.getOutput()).abs().min(diffCutoff).equals(diffCounter)) {
 							diffCounter++;
 						}
-						if (Math.abs(targets.get(lcv) - r.getOutput()) > diffCutoff2) {
+						// Math.abs(targets.get(lcv) - r.getOutput()) > diffCutoff2
+						if (targets.get(lcv).subtract(r.getOutput()).abs().min(diffCutoff2).equals(diffCutoff2)) {
 							diffCounter2++;
 						}
 					}
 					System.out.println(i + " rounds trained.");
-					System.out.println("Current score: " + -1.0 * score);
-					System.out.println("Min Score=" + -1.0 * maxScore);
+					System.out.println("Current score: " + -1.0 * score.doubleValue());
+					System.out.println("Min Score=" + -1.0 * maxScore.doubleValue());
 					if (testing) {
 						System.out.println("Current Test Score=" + testScore);
 						System.out.println("Min Test Score=" + bestTestCheck);
 					}
-					System.out.println("Score change=" + (lastScore + score));
+					System.out.println("Score change=" + (lastScore.add(score)).doubleValue());
 					System.out.println("Inputs Over " + diffCutoff + "="
 							+ diffCounter + " of " + inputSets.size());
 					System.out.println("Inputs Over " + diffCutoff2 + "="
 							+ diffCounter2 + " of " + inputSets.size());
-					double diff = 0;
+					BigDecimal diff = BigDecimal.ZERO;
 					for (int lcv = 0; lcv < inputSets.size(); lcv++) {
 						r.setInputs(inputSets.get(lcv));
-						diff += r.getOutput() - targets.get(lcv);
+						diff = diff.add(r.getOutput().subtract(targets.get(lcv)));
 					}
-					System.out.println("AvgDiff=" + diff
+					System.out.println("AvgDiff=" + diff.doubleValue()
 							/ (1.0 * inputSets.size()));
 					System.out.println("Current learning constant: "
 							+ learningConstant);
@@ -265,12 +270,12 @@ public class PatternParallelRectNet extends RectNetFixed {
 							+ (System.currentTimeMillis() - start) / 1000.0);
 					System.out.println("");
 				}
-				lastScore = -1.0 * score;
-				if (score > -1.0 * cutoff) {
+				lastScore = BigDecimal.valueOf(-1.0).multiply(score);
+				if (score.max(BigDecimal.valueOf(-1.0).multiply(cutoff)).equals(score)) {
 					brokeAtPerfCutoff = true;
 					break;
 				}
-				if (score > maxScore) {
+				if (score.max(maxScore).equals(score)) {
 					maxScore = score;
 				}
 			}
@@ -285,7 +290,7 @@ public class PatternParallelRectNet extends RectNetFixed {
 				System.out.println("Training round limit reached.");
 			}
 			System.out.println("Rounds trained: " + i);
-			System.out.println("Final score of " + -1 * score);
+			System.out.println("Final score of " + -1 * score.doubleValue());
 			System.out.println("Time elapsed (ms): "
 					+ ((System.currentTimeMillis() - start)));
 			// Results
@@ -353,7 +358,7 @@ public class PatternParallelRectNet extends RectNetFixed {
 						String outputs[] = lineSplit[1].split(",");
 						for (int edgeNum = 0; edgeNum < outputs.length; edgeNum++) {
 							net.output.setWeight(edgeNum,
-									Double.parseDouble(outputs[edgeNum]));
+									BigDecimal.valueOf(Double.parseDouble(outputs[edgeNum])));
 						}
 						break;
 					default:
@@ -362,7 +367,7 @@ public class PatternParallelRectNet extends RectNetFixed {
 						edges = lineSplit[1].split(",");
 						for (int edgeNum = 0; edgeNum < edges.length; edgeNum++) {
 							net.neurons[curCol][curRow].setWeight(edgeNum,
-									Double.parseDouble(edges[edgeNum]));
+									BigDecimal.valueOf(Double.parseDouble(edges[edgeNum])));
 						}
 						break;
 					}

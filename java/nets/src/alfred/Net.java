@@ -1,6 +1,7 @@
 package alfred;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,12 +15,13 @@ public abstract class Net {
 	 * 
 	 * @return output of this Net.
 	 */
-	public abstract double getOutput();
+	public abstract BigDecimal getOutput();
 	
 	public enum NetType {
 		TRAIN("augtrain"),
 		SAVE("augsave"),
 		PREDICTION("augpred"),
+		AUGOUT("augout"),
 		;
 		
 		private final String suffix;
@@ -103,15 +105,15 @@ public abstract class Net {
 							throw new RuntimeException();
 						break;
 					default:
-						if (!(Double.valueOf(lineSplit[0]) != null))
+						if (!(Double.valueOf(lineSplit[1]) != null))
 							throw new RuntimeException();
-						size = lineSplit[1].split(",");
+						size = lineSplit[2].split(",");
 						for (String s : size) {
 							if (Double.valueOf(s).equals(null)) {
 								throw new RuntimeException();
 							}
 						}
-						if (!(size.length == n))
+						if (size.length != n)
 							throw new RuntimeException();
 						break;
 					}

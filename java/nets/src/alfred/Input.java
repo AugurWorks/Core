@@ -1,5 +1,7 @@
 package alfred;
 
+import java.math.BigDecimal;
+
 /**
  * Represents any type of object that returns an output. Used for Neuron and
  * Input.
@@ -11,16 +13,15 @@ public interface Input {
 	/**
 	 * Returns the output of this Inp.
 	 * 
-	 * @param code
-	 *            Used in implementations for caching prior outputs.
+	 * @param code Used in implementations for caching prior outputs.
 	 * @return Output of this Inp
 	 */
-	public double getOutput(int code);
+	public BigDecimal getOutput(int code);
 
 	/**
-	 * Returns the output of this Inp. Requires recursion.
+	 * Returns the output of this Inp.
 	 * 
 	 * @return output of this Inp
 	 */
-	public double getOutput();
+	public BigDecimal getOutput();
 }
