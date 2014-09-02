@@ -82,7 +82,8 @@ public class NetTrainSpecification {
 		}
 		
 		public NetTrainSpecification build() {
-			return new NetTrainSpecification(dataBuilder.build(), depth, side, numberRowIterations, 
+			NetDataSpecification data = dataBuilder.build();
+			return new NetTrainSpecification(data, depth, side, numberRowIterations, 
 					numberFileIterations, learningConstant, minTrainingRounds, performanceCutoff);
 		}
 	}
@@ -183,7 +184,8 @@ public class NetTrainSpecification {
 				+ numberRowIterations + ", numberFileIterations="
 				+ numberFileIterations + ", learningConstant="
 				+ learningConstant + ", minTrainingRounds=" + minTrainingRounds
-				+ ", performanceCutoff=" + performanceCutoff + "]";
+				+ ", performanceCutoff=" + performanceCutoff
+				+ "]";
 	}
-
+	
 }

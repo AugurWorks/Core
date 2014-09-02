@@ -334,15 +334,24 @@ public class RectNetFixed extends Net {
 		}
 	}
 	
+	/**
+	 * Denormalizes targets and estimates.
+	 */
 	public static void writeAugoutFile(String filename, RectNetFixed net) {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < net.getDataSpec().getDates().size(); i++) {
 			sb.append(net.getDataSpec().getDates().get(i)).append(" ");
-			sb.append(net.getDataSpec().getTargets().get(i).doubleValue()).append(" ");
+			
+			BigDecimal target = net.getDataSpec().getTargets().get(i);
+			target = net.getDataSpec().denormalize(target);
+			sb.append(target.doubleValue()).append(" ");
+			
 			net.setInputs(net.getDataSpec().getInputSets().get(i));
 			BigDecimal trainedEstimate = net.getOutput();
+			trainedEstimate = net.getDataSpec().denormalize(trainedEstimate);
 			sb.append(trainedEstimate.doubleValue()).append(" ");
-			sb.append(net.getDataSpec().getTargets().get(i).subtract(trainedEstimate).abs().doubleValue());
+			
+			sb.append(Math.abs(target.doubleValue() - trainedEstimate.doubleValue()));
 			sb.append("\n");
 		}
 		try {
@@ -807,8 +816,7 @@ public class RectNetFixed extends Net {
 				for (int rightRow = 0; rightRow < net.getY(); rightRow++) {
 					line = rightCol + " ";
 					for (int leftRow = 0; leftRow < net.getY(); leftRow++) {
-						line += net.neurons[rightCol][rightRow]
-								.getWeight(leftRow).doubleValue() + ",";
+						line += net.neurons[rightCol][rightRow].getWeight(leftRow).doubleValue() + ",";
 					}
 					out.println(line.substring(0, line.length() - 1));
 				}
