@@ -2,6 +2,7 @@ package alfred;
 
 import java.io.BufferedReader;
 import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.IOUtils;
@@ -10,16 +11,27 @@ import org.apache.log4j.Logger;
 import alfred.AlfredServer.Command;
 
 public class AlfredCommunicationHandler implements Runnable {
+
     private static final Logger log = Logger.getLogger(AlfredCommunicationHandler.class);
     private final AlfredDirectoryListener alfredListener;
     private final BufferedReader reader;
     private final PrintWriter writer;
+    private final Socket socket;
 
     public AlfredCommunicationHandler(AlfredDirectoryListener listener,
-            BufferedReader reader, PrintWriter writer) {
+                                      BufferedReader reader,
+                                      PrintWriter writer,
+                                      Socket socket) {
         this.alfredListener = listener;
         this.reader = reader;
         this.writer = writer;
+        this.socket = socket;
+    }
+
+    public AlfredCommunicationHandler(AlfredDirectoryListener listener,
+                                      BufferedReader reader,
+                                      PrintWriter writer) {
+        this(listener, reader, writer, null);
     }
 
     @Override
@@ -45,8 +57,17 @@ public class AlfredCommunicationHandler implements Runnable {
         } catch (Throwable t) {
             log.error("Exception caught while communicating with client", t);
         } finally {
+            closeResources();
+        }
+    }
+
+    private void closeResources() {
+        try {
             IOUtils.closeQuietly(reader);
             IOUtils.closeQuietly(writer);
+            IOUtils.closeQuietly(socket);
+        } catch (Throwable t) {
+            log.error("Error thrown while closing resources", t);
         }
     }
 
@@ -82,4 +103,5 @@ public class AlfredCommunicationHandler implements Runnable {
             return;
         }
     }
+
 }

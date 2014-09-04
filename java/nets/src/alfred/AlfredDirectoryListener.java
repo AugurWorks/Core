@@ -58,6 +58,14 @@ public class AlfredDirectoryListener extends FileAlterationListenerAdaptor {
 
     @Override
     public void onFileCreate(File changedFile) {
+        try {
+            onFileCreateUnsafe(changedFile);
+        } catch (Throwable t) {
+            log.error("Error thrown on file create", t);
+        }
+    }
+
+    private void onFileCreateUnsafe(File changedFile) {
         log.info("File created " + changedFile);
         NetType netType = Net.NetType.fromFile(changedFile.getName());
         if (netType == NetType.TRAIN) {
