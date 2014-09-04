@@ -15,8 +15,6 @@ import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 
-import com.google.common.base.Throwables;
-
 
 public class AlfredServer {
 
@@ -68,7 +66,7 @@ public class AlfredServer {
                 Socket socket = listener.accept();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 PrintWriter writer = new PrintWriter(socket.getOutputStream());
-                exec.submit(new AlfredCommunicationHandler(alfredListener, reader, writer));
+                exec.submit(new AlfredCommunicationHandler(alfredListener, reader, writer, socket));
             }
         } catch (Throwable e) {
             log.error("Exception thrown while listening on port " + port, e);
@@ -94,7 +92,6 @@ public class AlfredServer {
                             Thread.sleep(10000L);
                         } catch (InterruptedException e) {
                             log.error("Interrupted in shutdown polling thread", e);
-                            throw Throwables.propagate(e);
                         }
                     }
                 }
