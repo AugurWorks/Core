@@ -48,6 +48,8 @@ public class RectNetFixed extends Net {
     // Prints debug output when true.
     protected boolean verbose = false;
     private NetDataSpecification netData = null;
+    private TimingInfo timingInfo = null;
+    private TrainingSummary trainingSummary = null;
 
     /**
      * Constructs a new RectNet with 10 inputs and 5 layers of network.
@@ -144,8 +146,24 @@ public class RectNetFixed extends Net {
         this.netData = dataSpec;
     }
 
+    public void setTimingInfo(TimingInfo timingInfo) {
+        this.timingInfo = timingInfo;
+    }
+
+    public TimingInfo getTimingInfo() {
+        return this.timingInfo;
+    }
+
+    public boolean hasTimeExpired() {
+        return getTimingInfo().hasTimeExpired();
+    }
+
     public NetDataSpecification getDataSpec() {
         return this.netData;
+    }
+
+    public TrainingSummary getTrainingSummary() {
+        return trainingSummary;
     }
 
     /**
@@ -329,7 +347,7 @@ public class RectNetFixed extends Net {
             BigDecimal learningConstant) {
         Validate.isTrue(iterations > 0);
         Validate.isTrue(inpts.length == this.y);
-        for (int lcv = 0; lcv < iterations; lcv++) {
+        for (int lcv = 0; lcv < iterations && !hasTimeExpired(); lcv++) {
             doIteration(inpts, desired, learningConstant);
         }
     }
@@ -339,6 +357,10 @@ public class RectNetFixed extends Net {
      */
     public static void writeAugoutFile(String filename, RectNetFixed net) {
         StringBuilder sb = new StringBuilder();
+        TrainingSummary summary = net.getTrainingSummary();
+        sb.append("Training stop reason: ").append(summary.getStopReason().getExplanation()).append("\n");
+        sb.append("Time trained: ").append(summary.getSecondsElapsed()).append("\n");
+        sb.append("Rounds trained: ").append(summary.getRoundsTrained()).append("\n");
         for (int i = 0; i < net.getDataSpec().getDates().size(); i++) {
             sb.append(net.getDataSpec().getDates().get(i)).append(" ");
 
@@ -500,15 +522,15 @@ public class RectNetFixed extends Net {
 
     private static class TrainingStats {
         public long startTime;
+        public TrainingStopReason stopReason;
         public boolean brokeAtLocalMax;
-        public boolean brokeAtPerfCutoff;
         public BigDecimal maxScore;
         public int displayRounds;
 
         public TrainingStats(long start) {
             this.startTime = start;
             this.brokeAtLocalMax = false;
-            this.brokeAtPerfCutoff = false;
+            this.stopReason = TrainingStopReason.HIT_TRAINING_LIMIT;
             this.maxScore = BigDecimal.valueOf(NEGATIVE_INFINITY);
             this.displayRounds = 1000;
         }
@@ -523,11 +545,16 @@ public class RectNetFixed extends Net {
      *            Flag to display debugging text or not
      * @return The trained neural network
      */
-    public static RectNetFixed trainFile(String fileName, boolean verbose, String saveFile, boolean testing) {
+    public static RectNetFixed trainFile(String fileName,
+                                         boolean verbose,
+                                         String saveFile,
+                                         boolean testing,
+                                         long trainingTimeLimitMillis) {
         log.info("Parsing file " + fileName + " for training.");
         NetTrainSpecification netSpec = parseFile(fileName, verbose);
         RectNetFixed net = new RectNetFixed(netSpec.getDepth(), netSpec.getSide());
         net.setData(netSpec.getNetData());
+        net.setTimingInfo(TimingInfo.withDuration(trainingTimeLimitMillis));
         // Actually do the training part
         log.info("Net for " + fileName + " parsed, starting training.");
         TrainingStats trainingStats = new TrainingStats(System.currentTimeMillis());
@@ -541,8 +568,13 @@ public class RectNetFixed extends Net {
         for (fileIteration = 0; fileIteration < netSpec.getNumberFileIterations(); fileIteration++) {
 
             // train all data rows for numberRowIterations times.
-            for (int lcv = 0; lcv < inputSets.size(); lcv++) {
+            for (int lcv = 0; lcv < inputSets.size() && !net.hasTimeExpired(); lcv++) {
                 net.train(inputSets.get(lcv), targets.get(lcv), netSpec.getNumberRowIterations(), netSpec.getLearningConstant());
+            }
+
+            if (net.hasTimeExpired()) {
+                trainingStats.stopReason = TrainingStopReason.OUT_OF_TIME;
+                break;
             }
 
             // compute total score
@@ -562,7 +594,7 @@ public class RectNetFixed extends Net {
             if (BigDecimal.ZERO.min(
                     score.subtract(BigDecimal.valueOf(-1.0).multiply(netSpec.getPerformanceCutoff())))
                         .equals(BigDecimal.ZERO)) {
-                trainingStats.brokeAtPerfCutoff = true;
+                trainingStats.stopReason = TrainingStopReason.HIT_PERFORMANCE_CUTOFF;
                 break;
             }
             // if (score > maxScore)
@@ -578,7 +610,7 @@ public class RectNetFixed extends Net {
             }
 
             // FIXME: wtf is this doing?
-            if (fileIteration % trainingStats.displayRounds == 0 && testing) {
+            if (testing && fileIteration % trainingStats.displayRounds == 0) {
                 updateAndLogDisplayRound(verbose, saveFile, testing, netSpec, net,
                         trainingStats, fileIteration,
                         score, testStats, inputSets, targets);
@@ -586,9 +618,14 @@ public class RectNetFixed extends Net {
         }
         logAfterTraining(verbose, net, trainingStats, fileIteration, score, inputSets, targets);
         if (trainingStats.brokeAtLocalMax) {
-            log.info("Retraining");
-            net = RectNetFixed.trainFile(fileName, verbose, saveFile, testing);
+            long timeExpired = System.currentTimeMillis() - net.timingInfo.getStartTime();
+            long timeRemaining = trainingTimeLimitMillis - timeExpired;
+            log.info("Retraining net from file " + fileName + " with " +
+                    TimeUtils.formatSeconds((int)timeRemaining/1000) + " remaining.");
+            net = RectNetFixed.trainFile(fileName, verbose, saveFile, testing, timeRemaining);
         }
+        int timeExpired = (int)((System.currentTimeMillis() - net.timingInfo.getStartTime())/1000);
+        net.trainingSummary = new TrainingSummary(trainingStats.stopReason, timeExpired, fileIteration);
         return net;
     }
 
@@ -666,16 +703,17 @@ public class RectNetFixed extends Net {
     }
 
     private static void logAfterTraining(boolean verbose, RectNetFixed net, TrainingStats trainingStats,
-            int fileIteration, BigDecimal score,
-            List<BigDecimal[]> inputSets, List<BigDecimal> targets) {
+            int fileIteration, BigDecimal score, List<BigDecimal[]> inputSets, List<BigDecimal> targets) {
         if (verbose) {
             // Information about performance and training.
             if (trainingStats.brokeAtLocalMax) {
                 log.info("Local max hit.");
-            } else if (trainingStats.brokeAtPerfCutoff) {
+            } else if (trainingStats.stopReason == TrainingStopReason.HIT_PERFORMANCE_CUTOFF) {
                 log.info("Performance cutoff hit.");
-            } else {
+            } else if (trainingStats.stopReason == TrainingStopReason.HIT_TRAINING_LIMIT) {
                 log.info("Training round limit reached.");
+            } else if (trainingStats.stopReason == TrainingStopReason.OUT_OF_TIME) {
+                log.info("Training stopped after running out of time.");
             }
             log.info("Rounds trained: " + fileIteration);
             log.info("Final score of " + -1.0 * score.doubleValue()
@@ -1096,9 +1134,9 @@ public class RectNetFixed extends Net {
         testFile = prefix + "OneThird.augtrain";
         RectNetFixed r;
         if (train && predict) {
-            r = RectNetFixed.trainFile(trainingFile, false, savedFile, false);
+            r = RectNetFixed.trainFile(trainingFile, false, savedFile, false, 1000000L);
         } else if (train && !predict) {
-            r = RectNetFixed.trainFile(trainingFile2, false, savedFile, true);
+            r = RectNetFixed.trainFile(trainingFile2, false, savedFile, true, 1000000L);
         } else {
             r = RectNetFixed.loadNet(savedFile);
         }
