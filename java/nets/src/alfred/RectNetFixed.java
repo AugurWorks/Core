@@ -811,6 +811,7 @@ public class RectNetFixed extends Net {
         String dataLine = fileLineIterator.next();
         String[] dataLineSplit = dataLine.split(" ");
         String date = dataLineSplit[0];
+        String target = dataLineSplit[1];
         // inputs
         BigDecimal[] input = new BigDecimal[netTrainingSpec.getSide()];
         dataLineSplit = dataLineSplit[2].split(",");
@@ -818,11 +819,11 @@ public class RectNetFixed extends Net {
             input[i] = BigDecimal.valueOf(Double.valueOf(dataLineSplit[i]));
         }
 
-        if (dataLineSplit[1].equalsIgnoreCase("NULL")) {
+        if (target.equalsIgnoreCase("NULL")) {
             netTrainingSpec.addPredictionRow(input, date);
         } else {
-            BigDecimal target = BigDecimal.valueOf(Double.valueOf(dataLineSplit[1]));
-            netTrainingSpec.addInputAndTarget(input, target, date);
+            BigDecimal targetVal = BigDecimal.valueOf(Double.valueOf(target));
+            netTrainingSpec.addInputAndTarget(input, targetVal, date);
         }
     }
 
