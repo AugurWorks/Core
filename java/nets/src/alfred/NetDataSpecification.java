@@ -7,16 +7,15 @@ import com.google.common.collect.Lists;
 
 public class NetDataSpecification {
 
-    private final List<String> dates;
-    private final List<BigDecimal> targets;
-    private final List<BigDecimal[]> inputSets;
+    private final List<InputsAndTarget> trainData;
+    private final List<InputsAndTarget> predictionData;
     private final ScaleFunction scaleFunction;
 
-    public NetDataSpecification(List<String> dates, List<BigDecimal> targets,
-            List<BigDecimal[]> inputSets, ScaleFunction scaleFunction) {
-        this.dates = dates;
-        this.targets = targets;
-        this.inputSets = inputSets;
+    public NetDataSpecification(List<InputsAndTarget> trainData,
+                                List<InputsAndTarget> predictionData,
+                                ScaleFunction scaleFunction) {
+        this.trainData = trainData;
+        this.predictionData = predictionData;
         this.scaleFunction = scaleFunction;
     }
 
@@ -25,6 +24,7 @@ public class NetDataSpecification {
         private List<String> dates = Lists.newArrayList();
         private List<BigDecimal> targets = Lists.newArrayList();
         private List<BigDecimal[]> inputSets = Lists.newArrayList();
+        private List<InputsAndTarget> predictionRows = Lists.newArrayList();
         private double desiredMin = 0.1;
         private double desiredMax = 0.9;
 
@@ -32,6 +32,11 @@ public class NetDataSpecification {
             dates.add(date);
             targets.add(target);
             inputSets.add(inputs);
+            return this;
+        }
+
+        public Builder addPredictionRow(String date, BigDecimal[] inputs) {
+            predictionRows.add(InputsAndTarget.withoutTarget(date, inputs));
             return this;
         }
 
@@ -72,6 +77,14 @@ public class NetDataSpecification {
             }
         }
 
+        private List<InputsAndTarget> buildInputs() {
+            List<InputsAndTarget> inputsAndTargets = Lists.newArrayList();
+            for (int i = 0; i < targets.size(); i++) {
+                inputsAndTargets.add(InputsAndTarget.withTarget(dates.get(i), inputSets.get(i), targets.get(i)));
+            }
+            return inputsAndTargets;
+        }
+
         /*
          * Normalizes inputs.
          */
@@ -81,21 +94,18 @@ public class NetDataSpecification {
                                                         desiredMin,
                                                         desiredMax);
             normalizeTargetValues(scaleFunc);
-            return new NetDataSpecification(dates, targets, inputSets, scaleFunc);
+            List<InputsAndTarget> inputsAndTargets = buildInputs();
+            return new NetDataSpecification(inputsAndTargets, predictionRows, scaleFunc);
         }
 
     }
 
-    public List<String> getDates() {
-        return dates;
+    public List<InputsAndTarget> getTrainData() {
+        return trainData;
     }
 
-    public List<BigDecimal> getTargets() {
-        return targets;
-    }
-
-    public List<BigDecimal[]> getInputSets() {
-        return inputSets;
+    public List<InputsAndTarget> getPredictionData() {
+        return predictionData;
     }
 
     public BigDecimal denormalize(BigDecimal value) {
