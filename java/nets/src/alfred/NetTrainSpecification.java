@@ -67,6 +67,11 @@ public class NetTrainSpecification {
             return this;
         }
 
+        public Builder addPredictionRow(BigDecimal[] inputs, String date) {
+            this.dataBuilder.addPredictionRow(date, inputs);
+            return this;
+        }
+
         public Builder depth(int depth) {
             this.depth = depth;
             return this;

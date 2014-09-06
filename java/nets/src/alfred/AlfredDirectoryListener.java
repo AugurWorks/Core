@@ -15,6 +15,7 @@ import alfred.Net.NetType;
 
 public class AlfredDirectoryListener extends FileAlterationListenerAdaptor {
     private static final Logger log = Logger.getLogger(AlfredDirectoryListener.class);
+    private static final long JOB_TIME_LIMIT_MILLIS = 1000 * 60 * 60;
     private final ExecutorService exec;
     private AtomicInteger jobsSubmitted = new AtomicInteger();
     private AtomicInteger jobsCompleted = new AtomicInteger();
@@ -81,12 +82,20 @@ public class AlfredDirectoryListener extends FileAlterationListenerAdaptor {
                 try {
                     semaphore.acquire();
                     jobsInProgress.incrementAndGet();
-                    log.info("Starting training for file " + fileName);
-                    RectNetFixed net = RectNetFixed.trainFile(fileName, true, fileName + "." + NetType.SAVE.getSuffix().toLowerCase(), false);
-                    log.info("Training complete for file " + net);
+
+                    log.info("Starting training for file " + fileName + " with time limit of 1 hour.");
+                    long startTime = System.currentTimeMillis();
+                    RectNetFixed net = RectNetFixed.trainFile(fileName,
+                                                              true,
+                                                              fileName + "." + NetType.SAVE.getSuffix().toLowerCase(),
+                                                              false,
+                                                              JOB_TIME_LIMIT_MILLIS);
+                    log.info("Training complete for file " + net + " after " + TimeUtils.formatTimeSince(startTime));
+
                     log.info("Saving net for file " + fileName);
                     RectNetFixed.saveNet(fileName + "." + NetType.SAVE.getSuffix().toLowerCase(), net);
                     log.info("Net saved for file " + fileName);
+
                     log.info("Writing augout file for " + fileName);
                     RectNetFixed.writeAugoutFile(fileName + "." + NetType.AUGOUT.getSuffix().toLowerCase(), net);
                     log.info("Augout written for " + fileName);

@@ -48,6 +48,8 @@ public class RectNetFixed extends Net {
     // Prints debug output when true.
     protected boolean verbose = false;
     private NetDataSpecification netData = null;
+    private TimingInfo timingInfo = null;
+    private TrainingSummary trainingSummary = null;
 
     /**
      * Constructs a new RectNet with 10 inputs and 5 layers of network.
@@ -144,8 +146,24 @@ public class RectNetFixed extends Net {
         this.netData = dataSpec;
     }
 
+    public void setTimingInfo(TimingInfo timingInfo) {
+        this.timingInfo = timingInfo;
+    }
+
+    public TimingInfo getTimingInfo() {
+        return this.timingInfo;
+    }
+
+    public boolean hasTimeExpired() {
+        return getTimingInfo().hasTimeExpired();
+    }
+
     public NetDataSpecification getDataSpec() {
         return this.netData;
+    }
+
+    public TrainingSummary getTrainingSummary() {
+        return trainingSummary;
     }
 
     /**
@@ -329,7 +347,7 @@ public class RectNetFixed extends Net {
             BigDecimal learningConstant) {
         Validate.isTrue(iterations > 0);
         Validate.isTrue(inpts.length == this.y);
-        for (int lcv = 0; lcv < iterations; lcv++) {
+        for (int lcv = 0; lcv < iterations && !hasTimeExpired(); lcv++) {
             doIteration(inpts, desired, learningConstant);
         }
     }
@@ -339,26 +357,49 @@ public class RectNetFixed extends Net {
      */
     public static void writeAugoutFile(String filename, RectNetFixed net) {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < net.getDataSpec().getDates().size(); i++) {
-            sb.append(net.getDataSpec().getDates().get(i)).append(" ");
-
-            BigDecimal target = net.getDataSpec().getTargets().get(i);
-            target = net.getDataSpec().denormalize(target);
-            sb.append(target.doubleValue()).append(" ");
-
-            net.setInputs(net.getDataSpec().getInputSets().get(i));
-            BigDecimal trainedEstimate = net.getOutput();
-            trainedEstimate = net.getDataSpec().denormalize(trainedEstimate);
-            sb.append(trainedEstimate.doubleValue()).append(" ");
-
-            sb.append(Math.abs(target.doubleValue() - trainedEstimate.doubleValue()));
-            sb.append("\n");
+        TrainingSummary summary = net.getTrainingSummary();
+        sb.append("Training stop reason: ").append(summary.getStopReason().getExplanation()).append("\n");
+        sb.append("Time trained: ").append(summary.getSecondsElapsed()).append("\n");
+        sb.append("Rounds trained: ").append(summary.getRoundsTrained()).append("\n");
+        for (InputsAndTarget trainDatum : net.getDataSpec().getTrainData()) {
+            writeDataLine(sb, trainDatum, net);
+        }
+        for (InputsAndTarget predictionDatum : net.getDataSpec().getPredictionData()) {
+            writePredictionLine(sb, predictionDatum, net);
         }
         try {
             FileUtils.writeStringToFile(new File(filename), sb.toString());
         } catch (Throwable t) {
             log.error("Unable to write to file " + filename, t);
         }
+    }
+
+    private static void writePredictionLine(StringBuilder sb, InputsAndTarget predictionDatum, RectNetFixed net) {
+        sb.append(predictionDatum.getDate()).append(" ");
+        sb.append("NULL").append(" ");
+
+        net.setInputs(predictionDatum.getInputs());
+        BigDecimal trainedEstimate = net.getOutput();
+        trainedEstimate = net.getDataSpec().denormalize(trainedEstimate);
+        sb.append(trainedEstimate.doubleValue()).append(" ");
+
+        sb.append("NULL").append("\n");
+    }
+
+    private static void writeDataLine(StringBuilder sb, InputsAndTarget trainDatum, RectNetFixed net) {
+        sb.append(trainDatum.getDate()).append(" ");
+
+        BigDecimal target = trainDatum.getTarget();
+        target = net.getDataSpec().denormalize(target);
+        sb.append(target.doubleValue()).append(" ");
+
+        net.setInputs(trainDatum.getInputs());
+        BigDecimal trainedEstimate = net.getOutput();
+        trainedEstimate = net.getDataSpec().denormalize(trainedEstimate);
+        sb.append(trainedEstimate.doubleValue()).append(" ");
+
+        sb.append(Math.abs(target.doubleValue() - trainedEstimate.doubleValue()));
+        sb.append("\n");
     }
 
     private void doIteration(BigDecimal[] inpts, BigDecimal desired, BigDecimal learningConstant) {
@@ -500,15 +541,15 @@ public class RectNetFixed extends Net {
 
     private static class TrainingStats {
         public long startTime;
+        public TrainingStopReason stopReason;
         public boolean brokeAtLocalMax;
-        public boolean brokeAtPerfCutoff;
         public BigDecimal maxScore;
         public int displayRounds;
 
         public TrainingStats(long start) {
             this.startTime = start;
             this.brokeAtLocalMax = false;
-            this.brokeAtPerfCutoff = false;
+            this.stopReason = TrainingStopReason.HIT_TRAINING_LIMIT;
             this.maxScore = BigDecimal.valueOf(NEGATIVE_INFINITY);
             this.displayRounds = 1000;
         }
@@ -523,11 +564,16 @@ public class RectNetFixed extends Net {
      *            Flag to display debugging text or not
      * @return The trained neural network
      */
-    public static RectNetFixed trainFile(String fileName, boolean verbose, String saveFile, boolean testing) {
+    public static RectNetFixed trainFile(String fileName,
+                                         boolean verbose,
+                                         String saveFile,
+                                         boolean testing,
+                                         long trainingTimeLimitMillis) {
         log.info("Parsing file " + fileName + " for training.");
         NetTrainSpecification netSpec = parseFile(fileName, verbose);
         RectNetFixed net = new RectNetFixed(netSpec.getDepth(), netSpec.getSide());
         net.setData(netSpec.getNetData());
+        net.setTimingInfo(TimingInfo.withDuration(trainingTimeLimitMillis));
         // Actually do the training part
         log.info("Net for " + fileName + " parsed, starting training.");
         TrainingStats trainingStats = new TrainingStats(System.currentTimeMillis());
@@ -536,25 +582,34 @@ public class RectNetFixed extends Net {
         int fileIteration = 0;
         BigDecimal score = null;
 
-        List<BigDecimal[]> inputSets = netSpec.getNetData().getInputSets();
-        List<BigDecimal> targets = netSpec.getNetData().getTargets();
+        List<InputsAndTarget> inputsAndTargets = netSpec.getNetData().getTrainData();
         for (fileIteration = 0; fileIteration < netSpec.getNumberFileIterations(); fileIteration++) {
 
             // train all data rows for numberRowIterations times.
-            for (int lcv = 0; lcv < inputSets.size(); lcv++) {
-                net.train(inputSets.get(lcv), targets.get(lcv), netSpec.getNumberRowIterations(), netSpec.getLearningConstant());
+            for (int lcv = 0; lcv < inputsAndTargets.size() && !net.hasTimeExpired(); lcv++) {
+                InputsAndTarget inputsAndTarget = inputsAndTargets.get(lcv);
+                net.train(inputsAndTarget.getInputs(),
+                          inputsAndTarget.getTarget(),
+                          netSpec.getNumberRowIterations(),
+                          netSpec.getLearningConstant());
+            }
+
+            if (net.hasTimeExpired()) {
+                trainingStats.stopReason = TrainingStopReason.OUT_OF_TIME;
+                break;
             }
 
             // compute total score
             score = BigDecimal.ZERO;
-            for (int lcv = 0; lcv < inputSets.size(); lcv++) {
-                net.setInputs(inputSets.get(lcv));
+            for (int lcv = 0; lcv < inputsAndTargets.size(); lcv++) {
+                InputsAndTarget inputsAndTarget = inputsAndTargets.get(lcv);
+                net.setInputs(inputsAndTarget.getInputs());
                 // Math.pow((targets.get(lcv) - r.getOutput()), 2)
-                BigDecimal difference = targets.get(lcv).subtract(net.getOutput());
+                BigDecimal difference = inputsAndTarget.getTarget().subtract(net.getOutput());
                 score = score.add(difference.multiply(difference));
             }
             score = score.multiply(BigDecimal.valueOf(-1.0));
-            score = score.divide(BigDecimal.valueOf(inputSets.size()), BigDecimals.MATH_CONTEXT);
+            score = score.divide(BigDecimal.valueOf(inputsAndTargets.size()), BigDecimals.MATH_CONTEXT);
 
             // if (score > -1 * cutoff)
             //   ==> if (score - (-1 * cutoff) > 0)
@@ -562,7 +617,7 @@ public class RectNetFixed extends Net {
             if (BigDecimal.ZERO.min(
                     score.subtract(BigDecimal.valueOf(-1.0).multiply(netSpec.getPerformanceCutoff())))
                         .equals(BigDecimal.ZERO)) {
-                trainingStats.brokeAtPerfCutoff = true;
+                trainingStats.stopReason = TrainingStopReason.HIT_PERFORMANCE_CUTOFF;
                 break;
             }
             // if (score > maxScore)
@@ -578,17 +633,22 @@ public class RectNetFixed extends Net {
             }
 
             // FIXME: wtf is this doing?
-            if (fileIteration % trainingStats.displayRounds == 0 && testing) {
+            if (testing && fileIteration % trainingStats.displayRounds == 0) {
                 updateAndLogDisplayRound(verbose, saveFile, testing, netSpec, net,
                         trainingStats, fileIteration,
-                        score, testStats, inputSets, targets);
+                        score, testStats, inputsAndTargets);
             }
         }
-        logAfterTraining(verbose, net, trainingStats, fileIteration, score, inputSets, targets);
+        logAfterTraining(verbose, net, trainingStats, fileIteration, score, inputsAndTargets);
         if (trainingStats.brokeAtLocalMax) {
-            log.info("Retraining");
-            net = RectNetFixed.trainFile(fileName, verbose, saveFile, testing);
+            long timeExpired = System.currentTimeMillis() - net.timingInfo.getStartTime();
+            long timeRemaining = trainingTimeLimitMillis - timeExpired;
+            log.info("Retraining net from file " + fileName + " with " +
+                    TimeUtils.formatSeconds((int)timeRemaining/1000) + " remaining.");
+            net = RectNetFixed.trainFile(fileName, verbose, saveFile, testing, timeRemaining);
         }
+        int timeExpired = (int)((System.currentTimeMillis() - net.timingInfo.getStartTime())/1000);
+        net.trainingSummary = new TrainingSummary(trainingStats.stopReason, timeExpired, fileIteration);
         return net;
     }
 
@@ -596,8 +656,7 @@ public class RectNetFixed extends Net {
     private static void updateAndLogDisplayRound(boolean verbose,
             String saveFile, boolean testing, NetTrainSpecification netSpec,
             RectNetFixed net, TrainingStats trainingStats, int fileIteration, BigDecimal score,
-            TestStats testStats, List<BigDecimal[]> inputSets,
-            List<BigDecimal> targets) {
+            TestStats testStats, List<InputsAndTarget> inputsAndTargets) {
         int diffCounter = 0;
         int diffCounter2 = 0;
         BigDecimal diffCutoff = BigDecimal.valueOf(.1);
@@ -626,18 +685,19 @@ public class RectNetFixed extends Net {
                 testStats.bestTestCheck = testStats.testScore;
             }
         }
-        for (int lcv = 0; lcv < inputSets.size(); lcv++) {
-            net.setInputs(inputSets.get(lcv));
+        for (int lcv = 0; lcv < inputsAndTargets.size(); lcv++) {
+            InputsAndTarget inputsAndTarget = inputsAndTargets.get(lcv);
+            net.setInputs(inputsAndTarget.getInputs());
             // if (Math.abs(targets.get(lcv) - r.getOutput()) > diffCutoff)
             //   ==> if (Math.abs(targets.get(lcv) - r.getOutput()) - diffCutoff > 0)
             //     ==> if (min(Math.abs(targets.get(lcv) - r.getOutput()) - diffCutoff, 0) == 0)
-            if (BigDecimal.ZERO.min(targets.get(lcv).subtract(net.getOutput()).abs().subtract(diffCutoff)).equals(BigDecimal.ZERO)) {
+            if (BigDecimal.ZERO.min(inputsAndTarget.getTarget().subtract(net.getOutput()).abs().subtract(diffCutoff)).equals(BigDecimal.ZERO)) {
                 diffCounter++;
             }
             // if (Math.abs(targets.get(lcv) - r.getOutput()) > diffCutoff2)
             //   ==> if (Math.abs(targets.get(lcv) - r.getOutput()) - diffCutoff2 > 0)
             //     ==> if (min(Math.abs(targets.get(lcv) - r.getOutput()) - diffCutoff2, 0) == 0)
-            if (BigDecimal.ZERO.min(targets.get(lcv).subtract(net.getOutput()).abs().subtract(diffCutoff2)).equals(BigDecimal.ZERO)) {
+            if (BigDecimal.ZERO.min(inputsAndTarget.getTarget().subtract(net.getOutput()).abs().subtract(diffCutoff2)).equals(BigDecimal.ZERO)) {
                 diffCounter2++;
             }
         }
@@ -650,15 +710,16 @@ public class RectNetFixed extends Net {
         }
         log.debug("Score change per round=" + (testStats.lastScore.doubleValue() + score.doubleValue())/trainingStats.displayRounds);
         log.debug("Inputs Over " + diffCutoff + "="
-                + diffCounter + " of " + inputSets.size());
+                + diffCounter + " of " + inputsAndTargets.size());
         log.debug("Inputs Over " + diffCutoff2 + "="
-                + diffCounter2 + " of " + inputSets.size());
+                + diffCounter2 + " of " + inputsAndTargets.size());
         BigDecimal diff = BigDecimal.ZERO;
-        for (int lcv = 0; lcv < inputSets.size(); lcv++) {
-            net.setInputs(inputSets.get(lcv));
-            diff = diff.add(net.getOutput().subtract(targets.get(lcv)));
+        for (int lcv = 0; lcv < inputsAndTargets.size(); lcv++) {
+            InputsAndTarget inputsAndTarget = inputsAndTargets.get(lcv);
+            net.setInputs(inputsAndTarget.getInputs());
+            diff = diff.add(net.getOutput().subtract(inputsAndTarget.getTarget()));
         }
-        log.debug("AvgDiff=" + diff.doubleValue() / (1.0 * inputSets.size()));
+        log.debug("AvgDiff=" + diff.doubleValue() / (1.0 * inputsAndTargets.size()));
         log.debug("Current learning constant: " + netSpec.getLearningConstant());
         log.debug("Time elapsed (s): " + (System.currentTimeMillis() - trainingStats.startTime) / 1000.0);
         log.debug("");
@@ -666,30 +727,32 @@ public class RectNetFixed extends Net {
     }
 
     private static void logAfterTraining(boolean verbose, RectNetFixed net, TrainingStats trainingStats,
-            int fileIteration, BigDecimal score,
-            List<BigDecimal[]> inputSets, List<BigDecimal> targets) {
+            int fileIteration, BigDecimal score, List<InputsAndTarget> inputsAndTargets) {
         if (verbose) {
             // Information about performance and training.
             if (trainingStats.brokeAtLocalMax) {
                 log.info("Local max hit.");
-            } else if (trainingStats.brokeAtPerfCutoff) {
+            } else if (trainingStats.stopReason == TrainingStopReason.HIT_PERFORMANCE_CUTOFF) {
                 log.info("Performance cutoff hit.");
-            } else {
+            } else if (trainingStats.stopReason == TrainingStopReason.HIT_TRAINING_LIMIT) {
                 log.info("Training round limit reached.");
+            } else if (trainingStats.stopReason == TrainingStopReason.OUT_OF_TIME) {
+                log.info("Training stopped after running out of time.");
             }
             log.info("Rounds trained: " + fileIteration);
             log.info("Final score of " + -1.0 * score.doubleValue()
-                    / (1.0 * inputSets.size()));
+                    / (1.0 * inputsAndTargets.size()));
             log.info("Time elapsed (ms): "
                     + ((System.currentTimeMillis() - trainingStats.startTime)));
             // Results
             log.debug("-------------------------");
             log.debug("Test Results: ");
-            for (int lcv = 0; lcv < inputSets.size(); lcv++) {
-                net.setInputs(inputSets.get(lcv));
+            for (int lcv = 0; lcv < inputsAndTargets.size(); lcv++) {
+                InputsAndTarget inputsAndTarget = inputsAndTargets.get(lcv);
+                net.setInputs(inputsAndTarget.getInputs());
                 StringBuilder sb = new StringBuilder();
                 sb.append("Input " + lcv).append(" ");
-                sb.append("Target: " + targets.get(lcv)).append(" ");
+                sb.append("Target: " + inputsAndTarget.getTarget()).append(" ");
                 sb.append("Actual: " + net.getOutput().doubleValue());
                 log.debug(sb.toString());
             }
@@ -732,7 +795,7 @@ public class RectNetFixed extends Net {
             log.info("File path: " + fileName);
             log.info("Number Inputs: " + netTrainingSpec.getSide());
             log.info("Net depth: " + netTrainingSpec.getDepth());
-            log.info("Number training sets: " + netTrainingSpec.getNetData().getTargets().size());
+            log.info("Number training sets: " + netTrainingSpec.getNetData().getTrainData().size());
             log.info("Row iterations: " + netTrainingSpec.getNumberRowIterations());
             log.info("File iterations: " + netTrainingSpec.getNumberFileIterations());
             log.info("Learning constant: " + netTrainingSpec.getLearningConstant());
@@ -748,14 +811,20 @@ public class RectNetFixed extends Net {
         String dataLine = fileLineIterator.next();
         String[] dataLineSplit = dataLine.split(" ");
         String date = dataLineSplit[0];
-        BigDecimal target = BigDecimal.valueOf(Double.valueOf(dataLineSplit[1]));
+        String target = dataLineSplit[1];
         // inputs
         BigDecimal[] input = new BigDecimal[netTrainingSpec.getSide()];
         dataLineSplit = dataLineSplit[2].split(",");
         for (int i = 0; i < netTrainingSpec.getSide(); i++) {
             input[i] = BigDecimal.valueOf(Double.valueOf(dataLineSplit[i]));
         }
-        netTrainingSpec.addInputAndTarget(input, target, date);
+
+        if (target.equalsIgnoreCase("NULL")) {
+            netTrainingSpec.addPredictionRow(input, date);
+        } else {
+            BigDecimal targetVal = BigDecimal.valueOf(Double.valueOf(target));
+            netTrainingSpec.addInputAndTarget(input, targetVal, date);
+        }
     }
 
     private static void parseTrainingInfoLine(
@@ -1096,9 +1165,9 @@ public class RectNetFixed extends Net {
         testFile = prefix + "OneThird.augtrain";
         RectNetFixed r;
         if (train && predict) {
-            r = RectNetFixed.trainFile(trainingFile, false, savedFile, false);
+            r = RectNetFixed.trainFile(trainingFile, false, savedFile, false, 1000000L);
         } else if (train && !predict) {
-            r = RectNetFixed.trainFile(trainingFile2, false, savedFile, true);
+            r = RectNetFixed.trainFile(trainingFile2, false, savedFile, true, 1000000L);
         } else {
             r = RectNetFixed.loadNet(savedFile);
         }
