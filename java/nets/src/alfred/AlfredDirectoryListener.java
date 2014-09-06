@@ -84,7 +84,7 @@ public class AlfredDirectoryListener extends FileAlterationListenerAdaptor {
                     semaphore.acquire();
                     jobsInProgress.incrementAndGet();
 
-                    log.info("Starting training for file " + fileName + " with time limit of 1 hour.");
+                    log.info("Starting training for file " + fileName + " with time limit of " + timeoutSeconds + " seconds.");
                     long startTime = System.currentTimeMillis();
                     RectNetFixed net = RectNetFixed.trainFile(fileName,
                                                               true,
