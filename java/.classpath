@@ -8,5 +8,6 @@
 	<classpathentry kind="lib" path="nets/lib/guava-15.0.jar"/>
 	<classpathentry kind="lib" path="nets/lib/joda-time-2.3.jar"/>
 	<classpathentry kind="lib" path="nets/lib/log4j-1.2.17.jar"/>
+	<classpathentry kind="lib" path="nets/lib/commons-cli-1.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
