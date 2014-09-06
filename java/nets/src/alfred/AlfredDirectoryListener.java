@@ -15,16 +15,17 @@ import alfred.Net.NetType;
 
 public class AlfredDirectoryListener extends FileAlterationListenerAdaptor {
     private static final Logger log = Logger.getLogger(AlfredDirectoryListener.class);
-    private static final long JOB_TIME_LIMIT_MILLIS = 1000 * 60 * 60;
     private final ExecutorService exec;
     private AtomicInteger jobsSubmitted = new AtomicInteger();
     private AtomicInteger jobsCompleted = new AtomicInteger();
     private AtomicInteger jobsInProgress = new AtomicInteger();
+    private final int timeoutSeconds;
     private final Semaphore semaphore;
 
-    public AlfredDirectoryListener(int numThreads) {
+    public AlfredDirectoryListener(int numThreads, int timeoutSeconds) {
         this.exec = Executors.newCachedThreadPool();
         this.semaphore = new Semaphore(numThreads);
+        this.timeoutSeconds = timeoutSeconds;
     }
 
     public int getJobsSubmitted() {
@@ -83,13 +84,13 @@ public class AlfredDirectoryListener extends FileAlterationListenerAdaptor {
                     semaphore.acquire();
                     jobsInProgress.incrementAndGet();
 
-                    log.info("Starting training for file " + fileName + " with time limit of 1 hour.");
+                    log.info("Starting training for file " + fileName + " with time limit of " + timeoutSeconds + " seconds.");
                     long startTime = System.currentTimeMillis();
                     RectNetFixed net = RectNetFixed.trainFile(fileName,
                                                               true,
                                                               fileName + "." + NetType.SAVE.getSuffix().toLowerCase(),
                                                               false,
-                                                              JOB_TIME_LIMIT_MILLIS);
+                                                              timeoutSeconds * 1000);
                     log.info("Training complete for file " + net + " after " + TimeUtils.formatTimeSince(startTime));
 
                     log.info("Saving net for file " + fileName);

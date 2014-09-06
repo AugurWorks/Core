@@ -9,16 +9,27 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 
+import com.google.common.base.Throwables;
+
 
 public class AlfredServer {
 
     private static final Logger log = Logger.getLogger(AlfredServer.class);
+    private static final int DEFAULT_NUM_THREADS = 16;
+    private static final int DEFAULT_TIMEOUT_SECONDS = 3600;
 
     public static void main(String[] args) {
         BasicConfigurator.configure();
@@ -29,7 +40,7 @@ public class AlfredServer {
         FileAlterationMonitor fileAlterationMonitor = new FileAlterationMonitor();
         FileAlterationObserver fileAlterationObserver = new FileAlterationObserver(serverArgs.fileToWatch);
         fileAlterationMonitor.addObserver(fileAlterationObserver);
-        AlfredDirectoryListener alfredListener = new AlfredDirectoryListener(serverArgs.numThreads);
+        AlfredDirectoryListener alfredListener = new AlfredDirectoryListener(serverArgs.numThreads, serverArgs.timeoutSeconds);
         fileAlterationObserver.addListener(alfredListener);
         try {
             fileAlterationObserver.initialize();
@@ -38,7 +49,8 @@ public class AlfredServer {
             log.error("Unable to initialize file observer. Server will exit now.");
             return;
         }
-        log.info(String.format("Alfred Server started on %s with %s threads.",  serverArgs.fileToWatch, serverArgs.numThreads));
+        log.info(String.format("Alfred Server started on %s with %s threads and a job timeout of %s seconds",
+                serverArgs.fileToWatch, serverArgs.numThreads, serverArgs.timeoutSeconds));
         if (serverArgs.serverPort == null) {
             log.info("Will listen for input on System.in");
             listenOnSystemIn(alfredListener);
@@ -54,6 +66,39 @@ public class AlfredServer {
         }
         log.info("Alfred Server stopped.");
         System.exit(0);
+    }
+
+    private static CommandLine parseArgs(String[] args) {
+        Options options = getOptions();
+        CommandLine cmd;
+        CommandLineParser parser = new BasicParser();
+        try {
+            cmd = parser.parse(options, args);
+        } catch (ParseException e) {
+            log.error("Unable to parse command line.", e);
+            usage();
+            throw Throwables.propagate(e);
+        }
+        return cmd;
+    }
+
+    private static Options getOptions() {
+        Options options = new Options();
+
+        Option dirOption = new Option("d", "directory", true, "Directory to listen on.");
+        dirOption.setRequired(true);
+        Option threadOption = new Option("t", "num-threads", true, "Number of threads for alfred to use. " +
+                "Default " + DEFAULT_NUM_THREADS + ".");
+        Option portOption = new Option("p", "port", true, "Port to listen on. Will listen on System.in if unspecified.");
+        Option timeoutOption = new Option("s", "timeout", true, "Timeout in seconds for a net to train. " +
+                "Default " + DEFAULT_TIMEOUT_SECONDS + ".");
+
+        options.addOption(dirOption);
+        options.addOption(threadOption);
+        options.addOption(portOption);
+        options.addOption(timeoutOption);
+
+        return options;
     }
 
     private static void listenOnPort(AlfredDirectoryListener alfredListener, int port) {
@@ -109,20 +154,24 @@ public class AlfredServer {
         public final File fileToWatch;
         public final int numThreads;
         public final Integer serverPort;
+        public final int timeoutSeconds;
 
-        public AlfredServerArgs(File fileToWatch, int numThreads, Integer serverPort) {
+        public AlfredServerArgs(File fileToWatch, int numThreads, Integer serverPort, int timeoutSeconds) {
             this.fileToWatch = fileToWatch;
             this.numThreads = numThreads;
             this.serverPort = serverPort;
+            this.timeoutSeconds = timeoutSeconds;
         }
     }
 
     private static AlfredServerArgs validateArguments(String[] args) {
-        if (args.length != 2 && args.length != 3) {
+        CommandLine cmd = parseArgs(args);
+        if (!cmd.hasOption("d")) {
+            log.error("Could not parse command line");
             usage();
-            return null;
+            throw new IllegalArgumentException("Could not parse command line");
         }
-        String directory = args[0];
+        String directory = cmd.getOptionValue("d");
         File f = new File(directory);
         if (f.exists() && !f.isDirectory()) {
             log.error("File " + directory + " already exists.");
@@ -134,29 +183,42 @@ public class AlfredServer {
                 throw new IllegalArgumentException("Directory " + directory + " cannot be created.");
             }
         }
-        int numThreads;
-        try {
-            numThreads = Integer.parseInt(args[1]);
-        } catch (NumberFormatException e) {
-            log.error("Could not parse " + args[1] + " as an integer.");
-            throw new IllegalArgumentException("Could not parse " + args[1] + " as an integer.");
-        }
-        Integer serverPort;
-        if (args.length == 2) {
-            serverPort = null;
-        } else {
+        int numThreads = DEFAULT_NUM_THREADS;
+        if (cmd.hasOption("t")) {
+            String threads = cmd.getOptionValue("t");
             try {
-                serverPort = Integer.parseInt(args[2]);
+                numThreads = Integer.parseInt(threads);
             } catch (NumberFormatException e) {
-                log.error("Could not parse " + args[2] + " as an integer.");
-                throw new IllegalArgumentException("Could not parse " + args[2] + " as an integer.");
+                log.error("Could not parse " + threads + " as an integer.", e);
+                throw new IllegalArgumentException("Could not parse " + threads + " as an integer.", e);
             }
         }
-        return new AlfredServerArgs(f, numThreads, serverPort);
+        Integer serverPort = null;
+        if (cmd.hasOption("p")) {
+            String port = cmd.getOptionValue("p");
+            try {
+                serverPort = Integer.parseInt(port);
+            } catch (NumberFormatException e) {
+                log.error("Could not parse " + port + " as an integer.", e);
+                throw new IllegalArgumentException("Could not parse " + port + " as an integer.", e);
+            }
+        }
+        int timeoutSeconds = DEFAULT_TIMEOUT_SECONDS;
+        if (cmd.hasOption("s")) {
+            String timeout = cmd.getOptionValue("s");
+            try {
+                timeoutSeconds = Integer.parseInt(timeout);
+            } catch (NumberFormatException e) {
+                log.error("Could not parse " + timeout + " as an integer.", e);
+                throw new IllegalArgumentException("Could not parse " + timeout + " as an integer.", e);
+            }
+        }
+        return new AlfredServerArgs(f, numThreads, serverPort, timeoutSeconds);
     }
 
     private static void usage() {
-        log.info("Usage: AlfredServer <directory to poll> <number of threads for server> [<port to listen on>]");
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.printHelp("alfred", getOptions());
     }
 
     public enum Command {
