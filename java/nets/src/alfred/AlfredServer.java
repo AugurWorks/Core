@@ -75,7 +75,7 @@ public class AlfredServer {
         try {
             cmd = parser.parse(options, args);
         } catch (ParseException e) {
-            log.error("Unable to parse command line.");
+            log.error("Unable to parse command line.", e);
             usage();
             throw Throwables.propagate(e);
         }
@@ -189,8 +189,8 @@ public class AlfredServer {
             try {
                 numThreads = Integer.parseInt(threads);
             } catch (NumberFormatException e) {
-                log.error("Could not parse " + threads + " as an integer.");
-                throw new IllegalArgumentException("Could not parse " + threads + " as an integer.");
+                log.error("Could not parse " + threads + " as an integer.", e);
+                throw new IllegalArgumentException("Could not parse " + threads + " as an integer.", e);
             }
         }
         Integer serverPort = null;
@@ -199,8 +199,8 @@ public class AlfredServer {
             try {
                 serverPort = Integer.parseInt(port);
             } catch (NumberFormatException e) {
-                log.error("Could not parse " + port + " as an integer.");
-                throw new IllegalArgumentException("Could not parse " + port + " as an integer.");
+                log.error("Could not parse " + port + " as an integer.", e);
+                throw new IllegalArgumentException("Could not parse " + port + " as an integer.", e);
             }
         }
         int timeoutSeconds = DEFAULT_TIMEOUT_SECONDS;
@@ -209,8 +209,8 @@ public class AlfredServer {
             try {
                 timeoutSeconds = Integer.parseInt(timeout);
             } catch (NumberFormatException e) {
-                log.error("Could not parse " + timeout + " as an integer.");
-                throw new IllegalArgumentException("Could not parse " + timeout + " as an integer.");
+                log.error("Could not parse " + timeout + " as an integer.", e);
+                throw new IllegalArgumentException("Could not parse " + timeout + " as an integer.", e);
             }
         }
         return new AlfredServerArgs(f, numThreads, serverPort, timeoutSeconds);
