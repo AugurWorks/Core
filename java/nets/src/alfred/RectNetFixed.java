@@ -659,7 +659,7 @@ public class RectNetFixed extends Net {
             long timeRemaining = trainingTimeLimitMillis - timeExpired;
             log.info("Retraining net from file " + fileName + " with " +
                     TimeUtils.formatSeconds((int)timeRemaining/1000) + " remaining.");
-            net = RectNetFixed.trainFile(fileName, verbose, saveFile, testing, timeRemaining);
+            net = RectNetFixed.trainFile(fileName, verbose, saveFile, testing, timeRemaining, triesRemaining--);
         }
         int timeExpired = (int)((System.currentTimeMillis() - net.timingInfo.getStartTime())/1000);
         net.trainingSummary = new TrainingSummary(trainingStats.stopReason, timeExpired, fileIteration);
