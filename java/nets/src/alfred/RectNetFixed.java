@@ -33,6 +33,7 @@ public class RectNetFixed extends Net {
     private static final Logger log = Logger.getLogger(RectNetFixed.class);
     private static final double NEGATIVE_INFINITY = -1000000;
     private static final double INFINITY = 1000000;
+    public static final int DEFAULT_RETRIES = 5;
     // Inputs to network
     protected InputImpl[] inputs;
     // Every neuron with the same i is in the
@@ -555,6 +556,14 @@ public class RectNetFixed extends Net {
         }
     }
 
+    public static RectNetFixed trainFile(String fileName,
+            boolean verbose,
+            String saveFile,
+            boolean testing,
+            long trainingTimeLimitMillis) {
+        return trainFile(fileName, verbose, saveFile, testing, trainingTimeLimitMillis, DEFAULT_RETRIES);
+    }
+
     /**
      * Train a neural network from a .augtrain training file
      *
@@ -568,7 +577,12 @@ public class RectNetFixed extends Net {
                                          boolean verbose,
                                          String saveFile,
                                          boolean testing,
-                                         long trainingTimeLimitMillis) {
+                                         long trainingTimeLimitMillis,
+                                         int triesRemaining) {
+        if (triesRemaining == 0) {
+            log.error("Unable to train file " + fileName + "!");
+            throw new IllegalStateException("Unable to train file " + fileName + "!");
+        }
         log.info("Parsing file " + fileName + " for training.");
         NetTrainSpecification netSpec = parseFile(fileName, verbose);
         RectNetFixed net = new RectNetFixed(netSpec.getDepth(), netSpec.getSide());
@@ -645,7 +659,7 @@ public class RectNetFixed extends Net {
             long timeRemaining = trainingTimeLimitMillis - timeExpired;
             log.info("Retraining net from file " + fileName + " with " +
                     TimeUtils.formatSeconds((int)timeRemaining/1000) + " remaining.");
-            net = RectNetFixed.trainFile(fileName, verbose, saveFile, testing, timeRemaining);
+            net = RectNetFixed.trainFile(fileName, verbose, saveFile, testing, timeRemaining, triesRemaining--);
         }
         int timeExpired = (int)((System.currentTimeMillis() - net.timingInfo.getStartTime())/1000);
         net.trainingSummary = new TrainingSummary(trainingStats.stopReason, timeExpired, fileIteration);
