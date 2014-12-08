@@ -20,14 +20,12 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Logger;
 
 import com.google.common.base.Throwables;
 
 
 public class AlfredServer {
 
-    private static final Logger log = Logger.getLogger(AlfredServer.class);
     private static final int DEFAULT_NUM_THREADS = 16;
     private static final int DEFAULT_TIMEOUT_SECONDS = 3600;
 
@@ -46,16 +44,16 @@ public class AlfredServer {
             fileAlterationObserver.initialize();
             fileAlterationMonitor.start();
         } catch (Exception e) {
-            log.error("Unable to initialize file observer. Server will exit now.");
+            System.err.println("Unable to initialize file observer. Server will exit now.");
             return;
         }
-        log.info(String.format("Alfred Server started on %s with %s threads and a job timeout of %s seconds",
+        System.out.println(String.format("Alfred Server started on %s with %s threads and a job timeout of %s seconds",
                 serverArgs.fileToWatch, serverArgs.numThreads, serverArgs.timeoutSeconds));
         if (serverArgs.serverPort == null) {
-            log.info("Will listen for input on System.in");
+            System.out.println("Will listen for input on System.in");
             listenOnSystemIn(alfredListener);
         } else {
-            log.info("Will listen for input on port " + serverArgs.serverPort);
+            System.out.println("Will listen for input on port " + serverArgs.serverPort);
             listenOnPort(alfredListener, serverArgs.serverPort);
         }
         try {
@@ -64,7 +62,7 @@ public class AlfredServer {
         } catch (Throwable e) {
             // closing things. ignore errors.
         }
-        log.info("Alfred Server stopped.");
+        System.out.println("Alfred Server stopped.");
         System.exit(0);
     }
 
@@ -75,7 +73,8 @@ public class AlfredServer {
         try {
             cmd = parser.parse(options, args);
         } catch (ParseException e) {
-            log.error("Unable to parse command line.", e);
+            System.err.println("Unable to parse command line.");
+            e.printStackTrace();
             usage();
             throw Throwables.propagate(e);
         }
@@ -114,7 +113,8 @@ public class AlfredServer {
                 exec.submit(new AlfredCommunicationHandler(alfredListener, reader, writer, socket));
             }
         } catch (Throwable e) {
-            log.error("Exception thrown while listening on port " + port, e);
+            System.err.println("Exception thrown while listening on port " + port);
+            e.printStackTrace();
         } finally {
             IOUtils.closeQuietly(listener);
             exec.shutdownNow();
@@ -136,7 +136,8 @@ public class AlfredServer {
                         try {
                             Thread.sleep(10000L);
                         } catch (InterruptedException e) {
-                            log.error("Interrupted in shutdown polling thread", e);
+                            System.err.println("Interrupted in shutdown polling thread");
+                            e.printStackTrace();
                         }
                     }
                 }
@@ -167,19 +168,19 @@ public class AlfredServer {
     private static AlfredServerArgs validateArguments(String[] args) {
         CommandLine cmd = parseArgs(args);
         if (!cmd.hasOption("d")) {
-            log.error("Could not parse command line");
+            System.err.println("Could not parse command line");
             usage();
             throw new IllegalArgumentException("Could not parse command line");
         }
         String directory = cmd.getOptionValue("d");
         File f = new File(directory);
         if (f.exists() && !f.isDirectory()) {
-            log.error("File " + directory + " already exists.");
+            System.err.println("File " + directory + " already exists.");
             throw new IllegalArgumentException("File " + directory + " already exists.");
         } else if (!f.exists()) {
             boolean success = f.mkdirs();
             if (!success) {
-                log.error("Directory " + directory + " cannot be created.");
+                System.err.println("Directory " + directory + " cannot be created.");
                 throw new IllegalArgumentException("Directory " + directory + " cannot be created.");
             }
         }
@@ -189,7 +190,8 @@ public class AlfredServer {
             try {
                 numThreads = Integer.parseInt(threads);
             } catch (NumberFormatException e) {
-                log.error("Could not parse " + threads + " as an integer.", e);
+                System.err.println("Could not parse " + threads + " as an integer.");
+                e.printStackTrace();
                 throw new IllegalArgumentException("Could not parse " + threads + " as an integer.", e);
             }
         }
@@ -199,7 +201,8 @@ public class AlfredServer {
             try {
                 serverPort = Integer.parseInt(port);
             } catch (NumberFormatException e) {
-                log.error("Could not parse " + port + " as an integer.", e);
+                System.err.println("Could not parse " + port + " as an integer.");
+                e.printStackTrace();
                 throw new IllegalArgumentException("Could not parse " + port + " as an integer.", e);
             }
         }
@@ -209,7 +212,8 @@ public class AlfredServer {
             try {
                 timeoutSeconds = Integer.parseInt(timeout);
             } catch (NumberFormatException e) {
-                log.error("Could not parse " + timeout + " as an integer.", e);
+                System.err.println("Could not parse " + timeout + " as an integer.");
+                e.printStackTrace();
                 throw new IllegalArgumentException("Could not parse " + timeout + " as an integer.", e);
             }
         }
