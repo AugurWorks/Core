@@ -6,13 +6,11 @@ import java.net.Socket;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
 
 import alfred.AlfredServer.Command;
 
 public class AlfredCommunicationHandler implements Runnable {
 
-    private static final Logger log = Logger.getLogger(AlfredCommunicationHandler.class);
     private final AlfredDirectoryListener alfredListener;
     private final BufferedReader reader;
     private final PrintWriter writer;
@@ -55,7 +53,8 @@ public class AlfredCommunicationHandler implements Runnable {
                 handleCommand(command, nextLine, alfredListener);
             }
         } catch (Throwable t) {
-            log.error("Exception caught while communicating with client", t);
+            System.err.println("Exception caught while communicating with client");
+            t.printStackTrace();
         } finally {
             closeResources();
         }
@@ -67,7 +66,8 @@ public class AlfredCommunicationHandler implements Runnable {
             IOUtils.closeQuietly(writer);
             IOUtils.closeQuietly(socket);
         } catch (Throwable t) {
-            log.error("Error thrown while closing resources", t);
+            System.err.println("Error thrown while closing resources");
+            t.printStackTrace();
         }
     }
 
@@ -76,7 +76,7 @@ public class AlfredCommunicationHandler implements Runnable {
         case SHUTDOWN:
             String[] split = line.split(" ");
             if (split.length < 2) {
-                log.error("Could not parse time to wait for shutdown. Will shutdown now.");
+                System.err.println("Could not parse time to wait for shutdown. Will shutdown now.");
                 writer.write("Could not parse time to wait for shutdown. Will shutdown now.");
             } else {
                 String minutesToWaitString = split[1];
@@ -85,7 +85,7 @@ public class AlfredCommunicationHandler implements Runnable {
                     alfredListener.shutdownAndAwaitTermination(minutesToWait, TimeUnit.MINUTES);
                     return;
                 } catch (NumberFormatException e) {
-                    log.error("Could not parse time to wait for shutdown. Will shutdown now.");
+                    System.err.println("Could not parse time to wait for shutdown. Will shutdown now.");
                     writer.write("Could not parse time to wait for shutdown. Will shutdown now.");
                 }
             }

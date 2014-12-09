@@ -9,12 +9,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
-import org.apache.log4j.Logger;
 
 import alfred.Net.NetType;
 
 public class AlfredDirectoryListener extends FileAlterationListenerAdaptor {
-    private static final Logger log = Logger.getLogger(AlfredDirectoryListener.class);
+
     private final ExecutorService exec;
     private AtomicInteger jobsSubmitted = new AtomicInteger();
     private AtomicInteger jobsCompleted = new AtomicInteger();
@@ -49,7 +48,7 @@ public class AlfredDirectoryListener extends FileAlterationListenerAdaptor {
         try {
             exec.awaitTermination(timeout, unit);
         } catch (InterruptedException e) {
-            log.error("Interrupted while terminating. Will shutdown now.");
+            System.err.println("Interrupted while terminating. Will shutdown now.");
             throw new IllegalStateException("Interrupted while terminating. Will shutdown now.");
         }
     }
@@ -63,12 +62,13 @@ public class AlfredDirectoryListener extends FileAlterationListenerAdaptor {
         try {
             onFileCreateUnsafe(changedFile);
         } catch (Throwable t) {
-            log.error("Error thrown on file create", t);
+            System.err.println("Error thrown on file create");
+            t.printStackTrace();
         }
     }
 
     private void onFileCreateUnsafe(File changedFile) {
-        log.info("File created " + changedFile);
+        System.out.println("File created " + changedFile);
         NetType netType = Net.NetType.fromFile(changedFile.getName());
         if (netType == NetType.TRAIN) {
             exec.submit(getTrainCallable(changedFile.getAbsolutePath()));
@@ -84,24 +84,25 @@ public class AlfredDirectoryListener extends FileAlterationListenerAdaptor {
                     semaphore.acquire();
                     jobsInProgress.incrementAndGet();
 
-                    log.info("Starting training for file " + fileName + " with time limit of " + timeoutSeconds + " seconds.");
+                    System.out.println("Starting training for file " + fileName + " with time limit of " + timeoutSeconds + " seconds.");
                     long startTime = System.currentTimeMillis();
                     RectNetFixed net = RectNetFixed.trainFile(fileName,
                                                               true,
                                                               fileName + "." + NetType.SAVE.getSuffix().toLowerCase(),
                                                               false,
                                                               timeoutSeconds * 1000);
-                    log.info("Training complete for file " + net + " after " + TimeUtils.formatTimeSince(startTime));
+                    System.out.println("Training complete for file " + net + " after " + TimeUtils.formatTimeSince(startTime));
 
-                    log.info("Saving net for file " + fileName);
+                    System.out.println("Saving net for file " + fileName);
                     RectNetFixed.saveNet(fileName + "." + NetType.SAVE.getSuffix().toLowerCase(), net);
-                    log.info("Net saved for file " + fileName);
+                    System.out.println("Net saved for file " + fileName);
 
-                    log.info("Writing augout file for " + fileName);
+                    System.out.println("Writing augout file for " + fileName);
                     RectNetFixed.writeAugoutFile(fileName + "." + NetType.AUGOUT.getSuffix().toLowerCase(), net);
-                    log.info("Augout written for " + fileName);
+                    System.out.println("Augout written for " + fileName);
                 } catch (Throwable t) {
-                    log.error("Exception caught during evaluation of " + fileName, t);
+                    System.err.println("Exception caught during evaluation of " + fileName);
+                    t.printStackTrace();
                 } finally {
                     semaphore.release();
                     jobsInProgress.decrementAndGet();
