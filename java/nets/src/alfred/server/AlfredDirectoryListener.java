@@ -1,4 +1,4 @@
-package alfred;
+package alfred.server;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -10,7 +10,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 
+import alfred.Net;
+import alfred.RectNetFixed;
 import alfred.Net.NetType;
+import alfred.scaling.ScaleFunctions.ScaleFunctionType;
+import alfred.util.TimeUtils;
 
 public class AlfredDirectoryListener extends FileAlterationListenerAdaptor {
 
@@ -20,11 +24,13 @@ public class AlfredDirectoryListener extends FileAlterationListenerAdaptor {
     private AtomicInteger jobsInProgress = new AtomicInteger();
     private final int timeoutSeconds;
     private final Semaphore semaphore;
+    private final ScaleFunctionType sfType;
 
-    public AlfredDirectoryListener(int numThreads, int timeoutSeconds) {
+    public AlfredDirectoryListener(int numThreads, int timeoutSeconds, ScaleFunctionType sfType) {
         this.exec = Executors.newCachedThreadPool();
         this.semaphore = new Semaphore(numThreads);
         this.timeoutSeconds = timeoutSeconds;
+        this.sfType = sfType;
     }
 
     public int getJobsSubmitted() {
@@ -90,7 +96,8 @@ public class AlfredDirectoryListener extends FileAlterationListenerAdaptor {
                                                               true,
                                                               fileName + "." + NetType.SAVE.getSuffix().toLowerCase(),
                                                               false,
-                                                              timeoutSeconds * 1000);
+                                                              timeoutSeconds * 1000,
+                                                              sfType);
                     System.out.println("Training complete for file " + net + " after " + TimeUtils.formatTimeSince(startTime));
 
                     System.out.println("Saving net for file " + fileName);

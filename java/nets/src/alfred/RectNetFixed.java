@@ -18,6 +18,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.Validate;
 
 import alfred.NetTrainSpecification.Builder;
+import alfred.scaling.ScaleFunctions.ScaleFunctionType;
+import alfred.util.BigDecimals;
+import alfred.util.TimeUtils;
 
 import com.google.common.base.Throwables;
 
@@ -558,8 +561,9 @@ public class RectNetFixed extends Net {
             boolean verbose,
             String saveFile,
             boolean testing,
-            long trainingTimeLimitMillis) {
-        return trainFile(fileName, verbose, saveFile, testing, trainingTimeLimitMillis, DEFAULT_RETRIES);
+            long trainingTimeLimitMillis,
+            ScaleFunctionType sfType) {
+        return trainFile(fileName, verbose, saveFile, testing, trainingTimeLimitMillis, sfType, DEFAULT_RETRIES);
     }
 
     /**
@@ -576,6 +580,7 @@ public class RectNetFixed extends Net {
                                          String saveFile,
                                          boolean testing,
                                          long trainingTimeLimitMillis,
+                                         ScaleFunctionType sfType,
                                          int triesRemaining) {
         if (trainingTimeLimitMillis <= 0) {
             System.out.println("Training timeout was " + trainingTimeLimitMillis +
@@ -586,7 +591,7 @@ public class RectNetFixed extends Net {
             throw new IllegalStateException("Unable to train file " + fileName + "!");
         }
         System.out.println("Parsing file " + fileName + " for training.");
-        NetTrainSpecification netSpec = parseFile(fileName, verbose);
+        NetTrainSpecification netSpec = parseFile(fileName, sfType, verbose);
         RectNetFixed net = new RectNetFixed(netSpec.getDepth(), netSpec.getSide());
         net.setData(netSpec.getNetData());
         net.setTimingInfo(TimingInfo.withDuration(trainingTimeLimitMillis));
@@ -661,7 +666,7 @@ public class RectNetFixed extends Net {
             long timeRemaining = trainingTimeLimitMillis - timeExpired;
             System.out.println("Retraining net from file " + fileName + " with " +
                     TimeUtils.formatSeconds((int)timeRemaining/1000) + " remaining.");
-            net = RectNetFixed.trainFile(fileName, verbose, saveFile, testing, timeRemaining, triesRemaining--);
+            net = RectNetFixed.trainFile(fileName, verbose, saveFile, testing, timeRemaining, sfType, triesRemaining--);
         }
         int timeExpired = (int)((System.currentTimeMillis() - net.timingInfo.getStartTime())/1000);
         net.trainingSummary = new TrainingSummary(trainingStats.stopReason, timeExpired, fileIteration);
@@ -776,13 +781,14 @@ public class RectNetFixed extends Net {
         }
     }
 
-    public static NetTrainSpecification parseFile(String fileName, boolean verbose) {
+    public static NetTrainSpecification parseFile(String fileName, ScaleFunctionType sfType, boolean verbose) {
         if (!Net.validateAUGt(fileName)) {
             System.err.println("File not valid format.");
             throw new IllegalArgumentException("File not valid");
         }
         Path file = Paths.get(fileName);
         NetTrainSpecification.Builder netTrainingSpecBuilder = new Builder();
+        netTrainingSpecBuilder.scaleFunctionType(sfType);
         try {
             List<String> fileLines = FileUtils.readLines(file.toFile());
             Validate.isTrue(fileLines.size() >= 4, "Cannot parse file with no data");
@@ -1182,9 +1188,9 @@ public class RectNetFixed extends Net {
         testFile = prefix + "OneThird.augtrain";
         RectNetFixed r;
         if (train && predict) {
-            r = RectNetFixed.trainFile(trainingFile, false, savedFile, false, 1000000L);
+            r = RectNetFixed.trainFile(trainingFile, false, savedFile, false, 1000000L, ScaleFunctionType.LINEAR);
         } else if (train && !predict) {
-            r = RectNetFixed.trainFile(trainingFile2, false, savedFile, true, 1000000L);
+            r = RectNetFixed.trainFile(trainingFile2, false, savedFile, true, 1000000L, ScaleFunctionType.LINEAR);
         } else {
             r = RectNetFixed.loadNet(savedFile);
         }

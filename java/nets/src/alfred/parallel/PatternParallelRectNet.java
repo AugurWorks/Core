@@ -1,4 +1,4 @@
-package alfred;
+package alfred.parallel;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,6 +13,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import alfred.Net;
+import alfred.RectNetFixed;
+import alfred.WeightDelta;
 
 /**
  * Master

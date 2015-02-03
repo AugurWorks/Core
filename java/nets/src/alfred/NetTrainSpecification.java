@@ -2,6 +2,8 @@ package alfred;
 
 import java.math.BigDecimal;
 
+import alfred.scaling.ScaleFunctions.ScaleFunctionType;
+
 public class NetTrainSpecification {
 
     private final NetDataSpecification netData;
@@ -36,6 +38,7 @@ public class NetTrainSpecification {
         private int minTrainingRounds;
         private BigDecimal performanceCutoff;
         private int side;
+        private ScaleFunctionType sfType;
 
         public Builder rowIterations(int numberRowIterations) {
             this.numberRowIterations = numberRowIterations;
@@ -87,9 +90,13 @@ public class NetTrainSpecification {
         }
 
         public NetTrainSpecification build() {
-            NetDataSpecification data = dataBuilder.build();
+            NetDataSpecification data = dataBuilder.build(sfType);
             return new NetTrainSpecification(data, depth, side, numberRowIterations,
                     numberFileIterations, learningConstant, minTrainingRounds, performanceCutoff);
+        }
+
+        public void scaleFunctionType(ScaleFunctionType sfTypeParam) {
+            this.sfType = sfTypeParam;
         }
     }
 

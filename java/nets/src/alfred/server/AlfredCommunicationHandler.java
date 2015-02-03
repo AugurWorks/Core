@@ -1,4 +1,4 @@
-package alfred;
+package alfred.server;
 
 import java.io.BufferedReader;
 import java.io.PrintWriter;
@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.IOUtils;
 
-import alfred.AlfredServer.Command;
+import alfred.server.AlfredServer.Command;
 
 public class AlfredCommunicationHandler implements Runnable {
 

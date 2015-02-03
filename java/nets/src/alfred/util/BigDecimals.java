@@ -1,4 +1,4 @@
-package alfred;
+package alfred.util;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -35,6 +35,24 @@ public class BigDecimals {
         for (long i = value; i > 0; i--)
             retVal = retVal.multiply(new BigDecimal(i));
         return retVal;
+    }
+
+    /**
+     * Performs the sigmoid function on an input y = 1 / (1 + exp(-alpha*x))
+     * Used internally in getOutput method. Alpha is set to 3 currently.
+     *
+     * @param input
+     *            X
+     * @return sigmoid(x)
+     */
+    public static BigDecimal sigmoid(BigDecimal input) {
+        //	1.0 / (1.0 + Math.exp(-3.0 * input));
+        return BigDecimal.ONE.divide(
+                BigDecimal.ONE.add(
+                        BigDecimals.exp(BigDecimal.valueOf(-3).multiply(input,
+                                                                        BigDecimals.MATH_CONTEXT)),
+                        BigDecimals.MATH_CONTEXT),
+                BigDecimals.MATH_CONTEXT);
     }
 
 }
