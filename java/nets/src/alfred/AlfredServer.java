@@ -90,7 +90,7 @@ public class AlfredServer {
                 "Default " + DEFAULT_NUM_THREADS + ".");
         Option portOption = new Option("p", "port", true, "Port to listen on. Will listen on System.in if unspecified.");
         Option timeoutOption = new Option("s", "timeout", true, "Timeout in seconds for a net to train. " +
-                "Default " + DEFAULT_TIMEOUT_SECONDS + ".");
+                "Default " + DEFAULT_TIMEOUT_SECONDS + ". If <= 0, jobs will not time out.");
 
         options.addOption(dirOption);
         options.addOption(threadOption);
