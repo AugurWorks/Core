@@ -3,6 +3,10 @@ package alfred;
 import java.math.BigDecimal;
 import java.util.List;
 
+import alfred.scaling.ScaleFunction;
+import alfred.scaling.ScaleFunctions;
+import alfred.scaling.ScaleFunctions.ScaleFunctionType;
+
 import com.google.common.collect.Lists;
 
 public class NetDataSpecification {
@@ -88,11 +92,16 @@ public class NetDataSpecification {
         /*
          * Normalizes inputs.
          */
-        public NetDataSpecification build() {
-            ScaleFunction scaleFunc = new ScaleFunction(getMinTarget(),
-                                                        getMaxTarget(),
-                                                        desiredMin,
-                                                        desiredMax);
+        public NetDataSpecification build(ScaleFunctionType sfType) {
+            ScaleFunction scaleFunc;
+            if (sfType == ScaleFunctionType.LINEAR) {
+                scaleFunc = ScaleFunctions.createLinearScaleFunction(
+                        getMinTarget(), getMaxTarget(), desiredMin, desiredMax);
+            } else if (sfType == ScaleFunctionType.SIGMOID) {
+                scaleFunc = ScaleFunctions.createSigmoidScaleFunction(targets);
+            } else {
+                throw new IllegalArgumentException("Unrecognized function " + sfType);
+            }
             normalizeTargetValues(scaleFunc);
             List<InputsAndTarget> inputsAndTargets = buildInputs();
             return new NetDataSpecification(inputsAndTargets, predictionRows, scaleFunc);

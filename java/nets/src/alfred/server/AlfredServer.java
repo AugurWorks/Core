@@ -1,4 +1,4 @@
-package alfred;
+package alfred.server;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -21,6 +21,8 @@ import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.apache.log4j.BasicConfigurator;
 
+import alfred.scaling.ScaleFunctions.ScaleFunctionType;
+
 import com.google.common.base.Throwables;
 
 
@@ -38,7 +40,7 @@ public class AlfredServer {
         FileAlterationMonitor fileAlterationMonitor = new FileAlterationMonitor();
         FileAlterationObserver fileAlterationObserver = new FileAlterationObserver(serverArgs.fileToWatch);
         fileAlterationMonitor.addObserver(fileAlterationObserver);
-        AlfredDirectoryListener alfredListener = new AlfredDirectoryListener(serverArgs.numThreads, serverArgs.timeoutSeconds);
+        AlfredDirectoryListener alfredListener = new AlfredDirectoryListener(serverArgs.numThreads, serverArgs.timeoutSeconds, serverArgs.scaleType);
         fileAlterationObserver.addListener(alfredListener);
         try {
             fileAlterationObserver.initialize();
@@ -91,11 +93,13 @@ public class AlfredServer {
         Option portOption = new Option("p", "port", true, "Port to listen on. Will listen on System.in if unspecified.");
         Option timeoutOption = new Option("s", "timeout", true, "Timeout in seconds for a net to train. " +
                 "Default " + DEFAULT_TIMEOUT_SECONDS + ". If <= 0, jobs will not time out.");
+        Option scaleFunctionOption = new Option("f", "func", true, "Scale function type. Defaults to LINEAR. Other option is SIGMOID.");
 
         options.addOption(dirOption);
         options.addOption(threadOption);
         options.addOption(portOption);
         options.addOption(timeoutOption);
+        options.addOption(scaleFunctionOption);
 
         return options;
     }
@@ -156,12 +160,14 @@ public class AlfredServer {
         public final int numThreads;
         public final Integer serverPort;
         public final int timeoutSeconds;
+        public final ScaleFunctionType scaleType;
 
-        public AlfredServerArgs(File fileToWatch, int numThreads, Integer serverPort, int timeoutSeconds) {
+        public AlfredServerArgs(File fileToWatch, int numThreads, Integer serverPort, int timeoutSeconds, ScaleFunctionType scaleType) {
             this.fileToWatch = fileToWatch;
             this.numThreads = numThreads;
             this.serverPort = serverPort;
             this.timeoutSeconds = timeoutSeconds;
+            this.scaleType = scaleType;
         }
     }
 
@@ -217,7 +223,11 @@ public class AlfredServer {
                 throw new IllegalArgumentException("Could not parse " + timeout + " as an integer.", e);
             }
         }
-        return new AlfredServerArgs(f, numThreads, serverPort, timeoutSeconds);
+        ScaleFunctionType sfType = ScaleFunctionType.LINEAR;
+        if (cmd.hasOption("f")) {
+            sfType = ScaleFunctionType.fromString(cmd.getOptionValue("f"));
+        }
+        return new AlfredServerArgs(f, numThreads, serverPort, timeoutSeconds, sfType);
     }
 
     private static void usage() {
