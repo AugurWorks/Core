@@ -577,6 +577,10 @@ public class RectNetFixed extends Net {
                                          boolean testing,
                                          long trainingTimeLimitMillis,
                                          int triesRemaining) {
+        if (trainingTimeLimitMillis <= 0) {
+            System.out.println("Training timeout was " + trainingTimeLimitMillis +
+                    ", which is <= 0, so jobs will not time out.");
+        }
         if (triesRemaining == 0) {
             System.err.println("Unable to train file " + fileName + "!");
             throw new IllegalStateException("Unable to train file " + fileName + "!");
