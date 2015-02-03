@@ -1,4 +1,4 @@
-package alfred;
+package alfred.util;
 
 public final class TimeUtils {
 

@@ -1,9 +1,12 @@
-package alfred;
+package alfred.parallel;
 
 import java.math.BigDecimal;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.lang3.Validate;
+
+import alfred.RectNetFixed;
+import alfred.WeightDelta;
 
 public class PatternParallelNode extends RectNetFixed implements
         Callable<WeightDelta> {
