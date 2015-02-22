@@ -1,6 +1,7 @@
 package alfred.server;
 
 import java.io.File;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -11,17 +12,26 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 
 import alfred.Net;
-import alfred.RectNetFixed;
 import alfred.Net.NetType;
+import alfred.RectNetFixed;
 import alfred.scaling.ScaleFunctions.ScaleFunctionType;
 import alfred.util.TimeUtils;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+
 public class AlfredDirectoryListener extends FileAlterationListenerAdaptor {
+
+    public enum JobStatus {
+        SUBMITTED_NOT_STARTED,
+        IN_PROGRESS
+    }
 
     private final ExecutorService exec;
     private AtomicInteger jobsSubmitted = new AtomicInteger();
     private AtomicInteger jobsCompleted = new AtomicInteger();
     private AtomicInteger jobsInProgress = new AtomicInteger();
+    private final Map<String, JobStatus> jobStatusByFileName;
     private final int timeoutSeconds;
     private final Semaphore semaphore;
     private final ScaleFunctionType sfType;
@@ -31,6 +41,7 @@ public class AlfredDirectoryListener extends FileAlterationListenerAdaptor {
         this.semaphore = new Semaphore(numThreads);
         this.timeoutSeconds = timeoutSeconds;
         this.sfType = sfType;
+        this.jobStatusByFileName = Maps.newConcurrentMap();
     }
 
     public int getJobsSubmitted() {
@@ -47,6 +58,19 @@ public class AlfredDirectoryListener extends FileAlterationListenerAdaptor {
 
     public void shutdownNow() {
         exec.shutdownNow();
+    }
+
+    public Map<String, JobStatus> getCurrentJobStatuses() {
+        return ImmutableMap.copyOf(jobStatusByFileName);
+    }
+
+    public String getCurrentJobStatusesPretty() {
+        StringBuilder sb = new StringBuilder("Current job statuses: \n");
+        for (Map.Entry<String, JobStatus> entry : getCurrentJobStatuses().entrySet()) {
+            sb.append("\t").append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
+        }
+        sb.append("\n");
+        return sb.toString();
     }
 
     public void shutdownAndAwaitTermination(long timeout, TimeUnit unit) {
@@ -86,9 +110,11 @@ public class AlfredDirectoryListener extends FileAlterationListenerAdaptor {
             @Override
             public Void call() throws Exception {
                 jobsSubmitted.incrementAndGet();
+                jobStatusByFileName.put(fileName, JobStatus.SUBMITTED_NOT_STARTED);
                 try {
                     semaphore.acquire();
                     jobsInProgress.incrementAndGet();
+                    jobStatusByFileName.put(fileName, JobStatus.IN_PROGRESS);
 
                     System.out.println("Starting training for file " + fileName + " with time limit of " + timeoutSeconds + " seconds.");
                     long startTime = System.currentTimeMillis();
@@ -111,6 +137,7 @@ public class AlfredDirectoryListener extends FileAlterationListenerAdaptor {
                     System.err.println("Exception caught during evaluation of " + fileName);
                     t.printStackTrace();
                 } finally {
+                    jobStatusByFileName.remove(fileName);
                     semaphore.release();
                     jobsInProgress.decrementAndGet();
                     jobsCompleted.incrementAndGet();

@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -30,6 +31,7 @@ public class AlfredServer {
 
     private static final int DEFAULT_NUM_THREADS = 16;
     private static final int DEFAULT_TIMEOUT_SECONDS = 3600;
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     public static void main(String[] args) {
         BasicConfigurator.configure();
@@ -51,6 +53,7 @@ public class AlfredServer {
         }
         System.out.println(String.format("Alfred Server started on %s with %s threads and a job timeout of %s seconds",
                 serverArgs.fileToWatch, serverArgs.numThreads, serverArgs.timeoutSeconds));
+        startJobStatusThread(alfredListener);
         if (serverArgs.serverPort == null) {
             System.out.println("Will listen for input on System.in");
             listenOnSystemIn(alfredListener);
@@ -66,6 +69,11 @@ public class AlfredServer {
         }
         System.out.println("Alfred Server stopped.");
         System.exit(0);
+    }
+
+    private static void startJobStatusThread(AlfredDirectoryListener listener) {
+        ExecutorService exec = Executors.newCachedThreadPool();
+        exec.submit(getJobStatusPollThread(listener));
     }
 
     private static CommandLine parseArgs(String[] args) {
@@ -146,6 +154,26 @@ public class AlfredServer {
                     }
                 }
             }
+        };
+    }
+
+    private static Runnable getJobStatusPollThread(final AlfredDirectoryListener listener) {
+        return new Runnable() {
+
+            @Override
+            public void run() {
+                while (true) {
+                    String now = DATE_FORMAT.format(System.currentTimeMillis());
+                    System.out.println(now + " " + listener.getCurrentJobStatusesPretty());
+                    try {
+                        Thread.sleep(60000);
+                    } catch (InterruptedException e) {
+                        System.err.println("Interrupted in job status polling thread");
+                        e.printStackTrace();
+                    }
+                }
+            }
+
         };
     }
 
