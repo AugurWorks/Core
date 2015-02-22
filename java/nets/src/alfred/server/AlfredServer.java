@@ -268,6 +268,7 @@ public class AlfredServer {
         SHUTDOWN("shutdown", "Causes the server to shut down, waiting " +
                 "up to the given number of minutes for task completion."),
         STATUS("status", "Prints the status of the server."),
+        CANCEL_JOB("cancel", "Cancels a job if possible."),
         ;
 
         private String helpText;

@@ -343,9 +343,10 @@ public class RectNetFixed extends Net {
      *            the "rate" at which the network learns
      * @param iterations
      *            number of times to train the network.
+     * @throws InterruptedException
      */
     public void train(BigDecimal[] inpts, BigDecimal desired, int iterations,
-            BigDecimal learningConstant) {
+            BigDecimal learningConstant) throws InterruptedException {
         Validate.isTrue(iterations > 0);
         Validate.isTrue(inpts.length == this.y);
         for (int lcv = 0; lcv < iterations && !hasTimeExpired(); lcv++) {
@@ -404,7 +405,8 @@ public class RectNetFixed extends Net {
         sb.append("\n");
     }
 
-    private void doIteration(BigDecimal[] inpts, BigDecimal desired, BigDecimal learningConstant) {
+    private void doIteration(BigDecimal[] inpts, BigDecimal desired, BigDecimal learningConstant) throws InterruptedException {
+        checkInterrupted();
         // Set the inputs
         setInputs(inpts);
         // Compute the last node error
@@ -562,8 +564,14 @@ public class RectNetFixed extends Net {
             String saveFile,
             boolean testing,
             long trainingTimeLimitMillis,
-            ScaleFunctionType sfType) {
+            ScaleFunctionType sfType) throws InterruptedException {
         return trainFile(fileName, verbose, saveFile, testing, trainingTimeLimitMillis, sfType, DEFAULT_RETRIES);
+    }
+
+    private void checkInterrupted() throws InterruptedException {
+        if (Thread.interrupted()) {
+            throw new InterruptedException("Job detected interrupt flag");
+        }
     }
 
     /**
@@ -574,6 +582,7 @@ public class RectNetFixed extends Net {
      * @param verbose
      *            Flag to display debugging text or not
      * @return The trained neural network
+     * @throws InterruptedException
      */
     public static RectNetFixed trainFile(String fileName,
                                          boolean verbose,
@@ -581,7 +590,7 @@ public class RectNetFixed extends Net {
                                          boolean testing,
                                          long trainingTimeLimitMillis,
                                          ScaleFunctionType sfType,
-                                         int triesRemaining) {
+                                         int triesRemaining) throws InterruptedException {
         if (trainingTimeLimitMillis <= 0) {
             System.out.println("Training timeout was " + trainingTimeLimitMillis +
                     ", which is <= 0, so jobs will not time out.");
@@ -1167,7 +1176,7 @@ public class RectNetFixed extends Net {
         return scaledValue;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         //What the net was trained for - prediction or twoThirds/oneThird
         boolean predict=false;
         //Which file system - root or local

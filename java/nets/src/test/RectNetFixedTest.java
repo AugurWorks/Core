@@ -442,7 +442,7 @@ public class RectNetFixedTest {
     }
 
     @Test
-    public void testTrain() {
+    public void testTrain() throws InterruptedException {
         // simple silly gate
         BigDecimal[] inpts = new BigDecimal[2];
         inpts[0] = BigDecimal.valueOf(0.2);
