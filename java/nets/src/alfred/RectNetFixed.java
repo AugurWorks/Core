@@ -363,6 +363,7 @@ public class RectNetFixed extends Net {
         sb.append("Training stop reason: ").append(summary.getStopReason().getExplanation()).append("\n");
         sb.append("Time trained: ").append(summary.getSecondsElapsed()).append("\n");
         sb.append("Rounds trained: ").append(summary.getRoundsTrained()).append("\n");
+        sb.append("RMS Error: ").append(summary.getRmsError()).append("\n");
         for (InputsAndTarget trainDatum : net.getDataSpec().getTrainData()) {
             writeDataLine(sb, trainDatum, net);
         }
@@ -678,8 +679,26 @@ public class RectNetFixed extends Net {
             net = RectNetFixed.trainFile(fileName, verbose, saveFile, testing, timeRemaining, sfType, triesRemaining--);
         }
         int timeExpired = (int)((System.currentTimeMillis() - net.timingInfo.getStartTime())/1000);
-        net.trainingSummary = new TrainingSummary(trainingStats.stopReason, timeExpired, fileIteration);
+        double rmsError = computeRmsError(net, inputsAndTargets);
+        net.trainingSummary = new TrainingSummary(trainingStats.stopReason, timeExpired, fileIteration, rmsError);
         return net;
+    }
+
+    private static double computeRmsError(RectNetFixed net, List<InputsAndTarget> inputsAndTargets) {
+        double totalRmsError = 0;
+        for (int lcv = 0; lcv < inputsAndTargets.size(); lcv++) {
+            InputsAndTarget inputsAndTarget = inputsAndTargets.get(lcv);
+            net.setInputs(inputsAndTarget.getInputs());
+            double target = inputsAndTarget.getTarget().doubleValue();
+            double actual = net.getOutput().doubleValue();
+            double square = Math.pow(target - actual, 2);
+            totalRmsError += square;
+        }
+        if (totalRmsError == 0) {
+            return 0;
+        } else {
+            return Math.sqrt(totalRmsError / (1.0 * inputsAndTargets.size()));
+        }
     }
 
     // FIXME: wtf is this method doing?
