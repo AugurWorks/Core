@@ -1,4 +1,4 @@
-package alfred;
+package alfred.server;
 
 import java.io.BufferedReader;
 import java.io.PrintWriter;
@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.IOUtils;
 
-import alfred.AlfredServer.Command;
+import alfred.server.AlfredServer.Command;
 
 public class AlfredCommunicationHandler implements Runnable {
 
@@ -97,8 +97,17 @@ public class AlfredCommunicationHandler implements Runnable {
             sb.append("  Jobs in progress : " + alfredListener.getJobsInProgress()).append("\n");
             sb.append("  Jobs submitted   : " + alfredListener.getJobsSubmitted()).append("\n");
             sb.append("  Jobs completed   : " + alfredListener.getJobsCompleted()).append("\n");
+            sb.append(alfredListener.getCurrentJobStatusesPretty());
             writer.write(sb.toString());
             return;
+        case CANCEL_JOB:
+            String[] split2 = line.split(" ");
+            if (split2.length < 2) {
+                System.err.println("Could not parse file name to cancel.");
+                writer.write("Could not parse file name to cancel.");
+            } else {
+                alfredListener.cancelJob(split2[1]);
+            }
         default:
             return;
         }

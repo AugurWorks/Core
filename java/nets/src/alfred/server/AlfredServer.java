@@ -1,4 +1,4 @@
-package alfred;
+package alfred.server;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -21,6 +22,8 @@ import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.apache.log4j.BasicConfigurator;
 
+import alfred.scaling.ScaleFunctions.ScaleFunctionType;
+
 import com.google.common.base.Throwables;
 
 
@@ -28,6 +31,7 @@ public class AlfredServer {
 
     private static final int DEFAULT_NUM_THREADS = 16;
     private static final int DEFAULT_TIMEOUT_SECONDS = 3600;
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     public static void main(String[] args) {
         BasicConfigurator.configure();
@@ -38,7 +42,7 @@ public class AlfredServer {
         FileAlterationMonitor fileAlterationMonitor = new FileAlterationMonitor();
         FileAlterationObserver fileAlterationObserver = new FileAlterationObserver(serverArgs.fileToWatch);
         fileAlterationMonitor.addObserver(fileAlterationObserver);
-        AlfredDirectoryListener alfredListener = new AlfredDirectoryListener(serverArgs.numThreads, serverArgs.timeoutSeconds);
+        AlfredDirectoryListener alfredListener = new AlfredDirectoryListener(serverArgs.numThreads, serverArgs.timeoutSeconds, serverArgs.scaleType);
         fileAlterationObserver.addListener(alfredListener);
         try {
             fileAlterationObserver.initialize();
@@ -49,6 +53,7 @@ public class AlfredServer {
         }
         System.out.println(String.format("Alfred Server started on %s with %s threads and a job timeout of %s seconds",
                 serverArgs.fileToWatch, serverArgs.numThreads, serverArgs.timeoutSeconds));
+        startJobStatusThread(alfredListener);
         if (serverArgs.serverPort == null) {
             System.out.println("Will listen for input on System.in");
             listenOnSystemIn(alfredListener);
@@ -64,6 +69,11 @@ public class AlfredServer {
         }
         System.out.println("Alfred Server stopped.");
         System.exit(0);
+    }
+
+    private static void startJobStatusThread(AlfredDirectoryListener listener) {
+        ExecutorService exec = Executors.newCachedThreadPool();
+        exec.submit(getJobStatusPollThread(listener));
     }
 
     private static CommandLine parseArgs(String[] args) {
@@ -90,12 +100,14 @@ public class AlfredServer {
                 "Default " + DEFAULT_NUM_THREADS + ".");
         Option portOption = new Option("p", "port", true, "Port to listen on. Will listen on System.in if unspecified.");
         Option timeoutOption = new Option("s", "timeout", true, "Timeout in seconds for a net to train. " +
-                "Default " + DEFAULT_TIMEOUT_SECONDS + ".");
+                "Default " + DEFAULT_TIMEOUT_SECONDS + ". If <= 0, jobs will not time out.");
+        Option scaleFunctionOption = new Option("f", "func", true, "Scale function type. Defaults to LINEAR. Other option is SIGMOID.");
 
         options.addOption(dirOption);
         options.addOption(threadOption);
         options.addOption(portOption);
         options.addOption(timeoutOption);
+        options.addOption(scaleFunctionOption);
 
         return options;
     }
@@ -145,6 +157,26 @@ public class AlfredServer {
         };
     }
 
+    private static Runnable getJobStatusPollThread(final AlfredDirectoryListener listener) {
+        return new Runnable() {
+
+            @Override
+            public void run() {
+                while (true) {
+                    String now = DATE_FORMAT.format(System.currentTimeMillis());
+                    System.out.println(now + " " + listener.getCurrentJobStatusesPretty());
+                    try {
+                        Thread.sleep(60000);
+                    } catch (InterruptedException e) {
+                        System.err.println("Interrupted in job status polling thread");
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+        };
+    }
+
     private static void listenOnSystemIn(AlfredDirectoryListener alfredListener) {
         BufferedReader commands = new BufferedReader(new InputStreamReader(System.in));
         PrintWriter writer = new PrintWriter(System.out);
@@ -156,12 +188,14 @@ public class AlfredServer {
         public final int numThreads;
         public final Integer serverPort;
         public final int timeoutSeconds;
+        public final ScaleFunctionType scaleType;
 
-        public AlfredServerArgs(File fileToWatch, int numThreads, Integer serverPort, int timeoutSeconds) {
+        public AlfredServerArgs(File fileToWatch, int numThreads, Integer serverPort, int timeoutSeconds, ScaleFunctionType scaleType) {
             this.fileToWatch = fileToWatch;
             this.numThreads = numThreads;
             this.serverPort = serverPort;
             this.timeoutSeconds = timeoutSeconds;
+            this.scaleType = scaleType;
         }
     }
 
@@ -217,7 +251,11 @@ public class AlfredServer {
                 throw new IllegalArgumentException("Could not parse " + timeout + " as an integer.", e);
             }
         }
-        return new AlfredServerArgs(f, numThreads, serverPort, timeoutSeconds);
+        ScaleFunctionType sfType = ScaleFunctionType.LINEAR;
+        if (cmd.hasOption("f")) {
+            sfType = ScaleFunctionType.fromString(cmd.getOptionValue("f"));
+        }
+        return new AlfredServerArgs(f, numThreads, serverPort, timeoutSeconds, sfType);
     }
 
     private static void usage() {
@@ -230,6 +268,7 @@ public class AlfredServer {
         SHUTDOWN("shutdown", "Causes the server to shut down, waiting " +
                 "up to the given number of minutes for task completion."),
         STATUS("status", "Prints the status of the server."),
+        CANCEL_JOB("cancel", "Cancels a job if possible."),
         ;
 
         private String helpText;

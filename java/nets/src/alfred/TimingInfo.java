@@ -15,7 +15,11 @@ public class TimingInfo {
     }
 
     public boolean hasTimeExpired() {
-        return System.currentTimeMillis() > (startTime + maxAllowedDuration);
+        if (maxAllowedDuration <= 0) {
+            return false;
+        } else {
+            return System.currentTimeMillis() > (startTime + maxAllowedDuration);
+        }
     }
 
     public long getStartTime() {

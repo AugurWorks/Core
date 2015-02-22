@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 
 import org.apache.commons.lang3.Validate;
 
+import alfred.util.BigDecimals;
+
 public class FixedNeuron implements Input {
     private BigDecimal[] weights;
     private Input[] inputs;
@@ -106,24 +108,6 @@ public class FixedNeuron implements Input {
     }
 
     /**
-     * Performs the sigmoid function on an input y = 1 / (1 + exp(-alpha*x))
-     * Used internally in getOutput method. Alpha is set to 3 currently.
-     *
-     * @param input
-     *            X
-     * @return sigmoid(x)
-     */
-    private BigDecimal sigmoid(BigDecimal input) {
-        //	1.0 / (1.0 + Math.exp(-3.0 * input));
-        return BigDecimal.ONE.divide(
-                BigDecimal.ONE.add(
-                        BigDecimals.exp(BigDecimal.valueOf(-3).multiply(input,
-                                                                        BigDecimals.MATH_CONTEXT)),
-                        BigDecimals.MATH_CONTEXT),
-                BigDecimals.MATH_CONTEXT);
-    }
-
-    /**
      * Gets the output of this neuron, which implicitly calculates the outputs
      * of all the neurons below, unless the given code is the same as the prior
      * code (indicating that a complete recompute is not necessary).
@@ -142,7 +126,7 @@ public class FixedNeuron implements Input {
         for (int i = 0; i < this.numInputs; i++) {
             sum = sum.add(this.weights[i].multiply(this.inputs[i].getOutput(code)));
         }
-        sum = sigmoid(sum);
+        sum = BigDecimals.sigmoid(sum);
         this.lastOutput = sum;
         return sum;
     }
@@ -157,7 +141,7 @@ public class FixedNeuron implements Input {
         for (int i = 0; i < this.numInputs; i++) {
             sum = sum.add(this.weights[i].multiply(this.inputs[i].getOutput()));
         }
-        sum = sigmoid(sum);
+        sum = BigDecimals.sigmoid(sum);
         this.lastOutput = sum;
         return sum;
     }
@@ -186,7 +170,7 @@ public class FixedNeuron implements Input {
         for (int i = 0; i < this.numInputs; i++) {
             sum = sum.add(this.weights[i].multiply(ins[i]));
         }
-        sum = sigmoid(sum);
+        sum = BigDecimals.sigmoid(sum);
         this.lastOutput = sum;
         return sum;
     }

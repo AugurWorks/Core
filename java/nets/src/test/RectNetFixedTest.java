@@ -14,6 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import alfred.RectNetFixed;
+import alfred.scaling.ScaleFunctions.ScaleFunctionType;
 
 public class RectNetFixedTest {
     private RectNetFixed net;
@@ -441,7 +442,7 @@ public class RectNetFixedTest {
     }
 
     @Test
-    public void testTrain() {
+    public void testTrain() throws InterruptedException {
         // simple silly gate
         BigDecimal[] inpts = new BigDecimal[2];
         inpts[0] = BigDecimal.valueOf(0.2);
@@ -556,42 +557,42 @@ public class RectNetFixedTest {
         // try a broken file - should fail
         long defaultTime = 1000 * 60;
         try {
-            RectNetFixed.trainFile(prefix + "broken_data.augtrain", false, "test", false, defaultTime);
+            RectNetFixed.trainFile(prefix + "broken_data.augtrain", false, "test", false, defaultTime, ScaleFunctionType.LINEAR);
             fail("Should not have succeeded on a broken file");
         } catch (Exception e) {
             // should go here
         }
         // try a broken file - should fail
         try {
-            RectNetFixed.trainFile(prefix + "broken_header.augtrain", false, "test", false, defaultTime);
+            RectNetFixed.trainFile(prefix + "broken_header.augtrain", false, "test", false, defaultTime, ScaleFunctionType.LINEAR);
             fail("Should not have succeeded on a broken file");
         } catch (Exception e) {
             // should go here
         }
         // try a broken file - should fail
         try {
-            RectNetFixed.trainFile(prefix + "broken_numinputs.augtrain", false, "test", false, defaultTime);
+            RectNetFixed.trainFile(prefix + "broken_numinputs.augtrain", false, "test", false, defaultTime, ScaleFunctionType.LINEAR);
             fail("Should not have succeeded on a broken file");
         } catch (Exception e) {
             // should go here
         }
         // try a broken file - should fail
         try {
-            RectNetFixed.trainFile(prefix + "broken_titles.augtrain", false, "test", false, defaultTime);
+            RectNetFixed.trainFile(prefix + "broken_titles.augtrain", false, "test", false, defaultTime, ScaleFunctionType.LINEAR);
             fail("Should not have succeeded on a broken file");
         } catch (Exception e) {
             // should go here
         }
         // try a broken file - should fail
         try {
-            RectNetFixed.trainFile(prefix + "broken_trainline.augtrain", false, "test", false, defaultTime);
+            RectNetFixed.trainFile(prefix + "broken_trainline.augtrain", false, "test", false, defaultTime, ScaleFunctionType.LINEAR);
             fail("Should not have succeeded on a broken file");
         } catch (Exception e) {
             // should go here
         }
         // now a working file
         try {
-            net = RectNetFixed.trainFile(prefix + "OR_clean.augtrain", false, "test", false, defaultTime);
+            net = RectNetFixed.trainFile(prefix + "OR_clean.augtrain", false, "test", false, defaultTime, ScaleFunctionType.LINEAR);
             assertNotNull(net);
             assertEquals("X should be 3", 3, net.getX());
             assertEquals("Y should be 2", 2, net.getY());
@@ -620,7 +621,7 @@ public class RectNetFixedTest {
         }
         // AND_clean
         try {
-            net = RectNetFixed.trainFile(prefix + "AND_clean.augtrain", false, "test", false, defaultTime);
+            net = RectNetFixed.trainFile(prefix + "AND_clean.augtrain", false, "test", false, defaultTime, ScaleFunctionType.LINEAR);
             assertNotNull(net);
             assertEquals("X should be 4", 4, net.getX());
             assertEquals("Y should be 2", 2, net.getY());
