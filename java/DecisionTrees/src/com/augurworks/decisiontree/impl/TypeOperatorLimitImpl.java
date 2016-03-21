@@ -4,79 +4,78 @@ import com.augurworks.decisiontree.BinaryOperator;
 import com.augurworks.decisiontree.TypeOperatorLimit;
 
 public class TypeOperatorLimitImpl<K,V> implements TypeOperatorLimit<K,V> {
-	private static final long serialVersionUID = 1L;
-	private K type;
-	private V limit;
-	private BinaryOperator<V> operator;
-	
-	public TypeOperatorLimitImpl(K type, V limit, BinaryOperator<V> operator) {
-		this.type = type;
-		this.limit = limit;
-		this.operator = operator;
-	}
+    private static final long serialVersionUID = 1L;
+    private K type;
+    private V limit;
+    private BinaryOperator<V> operator;
 
-	@Override
-	public K getType() {
-		return type;
-	}
+    public TypeOperatorLimitImpl(K type, V limit, BinaryOperator<V> operator) {
+        this.type = type;
+        this.limit = limit;
+        this.operator = operator;
+    }
 
-	@Override
-	public V getLimit() {
-		return limit;
-	}
+    @Override
+    public K getType() {
+        return type;
+    }
 
-	@Override
-	public BinaryOperator<V> getOperator() {
-		return operator;
-	}
+    @Override
+    public V getLimit() {
+        return limit;
+    }
 
-	@Override
-	public String toString() {
-		return "TypeOperatorLimitImpl [type=" + type + ", limit=" + limit
-				+ ", operator=" + operator + "]";
-	}
+    @Override
+    public BinaryOperator<V> getOperator() {
+        return operator;
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((limit == null) ? 0 : limit.hashCode());
-		result = prime * result
-				+ ((operator == null) ? 0 : operator.hashCode());
-		result = prime * result + ((type == null) ? 0 : type.hashCode());
-		return result;
-	}
+    @Override
+    public String toString() {
+        return "(" + type + " " + operator + " " + limit + ")";
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		TypeOperatorLimitImpl<?, ?> other = (TypeOperatorLimitImpl<?, ?>) obj;
-		if (limit == null) {
-			if (other.limit != null)
-				return false;
-		} else if (!limit.equals(other.limit))
-			return false;
-		if (operator == null) {
-			if (other.operator != null)
-				return false;
-		} else if (!operator.equals(other.operator))
-			return false;
-		if (type == null) {
-			if (other.type != null)
-				return false;
-		} else if (!type.equals(other.type))
-			return false;
-		return true;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((limit == null) ? 0 : limit.hashCode());
+        result = prime * result
+                + ((operator == null) ? 0 : operator.hashCode());
+        result = prime * result + ((type == null) ? 0 : type.hashCode());
+        return result;
+    }
 
-	@Override
-	public TypeOperatorLimit<K, V> copy() {
-		return new TypeOperatorLimitImpl<K, V>(type, limit, operator);
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        TypeOperatorLimitImpl<?, ?> other = (TypeOperatorLimitImpl<?, ?>) obj;
+        if (limit == null) {
+            if (other.limit != null)
+                return false;
+        } else if (!limit.equals(other.limit))
+            return false;
+        if (operator == null) {
+            if (other.operator != null)
+                return false;
+        } else if (!operator.equals(other.operator))
+            return false;
+        if (type == null) {
+            if (other.type != null)
+                return false;
+        } else if (!type.equals(other.type))
+            return false;
+        return true;
+    }
+
+    @Override
+    public TypeOperatorLimit<K, V> copy() {
+        return new TypeOperatorLimitImpl<K, V>(type, limit, operator);
+    }
 
 }

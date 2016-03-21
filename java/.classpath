@@ -10,5 +10,22 @@
 	<classpathentry kind="lib" path="nets/lib/log4j-1.2.17.jar"/>
 	<classpathentry kind="lib" path="nets/lib/commons-cli-1.2.jar"/>
 	<classpathentry kind="lib" path="nets/lib/commons-math3-3.4.1.jar"/>
+	<classpathentry kind="lib" path="/home/saf/code/aw_core/java/nets/spring-source/target/dependencies/aopalliance-1.0.jar"/>
+	<classpathentry kind="lib" path="/home/saf/code/aw_core/java/nets/spring-source/target/dependencies/commons-logging-1.1.1.jar"/>
+	<classpathentry kind="lib" path="/home/saf/code/aw_core/java/nets/spring-source/target/dependencies/spring-aop-3.2.4.RELEASE.jar"/>
+	<classpathentry kind="lib" path="/home/saf/code/aw_core/java/nets/spring-source/target/dependencies/spring-beans-3.2.4.RELEASE.jar"/>
+	<classpathentry kind="lib" path="/home/saf/code/aw_core/java/nets/spring-source/target/dependencies/spring-context-3.2.4.RELEASE.jar"/>
+	<classpathentry kind="lib" path="/home/saf/code/aw_core/java/nets/spring-source/target/dependencies/spring-core-3.2.4.RELEASE.jar"/>
+	<classpathentry kind="lib" path="/home/saf/code/aw_core/java/nets/spring-source/target/dependencies/spring-expression-3.2.4.RELEASE.jar"/>
+	<classpathentry kind="lib" path="/home/saf/code/aw_core/java/nets/spring-source/target/SpringDependencies-1.0.jar"/>
+	<classpathentry kind="lib" path="/home/saf/code/aw_core/java/nets/spring-source/target/dependencies/spring-webmvc-portlet-3.2.4.RELEASE.jar"/>
+	<classpathentry kind="lib" path="/home/saf/code/aw_core/java/nets/spring-source/target/dependencies/spring-webmvc-3.2.4.RELEASE.jar"/>
+	<classpathentry kind="lib" path="/home/saf/code/aw_core/java/nets/spring-source/target/dependencies/spring-web-3.2.4.RELEASE.jar"/>
+	<classpathentry kind="lib" path="/home/saf/code/aw_core/java/nets/spring-source/target/dependencies/spring-tx-3.2.4.RELEASE.jar"/>
+	<classpathentry kind="lib" path="/home/saf/code/aw_core/java/nets/spring-source/target/dependencies/spring-test-3.2.4.RELEASE.jar"/>
+	<classpathentry kind="lib" path="/home/saf/code/aw_core/java/nets/spring-source/target/dependencies/spring-oxm-3.2.4.RELEASE.jar"/>
+	<classpathentry kind="lib" path="/home/saf/code/aw_core/java/nets/spring-source/target/dependencies/spring-orm-3.2.4.RELEASE.jar"/>
+	<classpathentry kind="lib" path="/home/saf/code/aw_core/java/nets/spring-source/target/dependencies/spring-jdbc-3.2.4.RELEASE.jar"/>
+	<classpathentry kind="lib" path="/home/saf/code/aw_core/java/nets/spring-source/target/dependencies/spring-context-support-3.2.4.RELEASE.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

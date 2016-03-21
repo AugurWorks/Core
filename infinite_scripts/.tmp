@@ -1,0 +1,1 @@
+select price, day_change, volume, adjusted_close from augurworks.stocks where ticker='dia' order by date desc;

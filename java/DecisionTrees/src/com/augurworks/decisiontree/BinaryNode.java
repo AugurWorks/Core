@@ -10,19 +10,21 @@ import java.io.Serializable;
  * @param <U> output type
  * @param <V> return type
  */
-public interface BinaryNode<T extends Copyable<T>,U extends Copyable<U>,V extends Copyable<V>> extends Serializable {
-	public BinaryNode<T,U,V> getLeftHandChild();
-	public BinaryNode<T,U,V> getRightHandChild();
-	public void setLeftHandChild(BinaryNode<T,U,V> left);
-	public void setRightHandChild(BinaryNode<T,U,V> right);
-	public void setTypeOperatorLimit(TypeOperatorLimit<T,U> tol);
-	public void setDefaultLeft(V newDefLeft);
-	public void setDefaultRight(V newDefRight);
-	public V evaluate(Row<T,U,V> inputs);
-	public BinaryOperator<U> getOperator();
-	public BinaryNode<T, U, V> copy();
-	public U getLimit();
-	public T getOperatorType();
-	public V getDefaultLeft();
-	public V getDefaultRight();
+public interface BinaryNode<T extends Copyable<T>, U extends Copyable<U>, V extends Copyable<V>> extends Serializable {
+    BinaryNode<T,U,V> getLeftHandChild();
+    BinaryNode<T,U,V> getRightHandChild();
+    void setLeftHandChild(BinaryNode<T,U,V> left);
+    void setRightHandChild(BinaryNode<T,U,V> right);
+    void setTypeOperatorLimit(TypeOperatorLimit<T,U> tol);
+    void setDefaultLeft(V newDefLeft);
+    void setDefaultRight(V newDefRight);
+    V evaluate(Row<T,U,V> inputs);
+    BinaryOperator<U> getOperator();
+    BinaryNode<T, U, V> copy();
+    U getLimit();
+    T getOperatorType();
+    V getDefaultLeft();
+    V getDefaultRight();
+    String toFancyString();
+    String toFancyString(int indents);
 }
